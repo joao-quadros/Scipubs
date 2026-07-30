@@ -51,7 +51,7 @@ def get_image_src(nome_arquivo):
         return nome_arquivo
     return "logo.png"
 
-def get_banner_src(idioma="Português"):
+def get_banner_src(idioma="English"):
     if idioma == "English":
         fname = "banner_en.png"
     elif idioma == "Español":
@@ -167,125 +167,6 @@ def match_boolean_stem(texto_alvo, query):
 # 🌐 DICIONÁRIO DE TRADUÇÃO TRILÍNGUE EXAUSTIVO (100%)
 # ==========================================
 DIC_TRANSLATE = {
-    "Português": {
-        "titulo_pagina": "SciPubs - O Portal do Pesquisador",
-        "titulo": "O Portal do Pesquisador",
-        "subtitulo": "A ciência aberta importa. Sem perguntas. Sem taxas. Sem anúncios. Apenas use.",
-        "nav_tit": "Painel de Navegação",
-        "indexadores_tit": "BASES DE DADOS",
-        "repositorios_tit": "REPOSITÓRIOS",
-        "ia_tit": "IA ACADÊMICA",
-        "gov_tit": "SITES GOVERNAMENTAIS",
-        "inst_tit": "INFORMAÇÕES INSTITUCIONAIS",
-        "pessoal_lbl": "Site pessoal",
-        "cat_capes_lbl": "Catálogo da CAPES",
-        "lattes_lbl": "Currículo Lattes",
-        "periodicos_capes_lbl": "Portal de Periódicos CAPES",
-        "musica_ufop_lbl": "Música-UFOP",
-        "copyright_tit": "Direitos Autorais:",
-        "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidade Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos os direitos reservados.",
-        "busca_cat": "🔎 Buscador de Periódicos",
-        "busca_ia": "Recomendador Inteligente (IA)",
-        "fale_conosco": "Fale conosco",
-        "doacoes": "☕ Doações",
-        "inscrever": "✉️ Inscrever-se",
-        "baixar_win": "💻 Baixar Versão para Windows",
-        "sobre_tit": "💡 Sobre o SciPubs & Como Usar",
-        "sobre_head": "Bem-vindo ao SciPubs: O Portal do Pesquisador!",
-        "sobre_sub": "Ferramenta desenvolvida para otimizar a busca por periódicos científicos de alto impacto.",
-        "sobre_what": "O que você pode fazer aqui?",
-        "item1_title": "1. Busca Avançada & Booleana: ",
-        "item1_desc1": "Pesquise por expressões exatas usando aspas (ex: ",
-        "item1_desc2": " ) ou combine múltiplos critérios usando os operadores lógicos ",
-        "item1_desc3": " (ex: ",
-        "item1_desc4": " ).",
-        "item2_title": "2. Filtro por Subárea (CNPq): ",
-        "item2_desc": "Encontre periódicos perfeitamente alinhados com a sua subárea específica de conhecimento.",
-        "item3_title": "3. Métricas de Impacto: ",
-        "item3_desc": "Analise o prestígio internacional através de quartis e indicadores consolidados do JCR (Clarivate), SJR (Scopus), Índice-H e acesse o link para o Índice-h5 (Google Acadêmico).",
-        "item4_title": "4. Recomendador Inteligente (IA): ",
-        "item4_desc": "Cole o título e resumo do seu artigo e deixe a IA recomendar as melhores opções com justificativa temática e links para os sites.",
-        "item5_title": "5. Exportação de Dados: ",
-        "item5_desc": "Filtre ou selecione as revistas de seu interesse e faça o download da tabela personalizada imediatamente.",
-        "cat_tit": "Catálogo de Periódicos",
-        "placeholder_busca": "Digite o título da revista, ISSN ou palavra-chave (Suporta AND, OR, NOT e \"frases exatas\")...",
-        "grande_area_lbl": "Grande Área",
-        "area_lbl": "Área do Conhecimento",
-        "cat_lbl": "Categoria / Subárea do Conhecimento",
-        "bases_lbl": "Bases de dados",
-        "quartil_jcr_lbl": "Quartil JCR",
-        "quartil_sjr_lbl": "Quartil SJR",
-        "ordenar_lbl": "Ordenar resultados por",
-        "itens_pag_lbl": "Exibir por página",
-        "h_lbl": "Índice H",
-        "pesquisar": "Pesquisar",
-        "todas": "Todas",
-        "todos": "Todos",
-        "nao_informado": "Não informado",
-        "geral": "Geral",
-        "multidisciplinar": "Multidisciplinar",
-        "ia_titulo": "Recomendação Temática com Inteligência Artificial",
-        "ia_subtitulo": "Cole o título e o resumo do seu artigo. A IA analisa seu conteúdo e sugere as melhores revistas com métricas enriquecidas.",
-        "ia_campo_titulo": "Título do Artigo / Manuscrito",
-        "ia_campo_resumo": "Resumo / Abstract (Suporta Português, Inglês ou Espanhol)",
-        "ia_gemini_key": "Chave Gemini (opcional)",
-        "ia_gemini_hint": "Deixe em branco para usar Ollama local ou algoritmo local",
-        "ia_gemini_status": "🔑 Chave API do Gemini configurada",
-        "ia_btn_gerar": "Analisar e Recomendar",
-        "ai_engine_tit": "Motor de IA",
-        "ai_engine_sub": "Recomendações via IA generativa — Gemini (nuvem) ou Ollama (local, 100% gratuito).",
-        "about_modes_tit": "Sobre os modos de IA",
-        "how_gemini_tit": "Como obter chave Gemini gratuita?",
-        "refine_targets": "Refinar Pesquisa por Base de Dados",
-        "database_ia_lbl": "Base de dados (IA)",
-        "num_recs_lbl": "Quantidade de recomendações desejadas (máx. 20)",
-        "acesse_site": "Acesse o site",
-        "ver_h5": "Ver Índice-H5",
-        "fechar": "Fechar",
-        "sub_modal_tit": "Join our VIP Community! 🚀",
-        "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
-        "nome": "Full Name:",
-        "email": "Email:",
-        "doacao_modal_tit": "Apoie o SciPubs!",
-        "doacao_modal_desc": (
-            "A sua doação voluntária é fundamental para mantermos os nossos servidores ativos e continuarmos "
-            "desenvolvendo novas ferramentas tecnológicas para a comunidade acadêmica e científica.\n\n"
-            "Nós utilizamos o Buy Me a Coffee, uma plataforma internacional segura ($5 por café)."
-        ),
-        "link_doacao": "Clique aqui para doar pelo Buy Me a Coffee",
-        "lang_lbl": "Language / Idioma:",
-        "sem_resultados": "Nenhum periódico encontrado com os critérios fornecidos.",
-        "alerta_ia": "Digite o título e/ou resumo do manuscrito para gerar a recomendação.",
-        "baixar_csv": "Download (.csv)",
-        "baixar_excel": "Download (.xlsx)",
-        "selecionados": "selecionados",
-        "pag_anterior": "Anterior",
-        "pag_proxima": "Próxima",
-        "pagina_fmt": "Página {atual} de {total} ({total_itens} registros encontrados)",
-        "snack_msg": "✅ Arquivo {fname} gerado com sucesso! Se o download não iniciar, verifique a permissão de pop-up do navegador.",
-        "exp1_items": [
-            "A IA analisa semanticamente seu título e resumo",
-            "Cruza com o catálogo local e bases acadêmicas (OpenAlex)",
-            "Retorna recomendações com métricas enriquecidas",
-            "Para obter resultados mais ágeis, você pode inserir uma chave API do Gemini AI; o passo a passo para a obtenção gratuita é explicado abaixo.",
-            "Caso não tenha ou não queira usar essa opção, você poderá realizar a busca deixando em branco essa janela e usando o Ollama (Llama 3) como IA."
-        ],
-        "exp2_items": [
-            "Acesse aistudio.google.com",
-            "Faça login com sua conta Google",
-            "Clique em \"Get API Key\" → \"Create API Key\"",
-            "Copie a chave e cole acima"
-        ],
-        "areas": ["Todas", "Ciências Exatas e da Terra", "Ciências Biológicas", "Engenharias", "Ciências da Saúde", "Ciências Agrárias", "Ciências Sociais Aplicadas", "Ciências Humanas", "Linguística, Letras e Artes"],
-        "ordem_opts": [
-            "Título da Revista (A-Z)",
-            "Título da Revista (Z-A)",
-            "Base de dados",
-            "JIF (maior para o menor)",
-            "SJR (maior para o menor)",
-            "H-Index (maior para o menor)"
-        ]
-    },
     "English": {
         "titulo_pagina": "SciPubs - The Researcher's Portal",
         "titulo": "The Researcher's Portal",
@@ -403,6 +284,125 @@ DIC_TRANSLATE = {
             "JIF (highest to lowest)",
             "SJR (highest to lowest)",
             "H-Index (highest to lowest)"
+        ]
+    },
+    "Português": {
+        "titulo_pagina": "SciPubs - O Portal do Pesquisador",
+        "titulo": "O Portal do Pesquisador",
+        "subtitulo": "A ciência aberta importa. Sem perguntas. Sem taxas. Sem anúncios. Apenas use.",
+        "nav_tit": "Painel de Navegação",
+        "indexadores_tit": "BASES DE DADOS",
+        "repositorios_tit": "REPOSITÓRIOS",
+        "ia_tit": "IA ACADÊMICA",
+        "gov_tit": "SITES GOVERNAMENTAIS",
+        "inst_tit": "INFORMAÇÕES INSTITUCIONAIS",
+        "pessoal_lbl": "Site pessoal",
+        "cat_capes_lbl": "Catálogo da CAPES",
+        "lattes_lbl": "Currículo Lattes",
+        "periodicos_capes_lbl": "Portal de Periódicos CAPES",
+        "musica_ufop_lbl": "Música-UFOP",
+        "copyright_tit": "Direitos Autorais:",
+        "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidade Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos os direitos reservados.",
+        "busca_cat": "🔎 Buscador de Periódicos",
+        "busca_ia": "Recomendador Inteligente (IA)",
+        "fale_conosco": "Fale conosco",
+        "doacoes": "☕ Doações",
+        "inscrever": "✉️ Inscrever-se",
+        "baixar_win": "💻 Baixar Versão para Windows",
+        "sobre_tit": "💡 Sobre o SciPubs & Como Usar",
+        "sobre_head": "Bem-vindo ao SciPubs: O Portal do Pesquisador!",
+        "sobre_sub": "Ferramenta desenvolvida para otimizar a busca por periódicos científicos de alto impacto.",
+        "sobre_what": "O que você pode fazer aqui?",
+        "item1_title": "1. Busca Avançada & Booleana: ",
+        "item1_desc1": "Pesquise por expressões exatas usando aspas (ex: ",
+        "item1_desc2": " ) ou combine múltiplos critérios usando os operadores lógicos ",
+        "item1_desc3": " (ex: ",
+        "item1_desc4": " ).",
+        "item2_title": "2. Filtro por Subárea (CNPq): ",
+        "item2_desc": "Encontre periódicos perfeitamente alinhados com a sua subárea específica de conhecimento.",
+        "item3_title": "3. Métricas de Impacto: ",
+        "item3_desc": "Analise o prestígio internacional através de quartis e indicadores consolidados do JCR (Clarivate), SJR (Scopus), Índice-H e acesse o link para o Índice-h5 (Google Acadêmico).",
+        "item4_title": "4. Recomendador Inteligente (IA): ",
+        "item4_desc": "Cole o título e resumo do seu artigo e deixe a IA recomendar as melhores opções com justificativa temática e links para os sites.",
+        "item5_title": "5. Exportação de Dados: ",
+        "item5_desc": "Filtre ou selecione as revistas de seu interesse e faça o download da tabela personalizada imediatamente.",
+        "cat_tit": "Catálogo de Periódicos",
+        "placeholder_busca": "Digite o título da revista, ISSN ou palavra-chave (Suporta AND, OR, NOT e \"frases exatas\")...",
+        "grande_area_lbl": "Grande Área",
+        "area_lbl": "Área do Conhecimento",
+        "cat_lbl": "Categoria / Subárea do Conhecimento",
+        "bases_lbl": "Bases de dados",
+        "quartil_jcr_lbl": "Quartil JCR",
+        "quartil_sjr_lbl": "Quartil SJR",
+        "ordenar_lbl": "Ordenar resultados por",
+        "itens_pag_lbl": "Exibir por página",
+        "h_lbl": "Índice H",
+        "pesquisar": "Pesquisar",
+        "todas": "Todas",
+        "todos": "Todos",
+        "nao_informado": "Não informado",
+        "geral": "Geral",
+        "multidisciplinar": "Multidisciplinar",
+        "ia_titulo": "Recomendação Temática com Inteligência Artificial",
+        "ia_subtitulo": "Cole o título e o resumo do seu artigo. A IA analisa seu conteúdo e sugere as melhores revistas com métricas enriquecidas.",
+        "ia_campo_titulo": "Título do Artigo / Manuscrito",
+        "ia_campo_resumo": "Resumo / Abstract (Suporta Português, Inglês ou Espanhol)",
+        "ia_gemini_key": "Chave Gemini (opcional)",
+        "ia_gemini_hint": "Deixe em branco para usar Ollama local ou algoritmo local",
+        "ia_gemini_status": "🔑 Chave API do Gemini configurada",
+        "ia_btn_gerar": "Analisar e Recomendar",
+        "ai_engine_tit": "Motor de IA",
+        "ai_engine_sub": "Recomendações via IA generativa — Gemini (nuvem) ou Ollama (local, 100% gratuito).",
+        "about_modes_tit": "Sobre os modos de IA",
+        "how_gemini_tit": "Como obter chave Gemini gratuita?",
+        "refine_targets": "Refinar Pesquisa por Base de Dados",
+        "database_ia_lbl": "Base de dados (IA)",
+        "num_recs_lbl": "Quantidade de recomendações desejadas (máx. 20)",
+        "acesse_site": "Acesse o site",
+        "ver_h5": "Ver Índice-H5",
+        "fechar": "Fechar",
+        "sub_modal_tit": "Join our VIP Community! 🚀",
+        "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
+        "nome": "Full Name:",
+        "email": "Email:",
+        "doacao_modal_tit": "Apoie o SciPubs!",
+        "doacao_modal_desc": (
+            "A sua doação voluntária é fundamental para mantermos os nossos servidores ativos e continuarmos "
+            "desenvolvendo novas ferramentas tecnológicas para a comunidade acadêmica e científica.\n\n"
+            "Nós utilizamos o Buy Me a Coffee, uma plataforma internacional segura ($5 por café)."
+        ),
+        "link_doacao": "Clique aqui para doar pelo Buy Me a Coffee",
+        "lang_lbl": "Language / Idioma:",
+        "sem_resultados": "Nenhum periódico encontrado com os critérios fornecidos.",
+        "alerta_ia": "Digite o título e/ou resumo do manuscrito para gerar a recomendação.",
+        "baixar_csv": "Download (.csv)",
+        "baixar_excel": "Download (.xlsx)",
+        "selecionados": "selecionados",
+        "pag_anterior": "Anterior",
+        "pag_proxima": "Próxima",
+        "pagina_fmt": "Página {atual} de {total} ({total_itens} registros encontrados)",
+        "snack_msg": "✅ Arquivo {fname} gerado com sucesso! Se o download não iniciar, verifique a permissão de pop-up do navegador.",
+        "exp1_items": [
+            "A IA analisa semanticamente seu título e resumo",
+            "Cruza com o catálogo local e bases acadêmicas (OpenAlex)",
+            "Retorna recomendações com métricas enriquecidas",
+            "Para obter resultados mais ágeis, você pode inserir uma chave API do Gemini AI; o passo a passo para a obtenção gratuita é explicado abaixo.",
+            "Caso não tenha ou não queira usar essa opção, você poderá realizar a busca deixando em branco essa janela e usando o Ollama (Llama 3) como IA."
+        ],
+        "exp2_items": [
+            "Acesse aistudio.google.com",
+            "Faça login com sua conta Google",
+            "Clique em \"Get API Key\" → \"Create API Key\"",
+            "Copie a chave e cole acima"
+        ],
+        "areas": ["Todas", "Ciências Exatas e da Terra", "Ciências Biológicas", "Engenharias", "Ciências da Saúde", "Ciências Agrárias", "Ciências Sociais Aplicadas", "Ciências Humanas", "Linguística, Letras e Artes"],
+        "ordem_opts": [
+            "Título da Revista (A-Z)",
+            "Título da Revista (Z-A)",
+            "Base de dados",
+            "JIF (maior para o menor)",
+            "SJR (maior para o menor)",
+            "H-Index (maior para o menor)"
         ]
     },
     "Español": {
@@ -766,7 +766,8 @@ def main(page: ft.Page):
 
     aba_atual = "buscador"
     botao_selecionado = "buscador"
-    idioma_atual = "Português"
+    # 📌 IDIOMA PADRÃO DEFINIDO PARA INGLÊS (DEFAULT = ENGLISH)
+    idioma_atual = "English"
     sobre_expandido = False
     
     # 📌 ESTADO DE SELEÇÃO POR CHECKBOX E PAGINAÇÃO
@@ -776,7 +777,7 @@ def main(page: ft.Page):
     revistas_selecionadas = set()
 
     def t(key):
-        return DIC_TRANSLATE.get(idioma_atual, DIC_TRANSLATE["Português"]).get(key, key)
+        return DIC_TRANSLATE.get(idioma_atual, DIC_TRANSLATE["English"]).get(key, key)
 
     page.title = t("titulo_pagina")
     page.theme_mode = ft.ThemeMode.DARK
@@ -876,7 +877,6 @@ def main(page: ft.Page):
             revistas_selecionadas.discard(item_id)
         atualizar_rotulos_botoes_download()
 
-    # 📌 RÓTULOS ATUALIZADOS: "Download (.csv)" E "Download (.xlsx)"
     def atualizar_rotulos_botoes_download():
         qtd_sel = len(revistas_selecionadas)
         if qtd_sel > 0:
@@ -1207,8 +1207,14 @@ def main(page: ft.Page):
     lbl_inst = ft.Text(t("inst_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
     btn_pessoal_txt = ft.Ref[ft.Text]()
 
+    # 📌 CONTROLES DE TEXTO EXPLÍCITOS DOS 4 BOTÕES SUPERIORES PARA GARANTIR TRADUÇÃO INSTANTÂNEA
+    btn_busca_txt = ft.Text(t("busca_cat"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    btn_rec_txt = ft.Text(t("busca_ia"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    btn_doar_txt = ft.Text(t("doacoes"), color="#000000", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    btn_inscrever_txt = ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+
     btn_busca_tab = ft.Button(
-        t("busca_cat"),
+        content=ft.Row([btn_busca_txt], alignment=ft.MainAxisAlignment.CENTER),
         style=ft.ButtonStyle(
             color="#FFFFFF",
             bgcolor=ACCENT_BLUE,
@@ -1223,7 +1229,7 @@ def main(page: ft.Page):
     btn_rec_tab = ft.Button(
         content=ft.Row([
             ft.Image(src=ia_icon_src, width=22, height=22, fit="contain") if ia_icon_src else ft.Icon(ft.Icons.TRACK_CHANGES, size=20, color="#FFFFFF"),
-            ft.Text(t("busca_ia"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            btn_rec_txt
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
         style=ft.ButtonStyle(
             color="#FFFFFF",
@@ -1236,14 +1242,14 @@ def main(page: ft.Page):
     )
 
     btn_doar = ft.Button(
-        t("doacoes"),
+        content=ft.Row([btn_doar_txt], alignment=ft.MainAxisAlignment.CENTER),
         style=ft.ButtonStyle(color="#000000", bgcolor=ACCENT_YELLOW, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
         expand=True,
         on_click=abrir_modal_doacao
     )
 
     btn_inscrever = ft.Button(
-        t("inscrever"),
+        content=ft.Row([btn_inscrever_txt], alignment=ft.MainAxisAlignment.CENTER),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
         expand=True,
         on_click=abrir_modal_inscricao
@@ -1375,17 +1381,26 @@ def main(page: ft.Page):
     btn_periodicos_capes = ft.Ref[ft.Text]()
     btn_musica_ufop = ft.Ref[ft.Text]()
 
+    # 🌐 ATUALIZAÇÃO TRILÍNGUE EXPLICITA DE TODOS OS BOTÕES DE AÇÃO E COMPONENTES
     def mudar_idioma(novo_idioma):
         nonlocal idioma_atual
         idioma_atual = novo_idioma
         page.title = t("titulo_pagina")
 
-        btn_busca_tab.text = t("busca_cat")
-        btn_rec_tab.content.controls[1].value = t("busca_ia")
+        # 📌 ATUALIZAÇÃO DIRETA DOS OBJETOS DE TEXTO DOS 4 BOTÕES SUPERIORES
+        btn_busca_txt.value = t("busca_cat")
+        btn_rec_txt.value = t("busca_ia")
+        btn_doar_txt.value = t("doacoes")
+        btn_inscrever_txt.value = t("inscrever")
+
         btn_fale_txt.value = t("fale_conosco")
-        btn_doar.text = t("doacoes")
-        btn_inscrever.text = t("inscrever")
         btn_win.text = t("baixar_win")
+
+        btn_busca_tab.update()
+        btn_rec_tab.update()
+        btn_doar.update()
+        btn_inscrever.update()
+        btn_win.update()
 
         sobre_tit_ctrl.value = t("sobre_tit")
         txt_head.value = t("sobre_head")
@@ -1430,14 +1445,15 @@ def main(page: ft.Page):
         render_responsive_layout()
         executar_pesquisa()
 
-    logo_src = get_image_src("logo.png")
+    # 📌 LOGO E BANNER INICIAIS EM INGLÊS
+    logo_src = get_image_src("logo_en.png")
     sidebar_logo_ctrl = ft.Image(src=logo_src, width=200, fit="contain") if logo_src else ft.Text("SCIPUBS", size=24, weight=ft.FontWeight.BOLD, color=TEXT_DARK, font_family="Roboto")
 
     # ==========================================
     # 🔴 BOTÕES DO MENU LATERAL COM HOVER VERMELHO E TEXTO EM BRANCO
     # ==========================================
     def criar_btn_link(texto_key, url, icon_filename=None, default_icon=ft.Icons.LANGUAGE, ref_ctrl=None, is_pessoal=False):
-        txt_display = t(texto_key) if texto_key in DIC_TRANSLATE["Português"] else texto_key
+        txt_display = t(texto_key) if texto_key in DIC_TRANSLATE["English"] else texto_key
         text_ctrl = ft.Text(txt_display, ref=ref_ctrl, size=14, weight=ft.FontWeight.W_600 if is_pessoal else ft.FontWeight.W_500, color="#004B87", font_family="Roboto")
 
         icon_src = get_image_src(icon_filename) if icon_filename else None
@@ -1513,11 +1529,11 @@ def main(page: ft.Page):
             
             ft.Dropdown(
                 options=[
-                    ft.dropdown.Option("Português"),
                     ft.dropdown.Option("English"),
+                    ft.dropdown.Option("Português"),
                     ft.dropdown.Option("Español")
                 ],
-                value="Português",
+                value="English",
                 width=240,
                 fill_color=SIDEBAR_BG,
                 bgcolor=CARD_BG,
@@ -1587,7 +1603,7 @@ def main(page: ft.Page):
         ], spacing=8, scroll=ft.ScrollMode.AUTO)
     )
 
-    banner_init_src = get_banner_src("Português")
+    banner_init_src = get_banner_src("English")
     hero_banner_img = ft.Image(
         src=banner_init_src,
         fit="fill",
@@ -1933,6 +1949,4 @@ def main(page: ft.Page):
     executar_pesquisa()
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 8080))
-    ft.app(main, assets_dir=ICONS_DIR, port=port, view=ft.AppView.WEB_BROWSER)
+    ft.app(main, assets_dir=ICONS_DIR, port=8581, view=ft.AppView.WEB_BROWSER)
