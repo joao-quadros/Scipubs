@@ -1,0 +1,30 @@
+1191: st.rerun()
+1192: 
+1193: st.sidebar.markdown(f"""
+1194: <div style="background-color: {bg_cor}; color: white; padding: 10px 8px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.82rem; line-height: 1.3; margin-bottom: 8px;">
+1195: {status_texto}
+1196: </div>
+1197: """, unsafe_allow_html=True)
+1198: 
+1199: # Strings dos botões
+1200: btn_sair_text = "🚪 Sair"
+1201: btn_sair_help = "Encerrar sessão"
+1202: btn_conf_text = "⚙ Configs"
+1203: btn_conf_help = "Configurações"
+1204: if st.session_state.get("idioma", "English") == "English":
+1205: btn_sair_text = "🚪 Logout"
+1206: btn_sair_help = "Log out"
+1207: btn_conf_text = "⚙ Settings"
+1208: btn_conf_help = "Settings"
+1209: elif st.session_state.get("idioma", "English") == "Español":
+1210: btn_sair_text = "🚪 Salir"
+1211: btn_sair_help = "Cerrar sesión"
+1212: btn_conf_text = "⚙ Config."
+1213: btn_conf_help = "Configuración"
+1214: 
+1215: # Colunas para exibir botões de Sair e Configurações lado a lado
+1216: col_sair, col_config = st.sidebar.columns([1, 1])
+1217: with col_sair:
+1218: if st.button(btn_sair_text, key="btn_sair_sidebar", help=btn_sair_help, use_container_width=True):
+1219: st.session_state.registrado = False
+1220: st.session_state.email_usuario = ""

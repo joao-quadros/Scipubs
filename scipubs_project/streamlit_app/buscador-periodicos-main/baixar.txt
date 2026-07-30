@@ -1,0 +1,3 @@
+477: "btn_desktop": "💻 Baixar Versão para Windows",
+1506: texto_botao = t.get("btn_desktop", "💻 Baixar Versão para Windows")
+3229: label="📥 Baixar Planilha de Acessos (CSV)",

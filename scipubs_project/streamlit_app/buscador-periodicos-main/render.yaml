@@ -1,0 +1,23 @@
+# Configuração de deploy no Render (render.com)
+# Crie um Web Service apontando para este repositório.
+# O Render usará este arquivo para configurar automaticamente.
+
+services:
+  - type: web
+    name: scipubs-api
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Configure no dashboard do Render
+      - key: EMBEDDING_PROVIDER
+        value: huggingface
+      - key: GEMINI_API_KEY
+        sync: false  # Opcional (não usado se EMBEDDING_PROVIDER=tfidf)
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false  # Configure no dashboard do Render
+      - key: OPENALEX_EMAIL
+        value: scipubs@example.com
+    healthCheckPath: /health

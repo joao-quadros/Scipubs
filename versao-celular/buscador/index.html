@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Pesquisador Mobile</title>
+    <!-- Web App manifest and PWA styling -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <!-- Google Fonts: Inter e Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+        h1, h2, h3, h4, .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+        .btn-custom-menu {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #1E293B;
+            border-radius: 8px;
+            color: #E2E8F0;
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid #334155;
+            margin-bottom: 6px;
+        }
+        .btn-custom-menu:hover {
+            background-color: #334155;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col min-h-screen">
+
+    <!-- OVERLAY DE CARREGAMENTO -->
+    <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white p-6 transition-opacity duration-500">
+        <div class="relative w-20 h-20 mb-6">
+            <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center font-bold text-lg text-emerald-400 font-outfit">AG</div>
+        </div>
+        <h2 class="text-lg font-bold font-outfit text-center" id="load-title">Carregando Base Científica...</h2>
+        <p class="text-xs text-slate-400 mt-2" id="load-sub">Processando 53.000 periódicos locais</p>
+        <div class="w-56 bg-slate-800 rounded-full h-1 mt-5 overflow-hidden">
+            <div id="loading-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+    </div>
+
+    <!-- CABEÇALHO / HERO -->
+    <header class="bg-slate-950 text-white p-4 shadow-lg sticky top-0 z-30 border-b-4 border-red-600">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <!-- Ícone Hamburger (Escondido antes do Login) -->
+                <button onclick="toggleSidebar(true)" id="header-hamburger-btn" class="hidden text-white text-xl active:scale-95 transition-all p-1 mr-1">☰</button>
+                <img src="logo.png" alt="Logo" class="h-9 w-auto object-contain bg-transparent rounded-lg" onerror="this.style.display='none'">
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-tight font-outfit leading-tight" id="app-title">Portal do Pesquisador</h1>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider" id="app-subtitle">Versão PWA Mobile</p>
+                </div>
+            </div>
+            <!-- Seletor de Idioma Slim -->
+            <div class="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-[10px] font-bold">
+                <button onclick="mudarIdioma('pt')" id="btn-lang-pt" class="px-2 py-1 rounded bg-slate-950 text-emerald-400">PT</button>
+                <button onclick="mudarIdioma('en')" id="btn-lang-en" class="px-2 py-1 rounded text-slate-400">EN</button>
+                <button onclick="mudarIdioma('es')" id="btn-lang-es" class="px-2 py-1 rounded text-slate-400">ES</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== TELA 1: LOGIN ==================== -->
+    <section id="view-login" class="p-6 max-w-sm mx-auto w-full flex-1 flex flex-col justify-center space-y-5 block">
+        <div class="space-y-4">
+            <!-- Rótulo de Entrada -->
+            <div class="space-y-1.5">
+                <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-log-email">E-mail ou Usuário:</label>
+                <input type="text" id="login-email" placeholder="" 
+                       class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-log-senha">Senha:</label>
+                <input type="password" id="login-senha" placeholder="" 
+                       class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="fazerLogin()" class="py-3 bg-emerald-500 text-white rounded-xl shadow-xs font-bold text-xs active:scale-95 transition-all" id="btn-log-entrar">Entrar ➔</button>
+                <button onclick="fazerLoginGoogle()" class="py-3 bg-slate-900 text-white rounded-xl shadow-xs font-bold text-xs active:scale-95 transition-all" id="btn-log-google">🌐 Conectar com Google</button>
+            </div>
+
+            <!-- Botão para Cadastrar -->
+            <button onclick="mudarVisualizacao('register')" class="w-full py-3 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-bold text-xs active:scale-95 transition-all text-center" id="btn-log-cadastrar-link">
+                Não tem uma conta? Cadastre-se aqui!
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== TELA 2: CADASTRO ==================== -->
+    <section id="view-register" class="p-6 max-w-sm mx-auto w-full flex-1 flex flex-col justify-center space-y-4 hidden">
+        <div class="space-y-3.5 overflow-y-auto max-h-[75vh] pr-1">
+            <h3 class="font-bold text-base text-slate-900 font-outfit" id="reg-title-header">Criar Conta Acadêmica</h3>
+            
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-nome">Nome e Sobrenome:</label>
+                <input type="text" id="reg-nome" placeholder="Ex: João Silva" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-email">E-mail:</label>
+                <input type="text" id="reg-email" placeholder="" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-pais">País:</label>
+                <input type="text" id="reg-pais" placeholder="Ex: Brasil" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-telefone">Telefone (Opcional):</label>
+                <input type="text" id="reg-telefone" placeholder="Ex: (31) 99999-9999" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-escolaridade">Nível de Escolaridade:</label>
+                <select id="reg-escolaridade" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-hidden">
+                    <!-- Opções dinâmicas via JS -->
+                </select>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-instituicao">Vínculo Institucional:</label>
+                <select id="reg-instituicao" onchange="verificarInstituicaoOutra()" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-hidden">
+                    <!-- Opções dinâmicas via JS -->
+                </select>
+                <input type="text" id="reg-instituicao-outra" placeholder="Ex: Harvard University" class="hidden w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs mt-1.5 focus:ring-2 focus:ring-slate-550 focus:outline-hidden">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                    <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-senha">Senha:</label>
+                    <input type="password" id="reg-senha" placeholder="" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-550 focus:outline-hidden">
+                </div>
+                <div class="space-y-1">
+                    <label class="block font-semibold text-slate-700 text-xs" id="lbl-reg-confirmar">Confirmar Senha:</label>
+                    <input type="password" id="reg-senha-conf" placeholder="" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-550 focus:outline-hidden">
+                </div>
+            </div>
+
+            <button onclick="efetuarCadastro()" class="w-full py-3 bg-emerald-500 text-white rounded-xl shadow-xs font-bold text-xs active:scale-95 transition-all mt-2" id="btn-reg-cadastrar">Criar Conta e Acessar ➔</button>
+            <button onclick="mudarVisualizacao('login')" class="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs active:scale-95 transition-all text-center" id="btn-reg-login-link">Já tem uma conta? Faça login aqui!</button>
+        </div>
+    </section>
+
+    <!-- ==================== TELA 3: BUSCADOR DE PERIÓDICOS (CATÁLOGO) ==================== -->
+    <section id="view-catalog" class="p-4 space-y-4 max-w-lg mx-auto w-full hidden pb-8">
+        
+        <!-- BANNER ATALHO PARA RECOMENDADOR IA -->
+        <div onclick="mudarVisualizacao('ai')" class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-4 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🧠</span>
+                <div>
+                    <h4 class="font-extrabold text-xs font-outfit" id="banner-ia-titulo">Recomendador Inteligente (IA)</h4>
+                    <p class="text-[9px] text-slate-400 font-semibold" id="banner-ia-sub">Acesse sugestões temáticas de periódicos por IA</p>
+                </div>
+            </div>
+            <span class="text-emerald-400 font-black text-sm">➔</span>
+        </div>
+
+        <!-- BARRA DE BUSCA -->
+        <div class="flex gap-2">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+                <input type="text" id="buscainput" placeholder="Digite o título, ISSN..." 
+                       class="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-xl shadow-xs focus:outline-hidden focus:ring-2 focus:ring-slate-500 text-sm font-medium transition-all">
+            </div>
+            <button onclick="toggleFiltros()" class="px-4 py-3 bg-slate-900 text-white rounded-xl shadow-xs font-bold text-sm flex items-center gap-1.5 active:scale-95 transition-all">
+                <span id="btn-filters-text">⚡ Filtros</span>
+            </button>
+        </div>
+
+        <!-- METRICAS -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs text-center flex flex-col justify-center">
+                <span class="block text-xl font-black text-slate-800 font-outfit" id="metric-total">0</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider" id="lbl-metric-total">Selecionadas</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs text-center flex flex-col justify-center">
+                <span class="block text-xl font-black text-slate-800 font-outfit" id="metric-hindex">0</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider" id="lbl-metric-hindex">H-Index Topo</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs text-center flex flex-col justify-center">
+                <span class="block text-xl font-black text-slate-800 font-outfit" id="metric-jif">0</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider" id="lbl-metric-jif">Fator JIF Máximo</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs text-center flex flex-col justify-center">
+                <span class="block text-xl font-black text-slate-800 font-outfit" id="metric-sjr">0</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider" id="lbl-metric-sjr">SJR Máximo</span>
+            </div>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div class="space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pl-1" id="lbl-resultados-titulo">Resultados (Exibindo os primeiros 40)</h3>
+            <div class="space-y-3" id="lista-resultados">
+                <!-- Cards dinâmicos inseridos via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TELA 4: RECOMENDADOR INTELIGENTE IA ==================== -->
+    <section id="view-ai" class="p-4 space-y-4 max-w-lg mx-auto w-full hidden pb-8">
+        <!-- BOTÃO VOLTAR -->
+        <button onclick="mudarVisualizacao('catalog')" class="py-2.5 px-4 bg-slate-900 text-white rounded-xl font-bold text-xs active:scale-95 transition-all flex items-center gap-1.5">
+            <span id="btn-ia-voltar">⬅️ Voltar para o Catálogo</span>
+        </button>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            <div>
+                <h3 class="font-extrabold text-base text-slate-900 font-outfit" id="ia-tit-form">Recomendações com Inteligência Artificial</h3>
+                <p class="text-xs text-slate-500 mt-1" id="ia-sub-form">Cole o título e resumo do seu artigo para cruzar com o catálogo.</p>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-ia-campo-titulo">Título do Artigo</label>
+                <input type="text" id="ia-titulo-artigo" placeholder="Ex: Artigo de Teste..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-ia-campo-resumo">Resumo / Abstract</label>
+                <textarea id="ia-resumo-artigo" placeholder="Cole o abstract ou resumo científico..." rows="5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-500 focus:outline-hidden"></textarea>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-ia-chave-api">Chave API do Gemini</label>
+                <input type="password" id="ia-chave-api-input" placeholder="Digite sua Gemini API Key (opcional se local)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+                <details class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs mt-2">
+                    <summary class="font-bold text-slate-700 cursor-pointer" id="lbl-expander-como-obter">ℹ️ Como obter uma chave gratuita?</summary>
+                    <div class="mt-2 space-y-2 leading-relaxed text-slate-650" id="txt-expander-como-obter">
+                        1. Vá para <a href="https://aistudio.google.com" target="_blank" class="text-emerald-600 font-semibold underline">aistudio.google.com</a><br>
+                        2. Entre com sua conta Google.<br>
+                        3. Clique em "Get API Key" e depois em "Create API Key".<br>
+                        4. Copie a chave gerada e cole no campo acima.
+                    </div>
+                </details>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="block font-bold text-[10px] uppercase tracking-wider text-slate-400" id="lbl-ia-filtro-area">Grande Área (IA)</label>
+                    <select id="ia-filtro-area-sel" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+                        <option value="todas" id="opt-ia-area-todas">Todas</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="block font-bold text-[10px] uppercase tracking-wider text-slate-400" id="lbl-ia-num-rec">Limite Sugestões</label>
+                    <select id="ia-num-rec-sel" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-slate-500 focus:outline-hidden">
+                        <option value="3">3</option>
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="dispararRecomendadorIA()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-xs font-bold text-sm active:scale-[0.97] transition-all flex items-center justify-center gap-2">
+                <span id="ia-btn-texto">🧠 Analisar e Recomendar</span>
+            </button>
+        </div>
+
+        <div id="ia-status-loading" class="hidden bg-slate-900 text-white p-5 rounded-2xl flex flex-col items-center justify-center space-y-3">
+            <div class="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-center" id="lbl-ia-processando">A IA está processando seu resumo e cruzando com o catálogo...</p>
+        </div>
+
+        <div id="ia-resultados-secao" class="hidden space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pl-1" id="lbl-ia-sucesso-header">Recomendações Geradas</h3>
+            <div id="ia-resultados-lista" class="space-y-3">
+                <!-- Recomendações inseridas via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== MENU LATERAL ESCONDIDO (HAMBURGER SIDEBAR) ==================== -->
+    <div id="mobile-sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-40 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col justify-between">
+        
+        <!-- Conteúdo do Menu -->
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Header do Menu -->
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <span class="font-extrabold text-sm font-outfit text-emerald-400">Portal do Pesquisador</span>
+                <button onclick="toggleSidebar(false)" class="text-slate-400 text-lg font-bold">✕</button>
+            </div>
+            
+            <div class="p-4 space-y-5 text-xs">
+                
+                <!-- INDEXADORES -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-400 uppercase tracking-wider text-[10px]" id="info-tit-index">INDEXADORES</h4>
+                    <div class="flex flex-col gap-1">
+                        <a class="btn-custom-menu" href="https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com" target="_blank">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRR2EHX1gARlgEZ-baT5UZMBSLF7rw0mZtUAMuBSU46_Rm5RzBLW1oOaas&s=10" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Web of Science</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.scopus.com/pages/home?display=basic#basic" target="_blank">
+                            <img src="https://camo.githubusercontent.com/799f6de501a057c2e1997a5f472ac272d4461dd65bdd1c25824d45a97ea9b8ec/68747470733a2f2f7777772e6665722e756e697a672e68722f5f7075622f7468656d65735f7374617469632f666572323031362f64656661756c742f696d672f73636f7075732d69636f6e2e706e67" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Scopus</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank">
+                            <img src="https://its.weill.cornell.edu/sites/default/files/styles/news_item_full_article/public/news_images/720px-us-nlm-pubmed-logo.png?itok=trlhr3Lh" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>PubMed</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.scielo.br/" target="_blank">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHiaAjjMsCiMK-A-hur9z1KZcEuf5rEx8rjzketAWDRQNs963MW_DDHwQ&s=10" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>SciELO BR</span>
+                        </a>
+                        <a class="btn-custom-menu" href="http://educa.fcc.org.br/cgi-bin/wxis.exe/iah/?IsisScript=iah/iah.xis&base=title&fmt=iso.pft&lang=p" target="_blank">
+                            <img src="https://www.fcc.org.br/fcc/wp-content/uploads/2020/05/fcc.jpg" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Educ@</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.jstor.org/" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/en/5/56/JSTOR_vector_logo.svg" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>JSTOR</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.latindex.org/latindex/" target="_blank">
+                            <img src="https://www.insper.edu.br/content/insper-portal/en/campus/biblioteca-telles/recursos-de-busca/latindex/_jcr_content/root/responsivegrid/wrapper/container_grid/container/wrapper/featured_card_container/image.coreimg.png/1723749927456/latindex.png" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Latindex</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- REPOSITÓRIOS -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-400 uppercase tracking-wider text-[10px]" id="info-tit-rep">REPOSITÓRIOS</h4>
+                    <div class="flex flex-col gap-1">
+                        <a class="btn-custom-menu" href="https://eric.ed.gov/" target="_blank">
+                            <img src="https://yt3.googleusercontent.com/ytc/AIdro_kFijnjScrZN1GZMpmVQDW_GRV5syVZsNuOqd2TiG5Y_A=s900-c-k-c0x00ffffff-no-rj" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>ERIC</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://api.base-search.net/" target="_blank">
+                            <img src="https://pbs.twimg.com/profile_images/1259600128/base_twitter_400x400.png" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>BASE</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://doaj.org/" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/DOAJ_logo-colour.svg" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>DOAJ</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://catalogodeteses.capes.gov.br/catalogo-teses/#!/" target="_blank">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ04fk8I3y7LecgydHxbQybU3R9TB7qb99ikUFKNUsZNQ&s" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Catálogo da CAPES</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- IA ACADÊMICA -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-400 uppercase tracking-wider text-[10px]" id="info-tit-ia">IA ACADÊMICA</h4>
+                    <div class="flex flex-col gap-1">
+                        <a class="btn-custom-menu" href="https://www.scopus.com/pages/home#scopus-ai" target="_blank">
+                            <img src="https://images.icon-icons.com/2389/PNG/512/elsevier_logo_icon_145310.png" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>ScopusAI</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://researcher.elsevier.com/" target="_blank">
+                            <img src="https://content-media.pamedia.io/press-release/picture/2025/11/19/01KADJ2EW8YDYQABYJFZFVZ5YR.jpg?format=jpg&dl=pr-newswire-associated0.jpg" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>LeapSpace</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.researchrabbit.ai/" target="_blank">
+                            <img src="https://pbs.twimg.com/profile_images/1983772825812189184/IXDTOqLX_400x400.jpg" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>ResearchRabbit</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.perplexity.ai/" target="_blank">
+                            <img src="https://framerusercontent.com/images/gcMkPKyj2RX8EOEja8A1GWvCb7E.jpg?width=2000&height=2000" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>Perplexity</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.connectedpapers.com/" target="_blank">
+                            <img src="https://pbs.twimg.com/profile_images/1267529009409208325/avWQ0zGg_400x400.jpg" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>ConnectedPapers</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://consensus.app/" target="_blank">
+                            <img src="https://logosandtypes.com/wp-content/uploads/2025/04/Consensus-scaled.png" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Consensus</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://scispace.com/" target="_blank">
+                            <img src="https://typeset.io/favicon.ico" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>SciSpace</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://elicit.com/" target="_blank">
+                            <img src="https://zonalogo.com/assets/elicit-logo-png-svg.webp?asset=2444&w=320" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Elicit</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://logically.app/" target="_blank">
+                            <img src="https://www.logically.ai/favicon.ico" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>Logically</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.pubmed.ai/home" target="_blank">
+                            <img src="https://cdn-1.webcatalog.io/catalog/pubmed-ai/pubmed-ai-icon-filled-256.png?v=1747807986408" class="w-4 h-4 mr-2.5 rounded-sm object-contain">
+                            <span>PubMed.AI</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SITES GOVERNAMENTAIS -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-400 uppercase tracking-wider text-[10px]" id="info-tit-gov">SITES GOVERNAMENTAIS</h4>
+                    <div class="flex flex-col gap-1">
+                        <a class="btn-custom-menu" href="https://cnpq.br/" target="_blank">
+                            <img src="https://images.seeklogo.com/logo-png/18/1/cnpq-logo-png_seeklogo-181432.png" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>CNPq</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.gov.br/capes/pt-br" target="_blank">
+                            <img src="https://www.clipartmax.com/png/middle/289-2899434_previous-next-capes-logo.png" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>CAPES</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://lattes.cnpq.br/" target="_blank">
+                            <img src="https://www.gov.br/observatorio/pt-br/assuntos/programas-academicos/imagens/Lattes.png" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>Currículo Lattes</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.periodicos.capes.gov.br/" target="_blank">
+                            <img src="https://www.periodicos.capes.gov.br/templates/periodicos_gov/images/icon-periodicos.png" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>Portal de Periódicos CAPES</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- INFORMAÇÕES INSTITUCIONAIS -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-400 uppercase tracking-wider text-[10px]" id="info-tit-inst-sec">INFORMAÇÕES INSTITUCIONAIS</h4>
+                    <div class="flex flex-col gap-1">
+                        <a class="btn-custom-menu" href="https://www.ufop.br" target="_blank">
+                            <img src="https://labiiex.ufop.br/sites/default/files/styles/media_gallery_thumbnail/public/labiiex/files/ufop_logo.png?m=1597327148&itok=EmS_8t7o" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>UFOP</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.posedu.ufop.br" target="_blank">
+                            <img src="https://posedu.ufop.br/sites/default/files/styles/os_files_small/public/ppge/files/logo_reduzida.png?m=1593192999&itok=0JX9OWRl" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>PPGE-UFOP</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://www.musica.ufop.br" target="_blank">
+                            <img src="https://musica.ufop.br/sites/default/files/styles/os_files_xxlarge/public/musica/files/logo22_1_03.png?m=1542714207&itok=i3jpi-oe" class="w-4 h-4 mr-2.5 rounded-sm object-cover">
+                            <span>Música-UFOP</span>
+                        </a>
+                        <a class="btn-custom-menu" href="https://professor.ufop.br/joaoquadros" target="_blank" style="border-color: #004B87;">
+                            <span id="lbl-sidebar-pessoal" style="color: #60A5FA; font-weight: 700;">👤 Site pessoal</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CONTADOR DE VISITAS -->
+                <div class="pt-2">
+                    <div id="visitas-badge-sidebar" class="bg-emerald-600 text-white py-2.5 px-4 rounded-xl text-center font-bold tracking-wide shadow-xs border border-emerald-500">
+                        👤 Visitas ao Portal: 7
+                    </div>
+                </div>
+
+                <!-- METADADOS E DIREITOS AUTORAIS -->
+                <div class="pt-4 border-t border-slate-800 space-y-2 text-[10px] text-slate-400 leading-relaxed">
+                    <p class="font-extrabold text-[11px] text-slate-200 tracking-wider" id="lbl-side-meta-tit">METADADOS</p>
+                    <p>
+                        <span class="text-red-500">●</span> <b id="lbl-meta-sis">Sistema:</b> <span id="lbl-meta-sis-val">Operacional</span><br>
+                        <b id="lbl-meta-ver">Versão Base:</b> 2026.1<br>
+                        <b id="lbl-meta-pad">Padrão CNPq:</b> <span id="lbl-meta-pad-val">Ativo</span>
+                    </p>
+                    <hr class="border-slate-800 my-2">
+                    <p class="font-bold text-slate-300" id="lbl-copyright-tit">Direitos Autorais & Propriedade:</p>
+                    <p class="font-bold text-slate-100">© 2026 João F. Soares-Quadros Jr.</p>
+                    <p id="lbl-copyright-desc">
+                        Universidade Federal Ouro Preto<br>
+                        Minas Gerais, Brasil.<br>
+                        <i>Todos os direitos reservados.</i>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão Logout -->
+        <div class="p-4 border-t border-slate-800">
+            <button onclick="efetuarLogout()" class="w-full py-2.5 bg-red-650 hover:bg-red-700 text-white rounded-xl font-bold text-xs active:scale-95 transition-all" id="btn-sidebar-sair">Desconectar</button>
+        </div>
+
+    </div>
+    
+    <!-- Fundo de bloqueio click-out para o menu lateral -->
+    <div onclick="toggleSidebar(false)" id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-35 hidden"></div>
+
+    <!-- DRAWER / MENU DE FILTROS RETRÁTIL -->
+    <div id="drawer-filtros" class="fixed inset-0 z-40 hidden">
+        <div onclick="toggleFiltros()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"></div>
+        <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl transition-transform duration-300 translate-y-0">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-extrabold text-base text-slate-900 font-outfit" id="drawer-title">Filtros e Ordenação</h3>
+                <button onclick="toggleFiltros()" class="text-slate-400 hover:text-slate-600 text-sm font-bold" id="lbl-fechar">Fechar</button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-5 flex-1 text-sm">
+                
+                <div class="space-y-2">
+                    <label class="block font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-ordenacao">Ordenar resultados por:</label>
+                    <select id="filtro-ordem" onchange="processarFiltragem()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-slate-400 focus:outline-hidden">
+                        <option value="titulo" id="opt-ord-titulo">Título</option>
+                        <option value="sjr" id="opt-ord-sjr">SJR Score</option>
+                        <option value="jif" id="opt-ord-jif">JIF Fator de Impacto</option>
+                        <option value="hindex" id="opt-ord-hindex">H-Index</option>
+                    </select>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-4">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-filtros-escopo">Filtros de Escopo</h4>
+                    
+                    <div class="space-y-2">
+                        <label class="block font-semibold text-slate-700 text-xs" id="lbl-filtro-area">Grande Área (CNPq)</label>
+                        <select id="filtro-area" onchange="processarFiltragem()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-400 focus:outline-hidden">
+                            <option value="todas" id="opt-area-todas">Todas</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block font-semibold text-slate-700 text-xs" id="lbl-filtro-indexador">Indexador</label>
+                        <select id="filtro-indexador" onchange="processarFiltragem()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-400 focus:outline-hidden">
+                            <option value="todos" id="opt-idx-todos">Todos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-4">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400" id="lbl-filtros-metricas">Filtros de Impacto</h4>
+                    
+                    <div class="space-y-2">
+                        <span class="block font-semibold text-slate-700 text-xs" id="lbl-q-jcr-lbl">Quartil JCR</span>
+                        <div class="flex gap-2">
+                            <button onclick="toggleQuartil('jcr', 'Q1')" id="btn-jcr-Q1" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q1</button>
+                            <button onclick="toggleQuartil('jcr', 'Q2')" id="btn-jcr-Q2" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q2</button>
+                            <button onclick="toggleQuartil('jcr', 'Q3')" id="btn-jcr-Q3" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q3</button>
+                            <button onclick="toggleQuartil('jcr', 'Q4')" id="btn-jcr-Q4" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q4</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <span class="block font-semibold text-slate-700 text-xs" id="lbl-q-sjr-lbl">Best Quartil SJR</span>
+                        <div class="flex gap-2">
+                            <button onclick="toggleQuartil('sjr', 'Q1')" id="btn-sjr-Q1" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q1</button>
+                            <button onclick="toggleQuartil('sjr', 'Q2')" id="btn-sjr-Q2" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q2</button>
+                            <button onclick="toggleQuartil('sjr', 'Q3')" id="btn-sjr-Q3" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q3</button>
+                            <button onclick="toggleQuartil('sjr', 'Q4')" id="btn-sjr-Q4" class="flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600">Q4</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div id="modal-detalhes" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div onclick="fecharDetalhes()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"></div>
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative z-10 animate-scaleUp flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-start">
+                <h3 class="font-extrabold text-base font-outfit text-slate-900 pr-4 leading-tight" id="lbl-detalhes-titulo">Detalhes do Periódico</h3>
+                <button onclick="fecharDetalhes()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+                <div>
+                    <h4 class="text-sm font-black text-slate-800 font-outfit" id="detail-titulo">-</h4>
+                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-bold mt-1 inline-block" id="detail-issn">ISSN: -</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <div class="bg-slate-50 p-3 rounded-lg">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-jif">JIF (Impact Factor)</span>
+                        <span class="text-sm font-extrabold text-slate-700" id="detail-jif">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-sjr">SJR Score</span>
+                        <span class="text-sm font-extrabold text-slate-700" id="detail-sjr">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-q-jcr">Quartil JCR</span>
+                        <span class="text-xs font-black" id="detail-q-jcr">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-q-sjr">Best Quartil SJR</span>
+                        <span class="text-xs font-black" id="detail-q-sjr">-</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-lg">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-hindex">H-Index</span>
+                    <span class="text-xs font-extrabold text-slate-700" id="detail-hindex">-</span>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-garea">Grande Área</span>
+                        <p class="text-slate-600 font-medium" id="detail-grandearea">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-area">Área de Conhecimento</span>
+                        <p class="text-slate-600 font-medium" id="detail-area">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-subarea">Subárea (CNPq)</span>
+                        <p class="text-slate-600 font-medium" id="detail-subarea">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block" id="lbl-det-index">Indexadores</span>
+                        <p class="text-slate-600 font-medium" id="detail-indexadores">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-slate-100 flex gap-2">
+                <a id="btn-link-scholar" target="_blank" href="#" class="flex-1 py-3 bg-slate-900 text-white rounded-xl text-center font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all">🎓 Google Scholar</a>
+                <a id="btn-link-site" target="_blank" href="#" class="flex-1 py-3 bg-emerald-500 text-white rounded-xl text-center font-bold text-xs hover:bg-emerald-600 active:scale-95 transition-all">🌐 Visitar Website</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DICTIONARY DE TRADUÇÃO -->
+    <script>
+        const translation = {
+            pt: {
+                title: "Portal do Pesquisador",
+                offline: "Versão PWA Mobile",
+                searchPlaceholder: "Digite o título, ISSN...",
+                filterTitle: "Filtros e Ordenação",
+                btnFilters: "⚡ Filtros",
+                metricTotal: "Selecionadas",
+                metricHIndex: "H-Index Topo",
+                metricJIF: "Fator JIF Máximo",
+                metricSJR: "SJR Máximo",
+                noResults: "Nenhum periódico encontrado.",
+                detailsTitle: "Detalhes do Periódico",
+                colGrandeArea: "Grande Área",
+                colArea: "Área de Conhecimento",
+                colSubarea: "Subárea (CNPq)",
+                colIndexadores: "Indexadores",
+                colQuartilJCR: "Quartil JCR",
+                colQuartilSJR: "Best Quartil SJR",
+                colJIF: "JIF (Fator de Impacto)",
+                colSJR: "SJR Score",
+                colHIndex: "H-Index",
+                btnScholar: "🎓 Scholar",
+                btnWebsite: "🌐 Visitar Website",
+                lblLoading: "Carregando Base Científica...",
+                lblLoadingSub: "Processando 53.000 periódicos locais",
+                lblTodas: "Todas",
+                lblTodos: "Todos",
+                lblOrdenacao: "Ordenar resultados por:",
+                lblOrdTitulo: "Título",
+                lblOrdSJR: "SJR Score",
+                lblOrdJIF: "JIF Fator de Impacto",
+                lblOrdHIndex: "H-Index",
+                lblFiltroEscopo: "Filtros de Escopo",
+                lblFiltroMetricas: "Filtros de Impacto",
+                lblGrandeArea: "Grande Área (CNPq)",
+                lblIndexador: "Indexador",
+                lblQuartilJCRLabel: "Quartil JCR",
+                lblQuartilSJRLabel: "Best Quartil SJR",
+                lblFechar: "Concluído",
+                lblResultados: "Resultados (Exibindo os primeiros 40)",
+                
+                logEmail: "E-mail ou Usuário:",
+                logSenha: "Senha:",
+                btnLogEntrar: "Entrar ➔",
+                btnLogGoogle: "🌐 Conectar com Google",
+                btnLogCadastrarLink: "Não tem uma conta? Cadastre-se aqui!",
+                regTitleHeader: "Criar Conta Acadêmica",
+                lblRegNome: "Nome e Sobrenome:",
+                lblRegEmail: "E-mail:",
+                lblRegPais: "País:",
+                lblRegTelefone: "Telefone (Opcional):",
+                lblRegEscolaridade: "Nível de Escolaridade:",
+                lblRegInstituicao: "Vínculo Institucional:",
+                lblRegSenha: "Senha:",
+                lblRegConfirmar: "Confirmar Senha:",
+                btnRegCadastrar: "Criar Conta e Acessar ➔",
+                btnRegLoginLink: "Já tem uma conta? Faça login aqui!",
+                bannerIaTitulo: "Recomendador Inteligente (IA)",
+                bannerIaSub: "Acesse sugestões temáticas de periódicos por IA",
+                btnIaVoltar: "⬅️ Voltar para o Catálogo",
+                iaTitForm: "Recomendações com Inteligência Artificial",
+                iaSubForm: "Cole o título e resumo do seu artigo para cruzar com o catálogo.",
+                iaCampoTitulo: "Título do Artigo",
+                iaCampoResumo: "Resumo / Abstract",
+                iaChaveApi: "Chave API do Gemini",
+                iaFiltroArea: "Grande Área (IA)",
+                iaNumRec: "Limite Sugestões",
+                iaBtnTexto: "🧠 Analisar e Recomendar",
+                iaProcessando: "A IA está processando seu resumo e cruzando com o catálogo...",
+                iaSucessoHeader: "Recomendações Geradas",
+                infoTitIndex: "INDEXADORES",
+                infoTitRep: "REPOSITÓRIOS",
+                infoTitIa: "IA ACADÊMICA",
+                infoTitGov: "SITES GOVERNAMENTAIS",
+                infoTitInstSec: "INFORMAÇÕES INSTITUCIONAIS",
+                lblSidebarPessoal: "👤 Site pessoal",
+                lblSideMetaTit: "METADADOS",
+                lblMetaSis: "Sistema",
+                lblMetaSisVal: "Operacional",
+                lblMetaVer: "Versão Base",
+                lblMetaPad: "Padrão CNPq",
+                lblMetaPadVal: "Ativo",
+                lblCopyrightTit: "Direitos Autorais & Propriedade:",
+                lblCopyrightDesc: "Universidade Federal Ouro Preto<br>Minas Gerais, Brasil.<br><i>Todos os direitos reservados.</i>",
+                visitasLbl: "Visitas ao Portal",
+                btnSidebarSair: "Desconectar"
+            },
+            en: {
+                title: "Researcher's Portal",
+                offline: "PWA Mobile Version",
+                searchPlaceholder: "Enter journal title, ISSN...",
+                filterTitle: "Filters & Sorting",
+                btnFilters: "⚡ Filters",
+                metricTotal: "Selected",
+                metricHIndex: "Top H-Index",
+                metricJIF: "Max JIF Factor",
+                metricSJR: "Max SJR Score",
+                noResults: "No journals found.",
+                detailsTitle: "Journal Details",
+                colGrandeArea: "Broad Area",
+                colArea: "Area of Knowledge",
+                colSubarea: "Subarea (CNPq)",
+                colIndexadores: "Indexers",
+                colQuartilJCR: "JCR Quartile",
+                colQuartilSJR: "Best SJR Quartile",
+                colJIF: "JIF (Impact Factor)",
+                colSJR: "SJR Score",
+                colHIndex: "H-Index",
+                btnScholar: "🎓 Scholar",
+                btnWebsite: "🌐 Visit Website",
+                lblLoading: "Loading Database...",
+                lblLoadingSub: "Processing 53,000 local journals",
+                lblTodas: "All",
+                lblTodos: "All",
+                lblOrdenacao: "Sort results by:",
+                lblOrdTitulo: "Title",
+                lblOrdSJR: "SJR Score",
+                lblOrdJIF: "JIF Impact Factor",
+                lblOrdHIndex: "H-Index",
+                lblFiltroEscopo: "Scope Filters",
+                lblFiltroMetricas: "Impact Filters",
+                lblGrandeArea: "Broad Area (CNPq)",
+                lblIndexador: "Indexer",
+                lblQuartilJCRLabel: "JCR Quartile",
+                lblQuartilSJRLabel: "Best SJR Quartile",
+                lblFechar: "Done",
+                lblResultados: "Results (Showing top 40)",
+                
+                logEmail: "Email or Username:",
+                logSenha: "Password:",
+                btnLogEntrar: "Login ➔",
+                btnLogGoogle: "🌐 Sign in with Google",
+                btnLogCadastrarLink: "Don't have an account? Sign up here!",
+                regTitleHeader: "Create Academic Account",
+                lblRegNome: "First and Last Name:",
+                lblRegEmail: "Email:",
+                lblRegPais: "Country:",
+                lblRegTelefone: "Phone (Optional):",
+                lblRegEscolaridade: "Education Level:",
+                lblRegInstituicao: "Affiliated Institution:",
+                lblRegSenha: "Password:",
+                lblRegConfirmar: "Confirm Password:",
+                btnRegCadastrar: "Create Account and Access ➔",
+                btnRegLoginLink: "Already have an account? Log in here!",
+                bannerIaTitulo: "Smart Recommender (AI)",
+                bannerIaSub: "Access AI journal suggestions based on theme",
+                btnIaVoltar: "⬅️ Back to Catalog",
+                iaTitForm: "Artificial Intelligence Recommendations",
+                iaSubForm: "Paste your article title and abstract to cross-reference with the catalog.",
+                iaCampoTitulo: "Article Title",
+                iaCampoResumo: "Abstract / Resumen",
+                iaChaveApi: "Gemini API Key",
+                iaFiltroArea: "Broad Area (AI)",
+                iaNumRec: "Limit Suggestions",
+                iaBtnTexto: "🧠 Analyze & Recommend",
+                iaProcessando: "AI is processing your abstract and matching with the catalog...",
+                iaSucessoHeader: "Generated Recommendations",
+                infoTitIndex: "INDEXERS",
+                infoTitRep: "DIRECTORIES",
+                infoTitIa: "ACADEMIC AI",
+                infoTitGov: "GOVERNMENTAL SITES",
+                infoTitInstSec: "INSTITUTIONAL INFORMATION",
+                lblSidebarPessoal: "👤 Personal website",
+                lblSideMetaTit: "METADATA",
+                lblMetaSis: "System",
+                lblMetaSisVal: "Operational",
+                lblMetaVer: "System Version",
+                lblMetaPad: "CNPq Standard",
+                lblMetaPadVal: "Active",
+                lblCopyrightTit: "Copyright & Property:",
+                lblCopyrightDesc: "Federal University of Ouro Preto<br>Minas Gerais, Brasil.<br><i>All rights reserved.</i>",
+                visitasLbl: "Portal Visits",
+                btnSidebarSair: "Logout"
+            },
+            es: {
+                title: "Portal del Investigador",
+                offline: "Versión PWA Mobile",
+                searchPlaceholder: "Ingrese el título, ISSN...",
+                filterTitle: "Filtros y Ordenación",
+                btnFilters: "⚡ Filtros",
+                metricTotal: "Seleccionadas",
+                metricHIndex: "H-Index Máximo",
+                metricJIF: "Max JIF Factor",
+                metricSJR: "SJR Máximo",
+                noResults: "Ninguna revista encontrada.",
+                detailsTitle: "Detalles de la Revista",
+                colGrandeArea: "Gran Área",
+                colArea: "Área de Conocimiento",
+                colSubarea: "Subárea (CNPq)",
+                colIndexadores: "Indexadores",
+                colQuartilJCR: "Cuartil JCR",
+                colQuartilSJR: "Best Cuartil SJR",
+                colJIF: "JIF (Factor de Impacto)",
+                colSJR: "SJR Score",
+                colHIndex: "H-Index",
+                btnScholar: "🎓 Scholar",
+                btnWebsite: "🌐 Visitar Sitio Web",
+                lblLoading: "Cargando Base Científica...",
+                lblLoadingSub: "Procesando 53,000 revistas locales",
+                lblTodas: "Todas",
+                lblTodos: "Todos",
+                lblOrdenacao: "Ordenar resultados por:",
+                lblOrdTitulo: "Título",
+                lblOrdSJR: "SJR Score",
+                lblOrdJIF: "JIF Factor de Impacto",
+                lblOrdHIndex: "H-Index",
+                lblFiltroEscopo: "Filtros de Alcance",
+                lblFiltroMetricas: "Filtros de Impacto",
+                lblGrandeArea: "Gran Área (CNPq)",
+                lblIndexador: "Indexador",
+                lblQuartilJCRLabel: "Cuartil JCR",
+                lblQuartilSJRLabel: "Best Cuartil SJR",
+                lblFechar: "Hecho",
+                lblResultados: "Resultados (Mostrando los primeiros 40)",
+                
+                logEmail: "Correo o Usuario:",
+                logSenha: "Contraseña:",
+                btnLogEntrar: "Ingresar ➔",
+                btnLogGoogle: "🌐 Conectar con Google",
+                btnLogCadastrarLink: "¿No tienes una cuenta? ¡Regístrate aquí!",
+                regTitleHeader: "Crear Cuenta Académica",
+                lblRegNome: "Nombre y Apellido:",
+                lblRegEmail: "Email:",
+                lblRegPais: "País:",
+                lblRegTelefone: "Teléfono (Opcional):",
+                lblRegEscolaridade: "Nivel de Escolaridad:",
+                lblRegInstituicao: "Vínculo Institucional:",
+                lblRegSenha: "Contraseña:",
+                lblRegConfirmar: "Confirmar Contraseña:",
+                btnRegCadastrar: "Crear Cuenta y Acceder ➔",
+                btnRegLoginLink: "¿Ya tienes una cuenta? ¡Inicia sesión aquí!",
+                bannerIaTitulo: "Recomendador Inteligente (IA)",
+                bannerIaSub: "Acceda a sugerencias temáticas por IA",
+                btnIaVoltar: "⬅️ Volver al Catálogo",
+                iaTitForm: "Recomendaciones con Inteligência Artificial",
+                iaSubForm: "Pegue el título y el resumen de su artículo para cruzar con el catálogo.",
+                iaCampoTitulo: "Título del Artículo",
+                iaCampoResumo: "Resumen / Abstract",
+                iaChaveApi: "Clave API de Gemini",
+                iaFiltroArea: "Gran Área (IA)",
+                iaNumRec: "Límite Sugerencias",
+                iaBtnTexto: "🧠 Analizar y Recomendar",
+                iaProcessando: "La IA está procesando su resumen y cruzándolo con el catálogo...",
+                iaSucessoHeader: "Recomendaciones Generadas",
+                infoTitIndex: "INDEXADORES",
+                infoTitRep: "DIRECTORIOS",
+                infoTitIa: "IA ACADÉMICA",
+                infoTitGov: "SITIOS GUBERNAMENTALES",
+                infoTitInstSec: "INFORMACIÓN INSTITUCIONAL",
+                lblSidebarPessoal: "👤 Sitio personal",
+                lblSideMetaTit: "METADATOS",
+                lblMetaSis: "Sistema",
+                lblMetaSisVal: "Operacional",
+                lblMetaVer: "Versión Base",
+                lblMetaPad: "Padrón CNPq",
+                lblMetaPadVal: "Activo",
+                lblCopyrightTit: "Derechos de Autor & Propiedad:",
+                lblCopyrightDesc: "Universidad Federal Ouro Preto<br>Minas Gerais, Brasil.<br><i>Todos los derechos reservados.</i>",
+                visitasLbl: "Visitas al Portal",
+                btnSidebarSair: "Cerrar Sesión"
+            }
+        };
+
+        let idiomaAtivo = "pt";
+
+        function mudarIdioma(lang) {
+            idiomaAtivo = lang;
+            
+            ['pt', 'en', 'es'].forEach(l => {
+                const btn = document.getElementById(`btn-lang-${l}`);
+                btn.className = l === lang ? "px-2 py-1 rounded bg-slate-950 text-emerald-400" : "px-2 py-1 rounded text-slate-400";
+            });
+
+            const t = translation[lang];
+            
+            // Geral
+            document.getElementById('app-title').innerText = t.title;
+            document.getElementById('app-subtitle').innerText = t.offline;
+            document.getElementById('buscainput').placeholder = t.searchPlaceholder;
+            document.getElementById('btn-filters-text').innerText = t.btnFilters;
+            document.getElementById('lbl-metric-total').innerText = t.metricTotal;
+            document.getElementById('lbl-metric-hindex').innerText = t.metricHIndex;
+            document.getElementById('lbl-metric-jif').innerText = t.metricJIF;
+            document.getElementById('lbl-metric-sjr').innerText = t.metricSJR;
+            document.getElementById('lbl-resultados-titulo').innerText = t.lblResultados;
+            
+            // Login/Cadastro
+            document.getElementById('lbl-log-email').innerText = t.logEmail;
+            document.getElementById('lbl-log-senha').innerText = t.logSenha;
+            document.getElementById('btn-log-entrar').innerText = t.btnLogEntrar;
+            document.getElementById('btn-log-google').innerText = t.btnLogGoogle;
+            document.getElementById('btn-log-cadastrar-link').innerText = t.btnLogCadastrarLink;
+            
+            document.getElementById('reg-title-header').innerText = t.regTitleHeader;
+            document.getElementById('lbl-reg-nome').innerText = t.lblRegNome;
+            document.getElementById('lbl-reg-email').innerText = t.lblRegEmail;
+            document.getElementById('lbl-reg-pais').innerText = t.lblRegPais;
+            document.getElementById('lbl-reg-telefone').innerText = t.lblRegTelefone;
+            document.getElementById('lbl-reg-escolaridade').innerText = t.lblRegEscolaridade;
+            document.getElementById('lbl-reg-instituicao').innerText = t.lblRegInstituicao;
+            document.getElementById('lbl-reg-senha').innerText = t.lblRegSenha;
+            document.getElementById('lbl-reg-confirmar').innerText = t.lblRegConfirmar;
+            document.getElementById('btn-reg-cadastrar').innerText = t.btnRegCadastrar;
+            document.getElementById('btn-reg-login-link').innerText = t.btnRegLoginLink;
+            
+            // Drawer
+            document.getElementById('drawer-title').innerText = t.filterTitle;
+            document.getElementById('lbl-fechar').innerText = t.lblFechar;
+            document.getElementById('lbl-ordenacao').innerText = t.lblOrdenacao;
+            document.getElementById('opt-ord-titulo').innerText = t.lblOrdTitulo;
+            document.getElementById('opt-ord-sjr').innerText = t.lblOrdSJR;
+            document.getElementById('opt-ord-jif').innerText = t.lblOrdJIF;
+            document.getElementById('opt-ord-hindex').innerText = t.lblOrdHIndex;
+            document.getElementById('lbl-filtros-escopo').innerText = t.lblFiltroEscopo;
+            document.getElementById('lbl-filtro-area').innerText = t.lblGrandeArea;
+            document.getElementById('lbl-filtro-indexador').innerText = t.lblIndexador;
+            document.getElementById('opt-area-todas').innerText = t.lblTodas;
+            document.getElementById('opt-idx-todos').innerText = t.lblTodos;
+            document.getElementById('lbl-filtros-metricas').innerText = t.lblFiltroMetricas;
+            document.getElementById('lbl-q-jcr-lbl').innerText = t.lblQuartilJCRLabel;
+            document.getElementById('lbl-q-sjr-lbl').innerText = t.lblQuartilSJRLabel;
+
+            // Banner IA
+            document.getElementById('banner-ia-titulo').innerText = t.bannerIaTitulo;
+            document.getElementById('banner-ia-sub').innerText = t.bannerIaSub;
+            document.getElementById('btn-ia-voltar').innerText = t.btnIaVoltar;
+
+            // Formulário IA
+            document.getElementById('ia-tit-form').innerText = t.iaTitForm;
+            document.getElementById('ia-sub-form').innerText = t.iaSubForm;
+            document.getElementById('lbl-ia-campo-titulo').innerText = t.iaCampoTitulo;
+            document.getElementById('lbl-ia-campo-resumo').innerText = t.iaCampoResumo;
+            document.getElementById('lbl-ia-chave-api').innerText = t.iaChaveApi;
+            document.getElementById('lbl-expander-como-obter').innerText = t.lblExpanderComoObter;
+            document.getElementById('lbl-ia-filtro-area').innerText = t.iaFiltroArea;
+            document.getElementById('lbl-ia-num-rec').innerText = t.iaNumRec;
+            document.getElementById('opt-ia-area-todas').innerText = t.lblTodas;
+            document.getElementById('ia-btn-texto').innerText = t.iaBtnTexto;
+            document.getElementById('lbl-ia-processando').innerText = t.iaProcessando;
+            document.getElementById('lbl-ia-sucesso-header').innerText = t.iaSucessoHeader;
+
+            // Detalhes Modal
+            document.getElementById('lbl-detalhes-titulo').innerText = t.detailsTitle;
+            document.getElementById('lbl-det-jif').innerText = t.colJIF;
+            document.getElementById('lbl-det-sjr').innerText = t.colSJR;
+            document.getElementById('lbl-det-q-jcr').innerText = t.colQuartilJCR;
+            document.getElementById('lbl-det-q-sjr').innerText = t.colQuartilSJR;
+            document.getElementById('lbl-det-hindex').innerText = t.colHIndex;
+            document.getElementById('lbl-det-garea').innerText = t.colGrandeArea;
+            document.getElementById('lbl-det-area').innerText = t.colArea;
+            document.getElementById('lbl-det-subarea').innerText = t.colSubarea;
+            document.getElementById('lbl-det-index').innerText = t.colIndexadores;
+            document.getElementById('btn-link-scholar').innerText = t.btnScholar;
+            document.getElementById('btn-link-site').innerText = t.btnWebsite;
+
+            // Sidebar
+            document.getElementById('info-tit-index').innerText = t.infoTitIndex;
+            document.getElementById('info-tit-rep').innerText = t.infoTitRep;
+            document.getElementById('info-tit-ia').innerText = t.infoTitIa;
+            document.getElementById('info-tit-gov').innerText = t.infoTitGov;
+            document.getElementById('info-tit-inst-sec').innerText = t.infoTitInstSec;
+            document.getElementById('lbl-sidebar-pessoal').innerText = t.lblSidebarPessoal;
+            
+            document.getElementById('lbl-side-meta-tit').innerText = t.lblSideMetaTit;
+            document.getElementById('lbl-meta-sis').innerText = t.lblMetaSis;
+            document.getElementById('lbl-meta-sis-val').innerText = t.lblMetaSisVal;
+            document.getElementById('lbl-meta-ver').innerText = t.lblMetaVer;
+            document.getElementById('lbl-meta-pad').innerText = t.lblMetaPad;
+            document.getElementById('lbl-meta-pad-val').innerText = t.lblMetaPadVal;
+            
+            document.getElementById('lbl-copyright-tit').innerText = t.lblCopyrightTit;
+            document.getElementById('lbl-copyright-desc').innerHTML = t.lblCopyrightDesc;
+
+            document.getElementById('btn-sidebar-sair').innerText = t.btnSidebarSair;
+
+            document.getElementById('load-title').innerText = t.lblLoading;
+            document.getElementById('load-sub').innerText = t.lblLoadingSub;
+            
+            // Contador de visitas localizado
+            const visitasCount = localStorage.getItem('pwa_visitas') || '7';
+            document.getElementById('visitas-badge-sidebar').innerText = `👤 ${t.visitasLbl}: ${visitasCount}`;
+
+            popularEscolaridade();
+            popularInstituicao();
+
+            processarFiltragem();
+        }
+
+        function popularEscolaridade() {
+            const select = document.getElementById('reg-escolaridade');
+            const valorAtual = select.value;
+            select.innerHTML = '';
+            
+            let opcoes = [];
+            if (idiomaAtivo === "pt") {
+                opcoes = ["Estudante de Graduação", "Especialista / Pós-Graduado", "Mestrando", "Mestre", "Doutorando", "Doutor", "Pós-Doutor", "Outro"];
+            } else if (idiomaAtivo === "en") {
+                opcoes = ["Undergraduate Student", "Specialist / Postgraduate", "Master's Student", "Master", "PhD Candidate", "PhD / Doctor", "Postdoctoral Researcher", "Other"];
+            } else {
+                opcoes = ["Estudiante de Grado", "Especialista / Posgrado", "Estudiante de Maestría", "Magíster", "Doctorando", "Doctor", "Posdoctorado", "Otro"];
+            }
+
+            opcoes.forEach(op => {
+                const o = document.createElement('option');
+                o.value = op;
+                o.innerText = op;
+                select.appendChild(o);
+            });
+            if (valorAtual) select.value = valorAtual;
+        }
+
+        function popularInstituicao() {
+            const select = document.getElementById('reg-instituicao');
+            const valorAtual = select.value;
+            select.innerHTML = '';
+
+            let opcoes = [];
+            if (idiomaAtivo === "pt") {
+                opcoes = [
+                    "Universidade Federal de Ouro Preto (UFOP)",
+                    "Universidade de São Paulo (USP)",
+                    "Universidade Estadual de Campinas (UNICAMP)",
+                    "Universidade Federal de Minas Gerais (UFMG)",
+                    "Universidade Federal do Rio de Janeiro (UFRJ)",
+                    "Universidade Federal do Rio Grande do Sul (UFRGS)",
+                    "Universidade Estadual Paulista (UNESP)",
+                    "Universidade Federal de Santa Catarina (UFSC)",
+                    "Universidade Federal de São Paulo (UNIFESP)",
+                    "Outra Instituição"
+                ];
+            } else if (idiomaAtivo === "en") {
+                opcoes = [
+                    "Federal University of Ouro Preto (UFOP)",
+                    "University of São Paulo (USP)",
+                    "State University of Campinas (UNICAMP)",
+                    "Federal University of Minas Gerais (UFMG)",
+                    "Federal University of Rio de Janeiro (UFRJ)",
+                    "Federal University of Rio Grande do Sul (UFRGS)",
+                    "São Paulo State University (UNESP)",
+                    "Federal University of Santa Catarina (UFSC)",
+                    "Federal University of São Paulo (UNIFESP)",
+                    "Other Institution"
+                ];
+            } else {
+                opcoes = [
+                    "Universidad Federal de Ouro Preto (UFOP)",
+                    "Universidad de São Paulo (USP)",
+                    "Universidad Estatal de Campinas (UNICAMP)",
+                    "Universidad Federal de Minas Gerais (UFMG)",
+                    "Universidad Federal de Río de Janeiro (UFRJ)",
+                    "Universidad Federal de Río Grande del Sur (UFRGS)",
+                    "Universidad Estatal Paulista (UNESP)",
+                    "Universidad Federal de Santa Catarina (UFSC)",
+                    "Universidad Federal de São Paulo (UNIFESP)",
+                    "Otra Institución"
+                ];
+            }
+
+            opcoes.forEach(op => {
+                const o = document.createElement('option');
+                o.value = op;
+                o.innerText = op;
+                select.appendChild(o);
+            });
+            if (valorAtual) select.value = valorAtual;
+        }
+    </script>
+
+    <!-- PROGRAMA PRINCIPAL LÓGICA -->
+    <script>
+        let baseDados = [];
+        let indexadoresDisponiveis = new Set();
+        let grandesAreasDisponiveis = new Set();
+        
+        let quartisSelecionadosJCR = new Set();
+        let quartisSelecionadosSJR = new Set();
+        let searchDebounceTimeout = null;
+
+        // Controle Geral de View (Telas)
+        function mudarVisualizacao(viewName) {
+            const views = ['login', 'register', 'catalog', 'ai'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (v === viewName) {
+                    el.classList.remove('hidden');
+                    el.classList.add('block');
+                } else {
+                    el.classList.remove('block');
+                    el.classList.add('hidden');
+                }
+            });
+
+            const headerBtn = document.getElementById('header-hamburger-btn');
+            if (viewName === 'catalog' || viewName === 'ai') {
+                headerBtn.classList.remove('hidden');
+                headerBtn.classList.add('block');
+            } else {
+                headerBtn.classList.remove('block');
+                headerBtn.classList.add('hidden');
+            }
+
+            toggleSidebar(false);
+        }
+
+        // Abre/fecha sidebar lateral
+        function toggleSidebar(abrir) {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (abrir) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function verificarInstituicaoOutra() {
+            const sel = document.getElementById('reg-instituicao').value;
+            const inputOutra = document.getElementById('reg-instituicao-outra');
+            if (sel === "Outra Instituição" || sel === "Other Institution" || sel === "Otra Institución") {
+                inputOutra.classList.remove('hidden');
+            } else {
+                inputOutra.classList.add('hidden');
+            }
+        }
+
+        // LÓGICA DE CADASTRO LOCAL (LOCALSTORAGE)
+        function efetuarCadastro() {
+            const nome = document.getElementById('reg-nome').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const pais = document.getElementById('reg-pais').value.trim();
+            const tel = document.getElementById('reg-telefone').value.trim();
+            const escolaridade = document.getElementById('reg-escolaridade').value;
+            const instSel = document.getElementById('reg-instituicao').value;
+            const instOutra = document.getElementById('reg-instituicao-outra').value.trim();
+            const senha = document.getElementById('reg-senha').value;
+            const senhaConf = document.getElementById('reg-senha-conf').value;
+
+            if (!nome || !email || !pais || !senha) {
+                alert(idiomaAtivo === 'pt' ? '⚠️ Preencha todos os campos obrigatórios!' : '⚠️ Fill in all required fields!');
+                return;
+            }
+            if (senha !== senhaConf) {
+                alert(idiomaAtivo === 'pt' ? '⚠️ As senhas não coincidem!' : '⚠️ Passwords do not match!');
+                return;
+            }
+
+            const instFinal = (instSel === "Outra Instituição" || instSel === "Other Institution" || instSel === "Otra Institución") ? instOutra : instSel;
+
+            let users = JSON.parse(localStorage.getItem('pwa_users') || '[]');
+            if (users.some(u => u.email === email)) {
+                alert(idiomaAtivo === 'pt' ? '⚠️ Este e-mail já está cadastrado!' : '⚠️ This email is already registered!');
+                return;
+            }
+
+            const newUser = { nome, email, pais, tel, escolaridade, instituicao: instFinal, senha };
+            users.push(newUser);
+            localStorage.setItem('pwa_users', JSON.stringify(users));
+
+            localStorage.setItem('pwa_logged_user', JSON.stringify(newUser));
+            alert(idiomaAtivo === 'pt' ? '🎉 Cadastro realizado com sucesso!' : '🎉 Account created successfully!');
+            mudarVisualizacao('catalog');
+        }
+
+        // LÓGICA DE LOGIN LOCAL (LOCALSTORAGE)
+        function fazerLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const senha = document.getElementById('login-senha').value;
+
+            if (!email || !senha) {
+                alert(idiomaAtivo === 'pt' ? '⚠️ Preencha usuário e senha!' : '⚠️ Fill in user and password!');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('pwa_users') || '[]');
+            const user = users.find(u => u.email === email && u.senha === senha);
+
+            if (user) {
+                localStorage.setItem('pwa_logged_user', JSON.stringify(user));
+                mudarVisualizacao('catalog');
+            } else {
+                alert(idiomaAtivo === 'pt' ? '⚠️ Usuário ou senha incorretos!' : '⚠️ Incorrect user or password!');
+            }
+        }
+
+        // LÓGICA DE GOOGLE LOGIN (SIMULAÇÃO)
+        function fazerLoginGoogle() {
+            const mockUser = {
+                nome: "Usuário Google",
+                email: "googleuser@example.com",
+                instituicao: "Google Acadêmico"
+            };
+            localStorage.setItem('pwa_logged_user', JSON.stringify(mockUser));
+            alert(idiomaAtivo === 'pt' ? '🚀 Conectado com o Google!' : '🚀 Connected with Google!');
+            mudarVisualizacao('catalog');
+        }
+
+        // LOGOUT
+        function efetuarLogout() {
+            localStorage.removeItem('pwa_logged_user');
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-senha').value = '';
+            mudarVisualizacao('login');
+        }
+
+        // --- FUNÇÕES DE AGREGAÇÃO E HIGIENIZAÇÃO DO BANCO (DEDUPLICAÇÃO E MERGE DE INDEXADORES) ---
+        function aggTitulo(array) {
+            const candidatos = array.filter(v => v && v !== '-' && v !== 'None' && v !== 'nan' && v !== '');
+            if (candidatos.length === 0) return '-';
+            const suaves = candidatos.filter(c => c !== c.toUpperCase() && /[A-Z]/.test(c));
+            if (suaves.length > 0) return suaves[0];
+            const semCaps = candidatos.filter(c => c !== c.toUpperCase());
+            if (semCaps.length > 0) return semCaps[0];
+            return candidatos[0];
+        }
+
+        function aggIndexadores(array) {
+            let indexadores = new Set();
+            array.forEach(val => {
+                if (val && val !== '-' && val !== 'None' && val !== 'nan' && val !== '') {
+                    val.split(',').forEach(i => indexadores.add(i.trim()));
+                }
+            });
+            const list = Array.from(indexadores).sort();
+            return list.length > 0 ? list.join(', ') : '-';
+        }
+
+        function aggMaxNumerico(array) {
+            let max = 0.0;
+            array.forEach(val => {
+                const cleanVal = val ? val.replace(',', '.').trim() : '';
+                const num = parseFloat(cleanVal) || 0.0;
+                if (num > max) max = num;
+            });
+            return max;
+        }
+
+        function aggPrimeiroValido(array) {
+            for (const val of array) {
+                if (val && val !== '-' && val !== 'None' && val !== 'nan' && val !== '') {
+                    return val.trim();
+                }
+            }
+            return '-';
+        }
+
+        function processarAgregacaoCSV(linhas) {
+            const idxTitulo = 0;
+            const idxIssn = 1;
+            const idxHomepage = 2;
+            const idxGarea = 3;
+            const idxArea = 4;
+            const idxSubarea = 5;
+            const idxIndexador = 6;
+            const idxJif = 7;
+            const idxQuartilJCR = 8;
+            const idxSjr = 9;
+            const idxBestQuartilSJR = 10;
+            const idxHIndex = 11;
+            const idxH5 = 12;
+
+            let grupos = {};
+
+            linhas.slice(1).forEach(linha => {
+                const col = linha.split(';');
+                if (col.length < 2 || !col[idxTitulo]) return;
+
+                const tituloOriginal = col[idxTitulo].replace(/"/g, '').trim();
+                const tituloNorm = tituloOriginal.toLowerCase().trim();
+
+                if (!grupos[tituloNorm]) {
+                    grupos[tituloNorm] = [];
+                }
+                grupos[tituloNorm].push(col);
+            });
+
+            let dadosAgregados = [];
+
+            for (const key in grupos) {
+                const colsGrupo = grupos[key];
+
+                const titulos = colsGrupo.map(c => c[idxTitulo]);
+                const tituloFinal = aggTitulo(titulos);
+
+                const indexadores = colsGrupo.map(c => c[idxIndexador]);
+                const indexadorFinal = aggIndexadores(indexadores);
+
+                const sjrs = colsGrupo.map(c => c[idxSjr]);
+                const sjrFinal = aggMaxNumerico(sjrs);
+
+                const jifs = colsGrupo.map(c => c[idxJif]);
+                const jifFinal = aggMaxNumerico(jifs);
+
+                const hinds = colsGrupo.map(c => c[idxHIndex]);
+                const hindexFinal = aggMaxNumerico(hinds);
+
+                const issns = colsGrupo.map(c => c[idxIssn]);
+                const issnFinal = aggPrimeiroValido(issns);
+
+                const homepages = colsGrupo.map(c => c[idxHomepage]);
+                const homepageFinal = aggPrimeiroValido(homepages);
+
+                const gareas = colsGrupo.map(c => c[idxGarea]);
+                const gareaFinal = aggPrimeiroValido(gareas);
+
+                const areas = colsGrupo.map(c => c[idxArea]);
+                const areaFinal = aggPrimeiroValido(areas);
+
+                const subareas = colsGrupo.map(c => c[idxSubarea]);
+                const subareaFinal = aggPrimeiroValido(subareas);
+
+                const q_jcrs = colsGrupo.map(c => c[idxQuartilJCR]);
+                const q_jcrFinal = aggPrimeiroValido(q_jcrs);
+
+                const q_sjrs = colsGrupo.map(c => c[idxBestQuartilSJR]);
+                const q_sjrFinal = aggPrimeiroValido(q_sjrs);
+
+                const h5s = colsGrupo.map(c => c[idxH5]);
+                const h5Final = aggPrimeiroValido(h5s);
+
+                if (indexadorFinal !== '-') {
+                    indexadorFinal.split(',').forEach(i => indexadoresDisponiveis.add(i.trim()));
+                }
+                if (gareaFinal !== '-' && gareaFinal !== 'Grande Area') {
+                    grandesAreasDisponiveis.add(gareaFinal);
+                }
+
+                dadosAgregados.push({
+                    titulo: tituloFinal,
+                    issn: issnFinal,
+                    homepage: homepageFinal,
+                    grandearea: gareaFinal,
+                    area: areaFinal,
+                    subarea: subareaFinal,
+                    indexadores: indexadorFinal,
+                    jif: jifFinal,
+                    q_jcr: q_jcrFinal,
+                    sjr: sjrFinal,
+                    q_sjr: q_sjrFinal,
+                    hindex: hindexFinal,
+                    h5: h5Final
+                });
+            }
+
+            return dadosAgregados;
+        }
+
+        // Carrega o CSV e inicia as opções
+        async function carregarBancoDados() {
+            const progressBar = document.getElementById('loading-bar');
+            
+            try {
+                let progress = 10;
+                const progressInterval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += 15;
+                        progressBar.style.width = `${progress}%`;
+                    }
+                }, 100);
+
+                const response = await fetch('dados.csv');
+                if (!response.ok) throw new Error("Falha no download");
+                
+                const data = await response.text();
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                const linhas = data.split('\n');
+                
+                // Roda o motor de agregação/deduplicação idêntico ao desktop
+                baseDados = processarAgregacaoCSV(linhas);
+
+                // Popular filtros Grande Área (Catálogo e IA)
+                const selectArea = document.getElementById('filtro-area');
+                const selectAreaIA = document.getElementById('ia-filtro-area-sel');
+                
+                Array.from(grandesAreasDisponiveis).sort().forEach(ga => {
+                    const opt = document.createElement('option');
+                    opt.value = ga;
+                    opt.innerText = ga;
+                    selectArea.appendChild(opt);
+
+                    const optIA = document.createElement('option');
+                    optIA.value = ga;
+                    optIA.innerText = ga;
+                    selectAreaIA.appendChild(optIA);
+                });
+
+                // Popular filtros Indexadores
+                const selectIdx = document.getElementById('filtro-indexador');
+                Array.from(indexadoresDisponiveis).sort().forEach(idx => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.innerText = idx;
+                    selectIdx.appendChild(opt);
+                });
+
+                // Inicializar Contador de Visitas PWA
+                let visitas = parseInt(localStorage.getItem('pwa_visitas') || '7');
+                if (!sessionStorage.getItem('pwa_visitado_esta_sessao')) {
+                    sessionStorage.setItem('pwa_visitado_esta_sessao', 'true');
+                    visitas += 1;
+                    localStorage.setItem('pwa_visitas', visitas.toString());
+                }
+                document.getElementById('visitas-badge-sidebar').innerText = `👤 Visitas ao Portal: ${visitas}`;
+
+                // Fade out da tela de loading
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+
+                // Roda a filtragem para exibir os cards iniciais
+                processarFiltragem();
+
+                // Verifica se já está logado
+                const logged = localStorage.getItem('pwa_logged_user');
+                if (logged) {
+                    mudarVisualizacao('catalog');
+                } else {
+                    mudarVisualizacao('login');
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('load-title').innerText = "Erro ao carregar banco de dados";
+                document.getElementById('load-sub').innerText = "Verifique se o arquivo dados.csv está na mesma pasta.";
+            }
+        }
+
+        // Lógica de busca e ordenação
+        function processarFiltragem() {
+            const queryRaw = document.getElementById('buscainput').value;
+            const queryNorm = normalizar(queryRaw);
+            
+            const areaFiltro = document.getElementById('filtro-area').value;
+            const indexFiltro = document.getElementById('filtro-indexador').value;
+            const ordenacao = document.getElementById('filtro-ordem').value;
+
+            let filtrados = baseDados.filter(item => {
+                if (queryNorm) {
+                    const searchableStringNorm = normalizar(`${item.titulo} ${item.issn} ${item.subarea}`);
+                    if (!avaliarBuscaBooleana(searchableStringNorm, queryRaw)) {
+                        return false;
+                    }
+                }
+                if (areaFiltro !== 'todas' && item.grandearea !== areaFiltro) {
+                    return false;
+                }
+                if (indexFiltro !== 'todos' && !item.indexadores.includes(indexFiltro)) {
+                    return false;
+                }
+                if (quartisSelecionadosJCR.size > 0 && !quartisSelecionadosJCR.has(item.q_jcr)) {
+                    return false;
+                }
+                if (quartisSelecionadosSJR.size > 0 && !quartisSelecionadosSJR.has(item.q_sjr)) {
+                    return false;
+                }
+                return true;
+            });
+
+            document.getElementById('metric-total').innerText = filtrados.length;
+            
+            const maxJIF = Math.max(...filtrados.map(d => d.jif), 0).toFixed(1);
+            document.getElementById('metric-jif').innerText = maxJIF;
+
+            const maxSJR = Math.max(...filtrados.map(d => d.sjr), 0).toFixed(3);
+            document.getElementById('metric-sjr').innerText = maxSJR;
+
+            const maxH = Math.max(...filtrados.map(d => d.hindex), 0);
+            document.getElementById('metric-hindex').innerText = maxH;
+
+            if (ordenacao === 'sjr') {
+                filtrados.sort((a, b) => b.sjr - a.sjr);
+            } else if (ordenacao === 'jif') {
+                filtrados.sort((a, b) => b.jif - a.jif);
+            } else if (ordenacao === 'hindex') {
+                filtrados.sort((a, b) => b.hindex - a.hindex);
+            } else {
+                filtrados.sort((a, b) => a.titulo.localeCompare(b.titulo));
+            }
+
+            renderizarCards(filtrados);
+        }
+
+        // Lógica de Busca Booleana Completa
+        function avaliarBuscaBooleana(textoLinhaNorm, expressaoOriginal) {
+            const queryNorm = normalizar(expressaoOriginal);
+            if (!queryNorm) return true;
+
+            if (queryNorm.includes(' not ')) {
+                const partes = queryNorm.split(' not ');
+                return avaliarBuscaBooleana(textoLinhaNorm, partes[0]) && !textoLinhaNorm.includes(partes[1].trim());
+            }
+            if (queryNorm.includes(' and ')) {
+                const partes = queryNorm.split(' and ');
+                return partes.every(p => textoLinhaNorm.includes(p.trim()));
+            }
+            if (queryNorm.includes(' or ')) {
+                const partes = queryNorm.split(' or ');
+                return partes.some(p => textoLinhaNorm.includes(p.trim()));
+            }
+
+            return textoLinhaNorm.includes(queryNorm);
+        }
+
+        function normalizar(texto) {
+            if (!texto) return '';
+            return texto.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        }
+
+        function toggleFiltros() {
+            const drawer = document.getElementById('drawer-filtros');
+            drawer.classList.toggle('hidden');
+        }
+
+        function toggleQuartil(tipo, valor) {
+            const setAlvo = tipo === 'jcr' ? quartisSelecionadosJCR : quartisSelecionadosSJR;
+            const btn = document.getElementById(`btn-${tipo}-${valor}`);
+            
+            if (setAlvo.has(valor)) {
+                setAlvo.delete(valor);
+                btn.className = "flex-1 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs active:scale-95 transition-all text-slate-600";
+            } else {
+                setAlvo.add(valor);
+                btn.className = "flex-1 py-2 bg-slate-900 text-white border border-slate-900 rounded-lg font-bold text-xs active:scale-95 transition-all shadow-xs";
+            }
+            processarFiltragem();
+        }
+
+        function renderizarCards(dados) {
+            const container = document.getElementById('lista-resultados');
+            container.innerHTML = '';
+
+            const tText = translation[idiomaAtivo];
+
+            if (dados.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-400 py-10 font-medium text-xs">${tText.noResults}</div>`;
+                return;
+            }
+
+            dados.slice(0, 40).forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-xs active:scale-[0.98] transition-all flex flex-col justify-between cursor-pointer";
+                card.onclick = () => exibirDetalhes(item);
+                
+                card.innerHTML = `
+                    <div class="space-y-1.5">
+                        <div class="text-xs font-extrabold text-slate-900 font-outfit line-clamp-2">${item.titulo}</div>
+                        <div class="text-[10px] text-slate-400 font-semibold font-mono">ISSN: ${item.issn}</div>
+                    </div>
+                    <div class="flex justify-between items-center pt-3 mt-3 border-t border-slate-100 text-[10px] font-bold">
+                        <div class="flex gap-1.5">
+                            <span class="bg-slate-50 px-2 py-0.5 rounded-md text-slate-500 border border-slate-200">SJR: ${item.sjr.toFixed(2)}</span>
+                            <span class="bg-slate-50 px-2 py-0.5 rounded-md text-slate-500 border border-slate-200">H: ${item.hindex}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md ${obterBadgeCSS(item.q_sjr)}">${item.q_sjr}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function exibirDetalhes(item) {
+            document.getElementById('detail-titulo').innerText = item.titulo;
+            document.getElementById('detail-issn').innerText = `ISSN: ${item.issn}`;
+            document.getElementById('detail-jif').innerText = item.jif > 0 ? item.jif.toFixed(1) : '-';
+            document.getElementById('detail-sjr').innerText = item.sjr > 0 ? item.sjr.toFixed(3) : '-';
+            
+            const badgeJCR = document.getElementById('detail-q-jcr');
+            badgeJCR.innerText = item.q_jcr;
+            badgeJCR.className = `text-xs font-black px-2 py-0.5 rounded ${obterBadgeCSS(item.q_jcr)}`;
+
+            const badgeSJR = document.getElementById('detail-q-sjr');
+            badgeSJR.innerText = item.q_sjr;
+            badgeSJR.className = `text-xs font-black px-2 py-0.5 rounded ${obterBadgeCSS(item.q_sjr)}`;
+
+            document.getElementById('detail-hindex').innerText = item.hindex > 0 ? item.hindex : '-';
+            document.getElementById('detail-grandearea').innerText = item.grandearea;
+            document.getElementById('detail-area').innerText = item.area;
+            document.getElementById('detail-subarea').innerText = item.subarea;
+            document.getElementById('detail-indexadores').innerText = item.indexadores;
+
+            const btnScholar = document.getElementById('btn-link-scholar');
+            if (item.h5) {
+                btnScholar.href = item.h5;
+            } else {
+                btnScholar.href = `https://scholar.google.com/citations?view_op=search_venues&vq=${encodeURIComponent(item.titulo)}`;
+            }
+
+            const btnSite = document.getElementById('btn-link-site');
+            if (item.homepage && item.homepage !== '-') {
+                btnSite.href = item.homepage;
+                btnSite.style.display = 'block';
+            } else {
+                btnSite.style.display = 'none';
+            }
+
+            document.getElementById('modal-detalhes').classList.remove('hidden');
+        }
+
+        function fecharDetalhes() {
+            document.getElementById('modal-detalhes').classList.add('hidden');
+        }
+
+        function calcularRelevanciaLocais(tituloArtigo, resumoArtigo, areaIA, indexadorIA, numRecomendacoes) {
+            let candidatos = baseDados.slice();
+            if (areaIA !== 'todas') {
+                candidatos = candidatos.filter(item => item.grandearea === areaIA);
+            }
+            if (indexadorIA !== 'todos') {
+                candidatos = candidatos.filter(item => item.indexadores.includes(indexadorIA));
+            }
+
+            if (candidatos.length === 0) return [];
+
+            const textoBusca = normalizar(`${tituloArtigo} ${resumoArtigo}`);
+            const regexPalavras = /\b[a-zA-Zá-úÁ-Úíóúâêôãõç]{4,}\b/g;
+            const matches = textoBusca.match(regexPalavras) || [];
+            let palavras = new Set(matches.map(w => w.toLowerCase()));
+
+            const stopwords = new Set(["para", "como", "uma", "este", "esta", "com", "dos", "das", "pelo", "pela", "artigo", "pesquisa", "estudo", "sobre", "with", "this", "from", "that", "article", "research", "study", "about"]);
+            let palavrasFiltradas = new Set([...palavras].filter(p => !stopwords.has(p)));
+
+            const sinonimosAcademicos = [
+                ["educação", "education", "educación", "ensino", "teaching", "aprendizado", "learning", "aprendizaje"],
+                ["computação", "computing", "computador", "computer", "tecnologia", "technology", "tecnología"],
+                ["saúde", "health", "salud", "medicina", "medicine", "médico", "medical", "médica"],
+                ["ciência", "science", "ciencia", "científico", "scientific", "pesquisa", "research", "investigación"],
+                ["desenvolvimento", "development", "desarrollo", "gestão", "management", "gestión", "administração", "administration", "administración"],
+                ["economia", "economy", "economía", "econômico", "economic", "económico", "social"],
+                ["cultura", "culture", "cultura", "história", "history", "historia", "geografia", "geography", "geografía"],
+                ["matemática", "mathematics", "física", "physics", "fisica", "química", "chemistry", "quimica"],
+                ["biologia", "biology", "biología", "meio ambiente", "environment", "medio ambiente", "ambiental", "environmental"],
+                ["sustentabilidade", "sustainability", "sostenibilidad", "engenharia", "engineering", "ingeniería", "indústria", "industry", "industria"],
+                ["produção", "production", "producción", "sistemas", "systems", "sistemas", "informação", "information", "información"],
+                ["comunicação", "communication", "comunicación", "linguagem", "language", "lenguaje", "literatura", "literature"],
+                ["arte", "art", "música", "music", "musica", "psicologia", "psychology", "psicología"],
+                ["filosofia", "philosophy", "filosofía", "política", "politics", "política", "direito", "law", "derecho"],
+                ["energia", "energy", "energía", "materiais", "materials", "materiales", "agricultura", "agriculture"],
+                ["florestal", "forestry", "forestal", "veterinária", "veterinary", "veterinaria", "enfermagem", "nursing", "enfermería"],
+                ["odontologia", "dentistry", "odontología", "farmácia", "pharmacy", "farmacia", "nutrição", "nutrition", "nutrición"]
+            ];
+
+            let novasPalavras = new Set();
+            palavrasFiltradas.forEach(pal => {
+                for (const grupo of sinonimosAcademicos) {
+                    if (grupo.includes(pal)) {
+                        grupo.forEach(g => novasPalavras.add(g));
+                        break;
+                    }
+                }
+            });
+            novasPalavras.forEach(p => palavrasFiltradas.add(p));
+
+            candidatos = candidatos.map(item => {
+                let score = 0;
+                const nome = normalizar(item.titulo);
+                const garea = normalizar(item.grandearea);
+                const area = normalizar(item.area);
+                const subarea = normalizar(item.subarea);
+
+                palavrasFiltradas.forEach(pal => {
+                    if (nome.includes(pal)) score += 5;
+                    if (garea.includes(pal)) score += 3;
+                    if (area.includes(pal)) score += 3;
+                    if (subarea.includes(pal)) score += 3;
+                });
+
+                return { ...item, relevancia: score };
+            });
+
+            candidatos.sort((a, b) => {
+                if (b.relevancia !== a.relevancia) {
+                    return b.relevancia - a.relevancia;
+                }
+                return b.sjr - a.sjr;
+            });
+
+            return candidatos;
+        }
+
+        // LÓGICA DE INTEGRAÇÃO COM GEMINI API
+        async function dispararRecomendadorIA() {
+            const titulo = document.getElementById('ia-titulo-artigo').value.trim();
+            const resumo = document.getElementById('ia-resumo-artigo').value.trim();
+            const apiKey = document.getElementById('ia-chave-api-input').value.trim();
+            const areaIA = document.getElementById('ia-filtro-area-sel').value;
+            const limit = parseInt(document.getElementById('ia-num-rec-sel').value);
+
+            if (!titulo || !resumo) {
+                alert(idiomaAtivo === 'pt' ? '⚠️ Preencha o Título e o Resumo do artigo.' : '⚠️ Fill in Article Title and Abstract.');
+                return;
+            }
+
+            document.getElementById('ia-status-loading').classList.remove('hidden');
+            document.getElementById('ia-resultados-secao').classList.add('hidden');
+
+            const candidatos = calcularRelevanciaLocais(titulo, resumo, areaIA, 'todos', limit);
+            
+            if (candidatos.length === 0) {
+                alert(idiomaAtivo === 'pt' ? 'Nenhuma revista candidata encontrada para esta área.' : 'No candidate journals found.');
+                document.getElementById('ia-status-loading').classList.add('hidden');
+                return;
+            }
+
+            const candidatosCompacto = candidatos.slice(0, 40).map(item => ({
+                "Título": item.titulo,
+                "Grande Area": item.grandearea,
+                "Area do Conhecimento": item.area,
+                "Indexador": item.indexadores,
+                "Quartil JCR": item.q_jcr,
+                "SJR": item.sjr
+            }));
+
+            let recomendacoesFinal = null;
+            let usadoFallback = false;
+
+            if (apiKey) {
+                const modelos = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+                const prompt = `Atue como especialista em publicação acadêmica de alto impacto. O pesquisador submeteu o seguinte artigo científico:
+TÍTULO DO ARTIGO: ${titulo}
+RESUMO DO ARTIGO: ${resumo}
+
+Com base estritamente na lista de periódicos abaixo estruturada em JSON, selecione até ${limit} (dentre as disponíveis) revistas científicas que apresentem a maior aderência temática, de escopo e qualidade.
+
+IMPORTANTES DIRETRIZES:
+1. PRIORIDADE MÁXIMA (Aderência): O assunto do artigo deve fazer sentido com a linha editorial da revista.
+2. SEGUNDA PRIORIDADE (Prestígio): Priorize quartis JCR e índice SJR elevados.
+3. Idioma: Escreva a justificativa no mesmo idioma do resumo enviado.
+
+Lista de Periódicos Candidatos:
+${JSON.stringify(candidatosCompacto)}
+
+Sua resposta deve ser obrigatoriamente um array JSON válido (sem tags markdown em volta, apenas a string crua do array), com as chaves exatas:
+- "revista_nome": Nome exato da revista
+- "porcentagem_aderencia": Número de 0 a 100
+- "justificativa": Justificativa de até 3 linhas explicando o porquê da recomendação.`;
+
+                for (const modelo of modelos) {
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }]
+                            })
+                        });
+
+                        if (res.status === 200) {
+                            const resData = await res.json();
+                            let textRaw = resData.candidates[0].content.parts[0].text.trim();
+                            
+                            textRaw = textRaw.replace(/^```(?:json)?\n|```$/g, '').trim();
+                            const match = textRaw.match(/\[\s*\{.*\}\s*\]/s);
+                            if (match) {
+                                textRaw = match[0];
+                            }
+                            
+                            recomendacoesFinal = JSON.parse(textRaw);
+                            break;
+                        }
+                    } catch (e) {
+                        console.warn(`Erro no modelo ${modelo}:`, e);
+                    }
+                }
+            }
+
+            if (!recomendacoesFinal) {
+                usadoFallback = true;
+                const topCandidatos = candidatos.slice(0, limit);
+                
+                const textoBusca = normalizar(`${titulo} ${resumo}`);
+                const regexPalavras = /\b[a-zA-Zá-úÁ-Úíóúâêôãõç]{4,}\b/g;
+                const matches = textoBusca.match(regexPalavras) || [];
+                const palavrasFiltradas = matches.filter(w => !["para", "como", "uma", "este", "esta", "com", "dos", "das", "pelo", "pela", "artigo"].includes(w.toLowerCase()));
+
+                recomendacoesFinal = topCandidatos.map(item => {
+                    const matched = palavrasFiltradas.filter(p => normalizar(item.titulo).includes(p) || normalizar(item.subarea).includes(p)).slice(0, 3).join(', ');
+                    
+                    let justificativa = "";
+                    if (idiomaAtivo === "pt") {
+                        justificativa = `Este periódico apresenta excelente compatibilidade com seu artigo nas áreas de ${item.subarea}. Destaca-se por cobrir os conceitos: ${matched || 'escopo principal'}.`;
+                    } else if (idiomaAtivo === "en") {
+                        justificativa = `This journal shows excellent compatibility with your article in ${item.subarea}. Highlights cover: ${matched || 'main scope'}.`;
+                    } else {
+                        justificativa = `Esta revista presenta una excelente compatibilidad con su artículo en las áreas de ${item.subarea}. Destacan los términos: ${matched || 'alcance principal'}.`;
+                    }
+
+                    return {
+                        revista_nome: item.titulo,
+                        porcentagem_aderencia: Math.min(98, 70 + (item.relevancia > 0 ? 15 : 0) + Math.min(20, Math.round(item.sjr * 10))),
+                        justificativa: justificativa
+                    };
+                });
+            }
+
+            document.getElementById('ia-status-loading').classList.add('hidden');
+            renderizarResultadosIA(recomendacoesFinal, usadoFallback);
+        }
+
+        function renderizarResultadosIA(recomendacoes, usadoFallback) {
+            const listContainer = document.getElementById('ia-resultados-lista');
+            listContainer.innerHTML = '';
+
+            if (usadoFallback) {
+                const alertBox = document.createElement('div');
+                alertBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs font-medium mb-3";
+                alertBox.innerText = idiomaAtivo === 'pt' 
+                    ? "ℹ️ Recomendações locais otimizadas (a chave de API não foi configurada ou atingiu os limites de cota)."
+                    : "ℹ️ Optimized local recommendations (the API Key is missing or reached quota limits).";
+                listContainer.appendChild(alertBox);
+            }
+
+            recomendacoes.forEach(rec => {
+                const revistaLocal = baseDados.find(r => normalizar(r.titulo) === normalizar(rec.revista_nome)) || null;
+                const issn = revistaLocal ? revistaLocal.issn : '-';
+                const sjr = revistaLocal ? revistaLocal.sjr.toFixed(2) : '-';
+                
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5 cursor-pointer hover:shadow-xs";
+                if (revistaLocal) {
+                    card.onclick = () => exibirDetalhes(revistaLocal);
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-extrabold text-slate-900 font-outfit line-clamp-2">${rec.revista_nome}</h4>
+                            <span class="text-[9px] text-slate-400 font-mono">ISSN: ${issn} | SJR: ${sjr}</span>
+                        </div>
+                        <span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md font-black text-xs font-outfit whitespace-nowrap">${rec.porcentagem_aderencia}%</span>
+                    </div>
+                    <p class="text-[10px] text-slate-650 bg-slate-50 p-2.5 rounded-lg border border-slate-100 italic leading-relaxed font-medium">
+                        "${rec.justificativa}"
+                    </p>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            document.getElementById('ia-resultados-secao').classList.remove('hidden');
+        }
+
+        // Listener de Busca com Debounce
+        document.getElementById('buscainput').addEventListener('input', (e) => {
+            clearTimeout(searchDebounceTimeout);
+            searchDebounceTimeout = setTimeout(() => {
+                processarFiltragem();
+            }, 300);
+        });
+
+        // Inicializar
+        window.onload = () => {
+            carregarBancoDados();
+            mudarIdioma('pt');
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker Registrado!', reg))
+                .catch(err => console.warn('Erro ao registrar Service Worker:', err));
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+name: Keep SciPubs Alive
+
+on:
+  schedule:
+    # Executa a cada 30 minutos (sintaxe cron do GitHub Actions)
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Permite rodar o fluxo manualmente pelo painel do GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit App
+        run: |
+          curl -I -s https://buscador-periodicos.streamlit.app/ | head -n 1

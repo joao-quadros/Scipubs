@@ -1,0 +1,4 @@
+477: "btn_desktop": "💻 Baixar Versão para Windows",
+614: "btn_desktop": "💻 Download Windows Version",
+754: "btn_desktop": "💻 Descargar Versión para Windows",
+1506: texto_botao = t.get("btn_desktop", "💻 Baixar Versão para Windows")

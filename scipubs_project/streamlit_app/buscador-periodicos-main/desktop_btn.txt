@@ -1,0 +1,26 @@
+# --- 8. BOTÃO DE DOWNLOAD DA VERSÃO DESKTOP ---
+texto_botao = t.get("btn_desktop", "💻 Baixar Versão para Windows")
+
+st.sidebar.markdown(
+    f"""
+    <a href="https://drive.google.com/..." target="_blank" style="text-decoration: none;">
+        <button style="
+            width: 100%;
+            background-color: #FF2B2B;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 15px;
+        " onmouseover="this.style.backgroundColor='#cc2222'" onmouseout="this.style.backgroundColor='#FF2B2B'">
+            {texto_botao}
+        </button>
+    </a>
+    """,
+    unsafe_allow_html=True
+)
+

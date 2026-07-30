@@ -1,0 +1,15 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+*.db
+logs/*.jsonl
+logs/*.log
+api_test_response.json
+
+# Arquivos grandes (excedem limite do GitHub)
+data/fastembed_cache/
+dist/
+build/
+*.onnx
+*.exe
+*.zip

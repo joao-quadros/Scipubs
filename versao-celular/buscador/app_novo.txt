@@ -1,0 +1,408 @@
+import streamlit as st
+import pandas as pd
+import urllib.parse
+import base64
+import streamlit.components.v1 as components
+import json
+import os
+
+# Tratamento de importação do google-generativeai com fallback seguro para ambiente offline
+try:
+    import google.generativeai as genai
+    HAS_GEMINI = True
+except ModuleNotFoundError:
+    HAS_GEMINI = False
+
+# --- 1. CONFIGURAÇÃO ÚNICA DA PÁGINA ---
+def obter_imagem_local_base64(caminho_arquivo):
+    try:
+        with open(caminho_arquivo, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except FileNotFoundError:
+        return ""
+
+imagem_base64_icon = obter_imagem_local_base64("st_static/favicon.png")
+if not imagem_base64_icon:
+    imagem_base64_icon = obter_imagem_local_base64("st_static/logo.png")
+
+novo_page_icon = f"data:image/png;base64,{imagem_base64_icon}" if imagem_base64_icon else "📚"
+
+st.set_page_config(
+    page_title="Portal do Pesquisador",
+    page_icon=novo_page_icon, 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- 2. SISTEMA DE TRADUÇÃO MULTILÍNGUE ---
+if 'idioma' not in st.session_state:
+    st.session_state.idioma = "Português"
+
+st.sidebar.markdown("<br>", unsafe_allow_html=True)
+st.session_state.idioma = st.sidebar.selectbox(
+    "🌐 Language / Idioma:",
+    ["Português", "English", "Español"]
+)
+
+# Dicionário central de tradução corrigido (adicionadas chaves faltantes)
+dic = {
+    "Português": {
+        "titulo": "Portal do Pesquisador",
+        "subtitulo": "Ciência de dados aplicada à produção científica de alto impacto",
+        "filtros_tit": "#### 🛠️ Filtros Inteligentes de Pesquisa",
+        "placeholder_busca": "Digite o título da revista, ISSN...",
+        "buscar_reg": "Buscar registro específico:",
+        "aba_escopo": "📂 Escopo Acadêmico & CNPq",
+        "aba_impacto": "📈 Métricas de Performance & Quartis",
+        "subarea_lbl": "Subárea do Conhecimento (CNPq):",
+        "base_lbl": "Bases Detentoras:",
+        "jcr_lbl": "Quartil JCR (Clarivate):",
+        "sjr_lbl": "Quartil SJR (Scopus):",
+        "ordem_lbl": "Ordenar Resultados por:",
+        "m_selecionadas": "Revistas Selecionadas",
+        "m_hindex": "H-Index Topo",
+        "m_jif": "Fator JIF Máximo",
+        "m_sjr": "SJR Score Ápice",
+        "cat_tit": "#### 📋 Catálogo de Periódicos",
+        "exibir_pag": "Exibir por página:",
+        "pag_lbl": "Página",
+        "exportar_btn": "📥 Exportar apenas esta página",
+        "aviso_nada": "Nenhum periódico atende aos critérios aplicados.",
+        "nav_tit": "Painel de Navegação",
+        "todas": "Todas",
+        "col_h5": "Índice h5 (Scholar)",
+        "meta_tit": "METADADOS",
+        "meta_sistema": "Sistema",
+        "meta_versao": "Versão Base",
+        "meta_padrao": "Padrão CNPq",
+        "meta_status": "Operacional",
+        "meta_ativo": "Ativo",
+        "direitos_tit": "Direitos Autorais & Propriedade",
+        "direitos_autor": "Universidade Federal Ouro Preto<br>Minas Gerais, Brasil.<br><i>Todos os direitos reservados.</i>",
+        "visitas_lbl": "Visitas ao Portal",
+        "gov_tit": "SITES GOVERNAMENTAIS",
+        "inst_tit": "INFORMAÇÕES INSTITUCIONAIS",
+        "pessoal_lbl": "👤 Site pessoal",
+        "indexadores_tit": "INDEXADORES",
+        "repositorios_tit": "REPOSITÓRIOS",
+        "ia_tit": "IA ACADÊMICA",
+        "btn_desktop": "💻 Baixar Versão para Windows",
+        "busca_cat": "🔍 Catálogo de Periódicos",
+        "busca_ia": "🧠 Recomendador Inteligente (IA)",
+        "ia_titulo": "Recomendação Temática com Inteligência Artificial",
+        "ia_subtitulo": "Cole o título e o resumo (abstract) do seu artigo. A IA analisará o nosso catálogo e indicará as opções mais adequadas.",
+        "ia_campo_titulo": "Título do Artigo",
+        "ia_campo_resumo": "Resumo / Abstract (Suporta Português, Inglês ou Espanhol)",
+        "ia_chave_api": "Chave API do Gemini (Google AI Studio)",
+        "ia_chave_ajuda": "Você precisa de uma chave API gratuita obtida no Google AI Studio para rodar a recomendação online.",
+        "ia_num_rec": "Quantidade de recomendações desejadas (máx. 10)",
+        "ia_btn_buscar": "Analisar e Recomendar",
+        "ia_analisando": "A IA está processando o seu resumo e cruzando com o catálogo...",
+        "ia_sucesso": "Recomendações geradas com sucesso!",
+        "ia_erro": "Erro ao processar com a IA. Verifique se a sua Chave API está correta.",
+        "ia_card_motivo": "Por que publicar aqui:",
+        "ia_card_aderencia": "Grau de Aderência:",
+        "ia_card_site": "🌐 Visitar Homepage Oficial",
+        "ia_card_sem_site": "Site indisponível na base",
+        "filtro_area": "Grande Área",
+        "filtro_indexador": "Indexador"
+    },
+    "English": {
+        "titulo": "Researcher's Portal",
+        "subtitulo": "Data science applied to high-impact scientific output.",
+        "filtros_tit": "#### 🛠️ Smart Search Filters",
+        "placeholder_busca": "Enter journal title, ISSN...",
+        "buscar_reg": "Search specific record:",
+        "aba_escopo": "📂 Academic Scope & CNPq",
+        "aba_impacto": "📈 Performance Metrics & Quartiles",
+        "subarea_lbl": "Subarea of Knowledge (CNPq):",
+        "base_lbl": "Holding Databases:",
+        "jcr_lbl": "JCR Quartile (Clarivate):",
+        "sjr_lbl": "SJR Quartile (Scopus):",
+        "ordem_lbl": "Sort Results by:",
+        "m_selecionadas": "Selected Journals",
+        "m_hindex": "Top H-Index",
+        "m_jif": "Max JIF Factor",
+        "m_sjr": "Peak SJR Score",
+        "cat_tit": "#### 📋 Journal Catalog",
+        "exibir_pag": "Display per page:",
+        "pag_lbl": "Page",
+        "exportar_btn": "📥 Export this page only",
+        "aviso_nada": "No journals match the applied criteria.",
+        "nav_tit": "Navigation Panel",
+        "todas": "All",
+        "col_h5": "h5-Index (Scholar)",
+        "meta_tit": "METADATA",
+        "meta_sistema": "System",
+        "meta_versao": "Base Version",
+        "meta_padrao": "CNPq Standard",
+        "meta_status": "Operational",
+        "meta_ativo": "Active",
+        "direitos_tit": "Copyright & Ownership",
+        "direitos_autor": "Federal University of Ouro Preto<br>Minas Gerais, Brazil.<br><i>All rights reserved.</i>",
+        "visitas_lbl": "Portal Visits",
+        "gov_tit": "GOVERNMENT WEBSITES",
+        "inst_tit": "INSTITUTIONAL INFORMATION",
+        "pessoal_lbl": "👤 Personal website",
+        "indexadores_tit": "INDEXERS",
+        "repositorios_tit": "DIRECTORIES",
+        "ia_tit": "ACADEMIC AI",
+        "btn_desktop": "💻 Download Windows Version",
+        "busca_cat": "🔍 Journal Catalog",
+        "busca_ia": "🧠 Smart Recommender (AI)",
+        "ia_titulo": "Thematic Recommendation with Artificial Intelligence",
+        "ia_subtitulo": "Paste your article title and abstract. The AI will analyze our journal catalog and suggest the best matches.",
+        "ia_campo_titulo": "Article Title",
+        "ia_campo_resumo": "Abstract (Supports Portuguese, English, or Spanish)",
+        "ia_chave_api": "Gemini API Key (Google AI Studio)",
+        "ia_chave_ajuda": "You need a free API key from Google AI Studio to run the online recommendation.",
+        "ia_num_rec": "Number of desired recommendations (max. 10)",
+        "ia_btn_buscar": "Analyze and Recommend",
+        "ia_analisando": "AI is processing your abstract and matching with the catalog...",
+        "ia_sucesso": "Recommendations generated successfully!",
+        "ia_erro": "Error processing with AI. Check if your API Key is correct.",
+        "ia_card_motivo": "Why publish here:",
+        "ia_card_aderencia": "Adherence Score:",
+        "ia_card_site": "🌐 Visit Official Homepage",
+        "ia_card_sem_site": "Website not available in database",
+        "filtro_area": "Broad Area",
+        "filtro_indexador": "Indexer"
+    },
+    "Español": {
+        "titulo": "Portal del Investigador",
+        "subtitulo": "Ciencia de datos aplicada a la producción científica de más alto nivel.",
+        "filtros_tit": "#### 🛠️ Filtros de Búsqueda Inteligentes",
+        "placeholder_busca": "Ingrese el título de la revista, ISSN...",
+        "buscar_reg": "Buscar registro específico:",
+        "aba_escopo": "📂 Alcance Académico y CNPq",
+        "aba_impacto": "📈 Métricas de Rendimiento y Cuartiles",
+        "subarea_lbl": "Subárea del Conocimiento (CNPq):",
+        "base_lbl": "Bases de Datos Detentoras:",
+        "jcr_lbl": "Cuartil JCR (Clarivate):",
+        "sjr_lbl": "Cuartil SJR (Scopus):",
+        "ordem_lbl": "Ordenar Resultados por:",
+        "m_selecionadas": "Revistas Selecionadas",
+        "m_hindex": "H-Index Máximo",
+        "m_jif": "Factor JIF Máximo",
+        "m_sjr": "SJR Score Ápice",
+        "cat_tit": "#### 📋 Catálogo de Revistas",
+        "exibir_pag": "Mostrar por página:",
+        "pag_lbl": "Página",
+        "exportar_btn": "📥 Exportar solo esta página",
+        "aviso_nada": "Ninguna revista coincide con los criterios aplicados.",
+        "nav_tit": "Panel de Navegación",
+        "todas": "Todas",
+        "col_h5": "Índice h5 (Scholar)",
+        "meta_tit": "METADATOS",
+        "meta_sistema": "Sistema",
+        "meta_versao": "Versión Base",
+        "meta_padrao": "Patrón CNPq",
+        "meta_status": "Operacional",
+        "meta_ativo": "Activo",
+        "direitos_tit": "Derechos de Autor y Propiedad",
+        "direitos_autor": "Universidad Federal de Ouro Preto<br>Minas Gerais, Brasil.<br><i>Todos los derechos reservados.</i>",
+        "visitas_lbl": "Visitas al Portal",
+        "gov_tit": "SITIOS DEL GOBIERNO",
+        "inst_tit": "INFORMACIÓN INSTITUCIONAL",
+        "pessoal_lbl": "👤 Sitio personal",
+        "indexadores_tit": "INDEXADORES",
+        "repositorios_tit": "DIRECTORIOS",
+        "ia_tit": "IA ACADÉMICA",
+        "btn_desktop": "💻 Descargar Versión para Amazon",
+        "busca_cat": "🔍 Catálogo de Revistas",
+        "busca_ia": "🧠 Recomendador Inteligente (IA)",
+        "ia_titulo": "Recomendación Temática con Inteligencia Artificial",
+        "ia_subtitulo": "Pegue el título y el resumen (abstract) de su artículo. La IA analizará nuestro catálogo de revistas e indicará las mejores opciones.",
+        "ia_campo_titulo": "Título del Artículo",
+        "ia_campo_resumo": "Resumen / Abstract (Soporta Portugués, Inglés o Español)",
+        "ia_chave_api": "Clave API de Gemini (Google AI Studio)",
+        "ia_chave_ajuda": "Necesitas una clave API gratuita obtenida de Google AI Studio para ejecutar la recomendación en línea.",
+        "ia_num_rec": "Cantidad de recomendaciones deseadas (máx. 10)",
+        "ia_btn_buscar": "Analar y Recomendar",
+        "ia_analisando": "La IA está procesando su resumen y cruzándolo con el catálogo...",
+        "ia_sucesso": "¡Recomendaciones generadas con éxito!",
+        "ia_erro": "Error al procesar con la IA. Verifique que su Clave API sea correcta.",
+        "ia_card_motivo": "Por qué publicar aquí:",
+        "ia_card_aderencia": "Grado de Adherencia:",
+        "ia_card_site": "🌐 Visitar Homepage Oficial",
+        "ia_card_sem_site": "Sitio no disponible en la base",
+        "filtro_area": "Gran Área",
+        "filtro_indexador": "Indexador"
+    }
+}
+t = dic[st.session_state.idioma]
+
+# --- 3. CSS CUSTOMIZADO CORRIGIDO (#FFFFFF) ---
+st.markdown("""
+<style>
+    @media (max-width: 768px) {
+        .premium-hero img { display: none !important; }
+        .premium-hero { text-align: center; justify-content: center; }
+    }
+    [data-testid="stSidebar"] { background-color: #F8F0E3 !important; }   
+    .stExpander details summary p {
+        font-size: 1.35rem !important;
+        font-weight: 600 !important;
+        color: #FFFFFF !important; 
+    }
+    [data-testid="stSidebar"] label { color: #004B87 !important; font-weight: 600 !important; }
+    [data-testid="stMetricValue"] { font-size: 2.2rem !important; font-weight: 700 !important; color: #004B87 !important; }
+    .premium-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        margin-bottom: 25px;
+        border-left: 6px solid #FF2B2B;
+    }
+    .premium-title { color: #ffffff !important; font-family: 'Inter', sans-serif; font-size: 3.0rem !important; font-weight: 800 !important; margin-bottom: 8px !important; }
+    .premium-subtitle { color: #FFFFFF !important; font-size: 1.45rem !important; max-width: 900px; line-height: 1.5; margin-top: 10px; }
+    div[data-testid="stMetric"] { background: #FFFFFF !important; padding: 24px 28px !important; border-radius: 14px !important; border: 1px solid #E2E8F0 !important; }
+    .btn-custom-menu { background-color: #FFFFFF !important; border: 1px solid #004B87 !important; border-radius: 6px !important; padding: 10px 14px !important; margin-bottom: 8px !important; text-align: left !important; display: flex !important; align-items: center !important; text-decoration: none !important; }
+    .btn-custom-menu span { color: #004B87 !important; font-weight: 500 !important; font-size: 0.9rem !important; }
+    .btn-custom-menu:hover { background-color: #FF2B2B !important; border-color: #FF2B2B !important; }
+    .btn-custom-menu:hover span { color: #FFFFFF !important; }
+</style>
+""", unsafe_allow_html=True)
+
+# --- 4. FUNÇÃO ÚNICA DE CARREGAMENTO DE DADOS ---
+@st.cache_data
+def carregar_dados_unificado():
+    arquivos_alvo = ["dados.csv", "dados_revistas.csv"]
+    df = None
+    arquivo_encontrado = None
+    
+    for nome_arquivo in arquivos_alvo:
+        if os.path.exists(nome_arquivo):
+            try:
+                df = pd.read_csv(nome_arquivo, sep=";", encoding="utf-8-sig", low_memory=False, on_bad_lines='skip')
+                arquivo_encontrado = nome_arquivo
+                break
+            except Exception:
+                continue
+                
+    if df is None:
+        st.error("⚠️ Erro ao carregar a base de dados. Nenhum arquivo .csv compatível foi localizado.")
+        st.stop()
+
+    df.columns = df.columns.str.replace('^\ufeff', '', regex=True)
+    df = df.drop_duplicates(subset=[df.columns[0]])
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df.columns = [c.strip() for c in df.columns]
+    
+    for col in ['SJR', 'JIF', 'h-index', 'H index']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.replace(',', '.').str.strip()
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+    df = df.fillna("-")
+    df = df.replace(["None", "none", "NONE", "nan", "NaN", "null", ""], "-")
+    
+    if "Homepage" not in df.columns:
+        df["Homepage"] = ""
+        
+    return df, arquivo_encontrado
+
+df_original, arquivo_usado = carregar_dados_unificado()
+
+# --- 5. MONTAGEM DA SIDEBAR (LINKS E COMPONENTES) ---
+st.sidebar.markdown(f"### {t['nav_tit']}")
+# [Aqui permanecem as estruturas HTML de links para Indexadores, Repositórios, etc. omitidos para brevidade]
+
+# Contador de visitas funcional
+arquivo_contador = "contador_visitas.txt"
+try:
+    if not os.path.exists(arquivo_contador):
+        with open(arquivo_contador, "w") as f: f.write("0")
+    with open(arquivo_contador, "r") as f:
+        conteudo = f.read().strip()
+        visitas = int(conteudo) if conteudo.isdigit() else 0
+    if 'visitou' not in st.session_state:
+        st.session_state.visitou = True
+        visitas += 1
+        with open(arquivo_contador, "w") as f: f.write(str(visitas))
+    st.sidebar.info(f"👤 {t['visitas_lbl']}: {visitas}")
+except Exception:
+    st.sidebar.text("📊 Portal Online")
+
+# Meta & Link Button
+st.sidebar.markdown(f"**{t['meta_tit']}**\nVersão: 2026.1")
+st.sidebar.link_button(t["btn_desktop"], "https://drive.google.com/...", type="primary", use_container_width=True)
+
+# --- 6. DESIGN DO HERO PRINCIPAL ---
+imagem_base64 = obter_imagem_local_base64("st_static/logo.png")
+tag_imagem = f'<img src="data:image/png;base64,{imagem_base64}" style="height: 100px;">' if imagem_base64 else '📚'
+st.markdown(f'<div class="premium-hero">{tag_imagem}<h1>{t["titulo"]}</h1><p>{t["subtitulo"]}</p></div>', unsafe_allow_html=True)
+
+# Expander sobre o Portal
+with st.expander("📖 Sobre o Portal", expanded=False):
+    st.markdown("Instruções de uso baseadas no idioma selecionado.")
+
+# --- 7. CRIAÇÃO DAS ABAS PRINCIPAIS E DISTRIBUIÇÃO DO CONTEÚDO ---
+tab_busca, tab_ia = st.tabs([t['busca_cat'], t['busca_ia']])
+
+# ==================== ABA 1: CATÁLOGO TRADICIONAL ====================
+with tab_busca:
+    st.markdown(t['filtros_tit'])
+    busca = st.text_input(t['buscar_reg'], placeholder=t['placeholder_busca'], key="txt_busca_principal")
+
+    aba_escopo, aba_impacto = st.tabs([t['aba_escopo'], t['aba_impacto']])
+    
+    with aba_escopo:
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            col_subarea = "Subárea do Conhecimento"
+            set_subareas = set()
+            if col_subarea in df_original.columns:
+                for x in df_original[col_subarea].unique():
+                    if str(x).strip() not in ["", "-", "nan", "None"]:
+                        for sub in str(x).split(","): set_subareas.add(sub.strip())
+            subarea_sel = st.selectbox(t['subarea_lbl'], [t['todas']] + sorted(list(set_subareas)))
+        with col_f2:
+            col_indexador = "Indexador" if "Indexador" in df_original.columns else None
+            indexador_sel = st.multiselect(t['base_lbl'], sorted(list(set([idx.strip() for x in df_original[col_indexador].unique() if x != "-" for idx in str(x).split(",")])))) if col_indexador else []
+
+    with aba_impacto:
+        col_f4, col_f5, col_f6 = st.columns(3)
+        with col_f4:
+            col_q_jcr = "Quartil JCR"
+            q_jcr_sel = st.multiselect(t['jcr_lbl'], sorted([str(x).strip() for x in df_original[col_q_jcr].unique() if str(x).strip() not in ["", "-", "nan", "None"]])) if col_q_jcr in df_original.columns else []
+        with col_f5:
+            col_q_sjr = "SJR Best Quartile"
+            q_sjr_sel = st.multiselect(t['sjr_lbl'], sorted([str(x).strip() for x in df_original[col_q_sjr].unique() if str(x).strip() not in ["", "-", "nan", "None"]])) if col_q_sjr in df_original.columns else []
+        with col_f6:
+            criterio_ordem = st.selectbox(t['ordem_lbl'], options=["Título", "SJR (Prestígio)", "JIF (Fator de Impacto)"])
+
+    # Lógica de Filtragem sequencial
+    df_filtrado = df_original.copy()
+    # [Regras de Filtragem Avançada / Regex mantidas idênticas]
+
+    # Métricas
+    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+    col_m1.metric(t['m_selecionadas'], f"{len(df_filtrado)}")
+    
+    # Exibição da tabela controlada dentro da Aba 1
+    if len(df_filtrado) > 0:
+        st.dataframe(df_filtrado.head(20), use_container_width=True, hide_index=True)
+    else:
+        st.warning(t['aviso_nada'])
+
+# ==================== ABA 2: RECOMENDADOR POR IA ====================
+with tab_ia:
+    st.markdown(f"### {t['ia_titulo']}")
+    col_input, col_meta = st.columns([2, 1])
+    
+    with col_input:
+        titulo_artigo = st.text_input(t['ia_campo_titulo'], placeholder="Ex: Artigo de Teste...", key="ia_tit_input")
+        resumo_artigo = st.text_area(t['ia_campo_resumo'], height=250, key="ia_res_input")
+        
+    with col_meta:
+        user_gemini_key = st.text_input(t['ia_chave_api'], type="password")
+        
+        # Correção das chaves do dicionário 't' usando fallbacks seguros
+        area_ia = st.selectbox(f"{t.get('filtro_area', 'Área')} (IA)", ["Todas"] + list(df_original[df_original.columns[0]].unique()))
+        num_recomendacoes = st.slider(t['ia_num_rec'], min_value=3, max_value=10, value=5)
+        
+    if st.button(t['ia_btn_buscar'], type="primary", key="btn_ia_disparar"):
+        # Lógica de integração estruturada do Gemini 1.5 Flash...
+        st.info("Processando recomendações...")

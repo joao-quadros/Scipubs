@@ -1,0 +1,5 @@
+431: st.session_state.idioma = st.sidebar.selectbox(
+432: "  Language / Idioma:",
+433: ["Português", "English", "Español"], index=1
+434: )
+435: 

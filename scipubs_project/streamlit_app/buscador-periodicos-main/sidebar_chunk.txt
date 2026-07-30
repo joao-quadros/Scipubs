@@ -1,0 +1,961 @@
+# Caixa de boas-vindas
+    st.sidebar.markdown(f"""
+        <div style="background-color: {bg_cor}; color: white; padding: 10px 8px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.82rem; line-height: 1.3; margin-bottom: 8px;">
+            {status_texto}
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Strings dos botões
+    btn_sair_text = "🚪 Sair"
+    btn_sair_help = "Encerrar sessão"
+    btn_conf_text = "⚙ Configs"
+    btn_conf_help = "Configurações"
+    if lang == 'English':
+        btn_sair_text = "🚪 Logout"
+        btn_sair_help = "Log out"
+        btn_conf_text = "⚙ Settings"
+        btn_conf_help = "Settings"
+    elif lang == 'Español':
+        btn_sair_text = "🚪 Salir"
+        btn_sair_help = "Cerrar sesión"
+        btn_conf_text = "⚙ Config."
+        btn_conf_help = "Configuración"
+
+    # Colunas para exibir botões de Sair e Configurações lado a lado
+    col_sair, col_config = st.sidebar.columns([1, 1])
+    with col_sair:
+        if st.button(btn_sair_text, key="btn_sair_sidebar", help=btn_sair_help, use_container_width=True):
+            st.session_state.registrado = False
+            st.session_state.email_usuario = ""
+            st.session_state.nome_usuario = ""
+            st.session_state.acessos_usuario = 0
+            st.session_state.login_via_google = False
+            st.session_state.solicitar_email_google = False
+            st.session_state.abrir_configuracoes = False
+            st.session_state.is_admin = False
+            st.rerun()
+    with col_config:
+        if st.button(btn_conf_text, key="btn_config_gear_sidebar", help=btn_conf_help, use_container_width=True):
+            st.session_state.abrir_configuracoes = not st.session_state.get("abrir_configuracoes", False)
+            st.rerun()
+
+st.sidebar.markdown(f"""
+    <div style='display: flex; align-items: center; gap: 12px; margin-bottom: 20px;'>
+        <h2 style='margin: 0; font-size: 1.60rem; font-weight: 700; color: #0F172A;'>{t['nav_tit']}</h2>
+    </div>
+""", unsafe_allow_html=True)
+
+# indexadores
+st.sidebar.markdown(f"""
+<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>
+<p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin-bottom:12px; letter-spacing: 0.05em;'>{t['indexadores_tit']}</p>
+<div style="display: flex; flex-direction: column;">
+    <a class="btn-custom-menu" href="https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com" target="_blank">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRR2EHX1gARlgEZ-baT5UZMBSLF7rw0mZtUAMuBSU46_Rm5RzBLW1oOaas&s=10" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Web of Science</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.scopus.com/pages/home?display=basic#basic" target="_blank">
+        <img src="https://camo.githubusercontent.com/799f6de501a057c2e1997a5f472ac272d4461dd65bdd1c25824d45a97ea9b8ec/68747470733a2f2f7777772e6665722e756e697a672e68722f5f7075622f7468656d65735f7374617469632f666572323031362f64656661756c742f696d672f73636f7075732d69636f6e2e706e67" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Scopus</span>
+    </a>
+    <a class="btn-custom-menu" href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank">
+        <img src="https://its.weill.cornell.edu/sites/default/files/styles/news_item_full_article/public/news_images/720px-us-nlm-pubmed-logo.png?itok=trlhr3Lh" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>PubMed</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.scielo.br/" target="_blank">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHiaAjjMsCiMK-A-hur9z1KZcEuf5rEx8rjzketAWDRQNs963MW_DDHwQ&s=10" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Scielo BR</span>
+    </a>
+    <a class="btn-custom-menu" href="http://educa.fcc.org.br/cgi-bin/wxis.exe/iah/?IsisScript=iah/iah.xis&base=title&fmt=iso.pft&lang=p" target="_blank">
+        <img src="https://www.fcc.org.br/fcc/wp-content/uploads/2020/05/fcc.jpg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Educ@</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.jstor.org/" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/en/5/56/JSTOR_vector_logo.svg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>JSTOR</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.latindex.org/latindex/" target="_blank">
+        <img src="https://www.insper.edu.br/content/insper-portal/en/campus/biblioteca-telles/recursos-de-busca/latindex/_jcr_content/root/responsivegrid/wrapper/container_grid/container/wrapper/featured_card_container/image.coreimg.png/1723749927456/latindex.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Latindex</span>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# repositórios
+st.sidebar.markdown(f"""
+<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>
+<p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin-bottom:12px; letter-spacing: 0.05em;'>{t['repositorios_tit']}</p>
+<div style="display: flex; flex-direction: column;">
+    <a class="btn-custom-menu" href="https://eric.ed.gov/" target="_blank">
+        <img src="https://yt3.googleusercontent.com/ytc/AIdro_kFijnjScrZN1GZMpmVQDW_GRV5syVZsNuOqd2TiG5Y_A=s900-c-k-c0x00ffffff-no-rj" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>ERIC</span>
+    </a>
+    <a class="btn-custom-menu" href="https://api.base-search.net/" target="_blank">
+        <img src="https://pbs.twimg.com/profile_images/1259600128/base_twitter_400x400.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>BASE</span>
+    </a>
+    <a class="btn-custom-menu" href="https://doaj.org/" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/DOAJ_logo-colour.svg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>DOAJ</span>
+    </a>
+    <a class="btn-custom-menu" href="https://catalogodeteses.capes.gov.br/catalogo-teses/#!/" target="_blank">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ04fk8I3y7LecgydHxbQybU3R9TB7qb99ikUFKNUsZNQ&s" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Catálogo da CAPES</span>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# ia acadêmica
+st.sidebar.markdown(f"""
+<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>
+<p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin-bottom:12px; letter-spacing: 0.05em;'>{t['ia_tit']}</p>
+<div style="display: flex; flex-direction: column;">
+    <a class="btn-custom-menu" href="https://www.scopus.com/pages/home#scopus-ai" target="_blank">
+        <img src="https://images.icon-icons.com/2389/PNG/512/elsevier_logo_icon_145310.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>ScopusAI</span>
+    </a>
+    <a class="btn-custom-menu" href="https://researcher.elsevier.com/" target="_blank">
+        <img src="https://content-media.pamedia.io/press-release/picture/2025/11/19/01KADJ2EW8YDYQABYJFZFVZ5YR.jpg?format=jpg&dl=pr-newswire-associated0.jpg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>LeapSpace</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.researchrabbit.ai/" target="_blank">
+        <img src="https://pbs.twimg.com/profile_images/1983772825812189184/IXDTOqLX_400x400.jpg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>ResearchRabbit</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.perplexity.ai/" target="_blank">
+        <img src="https://framerusercontent.com/images/gcMkPKyj2RX8EOEja8A1GWvCb7E.jpg?width=2000&height=2000" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>Perplexity</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.connectedpapers.com/" target="_blank">
+        <img src="https://pbs.twimg.com/profile_images/1267529009409208325/avWQ0zGg_400x400.jpg" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>ConnectedPapers</span>
+    </a>
+    <a class="btn-custom-menu" href="https://consensus.app/" target="_blank">
+        <img src="https://logosandtypes.com/wp-content/uploads/2025/04/Consensus-scaled.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Consensus</span>
+    </a>
+    <a class="btn-custom-menu" href="https://scispace.com/" target="_blank">
+        <img src="https://typeset.io/favicon.ico" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>SciSpace</span>
+    </a>
+    <a class="btn-custom-menu" href="https://elicit.com/" target="_blank">
+        <img src="https://zonalogo.com/assets/elicit-logo-png-svg.webp?asset=2444&w=320" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Elicit</span>
+    </a>   
+    <a class="btn-custom-menu" href="https://logically.app/" target="_blank">
+        <img src="https://www.logically.ai/favicon.ico" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>Logically</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.pubmed.ai/home" target="_blank">
+        <img src="https://cdn-1.webcatalog.io/catalog/pubmed-ai/pubmed-ai-icon-filled-256.png?v=1747807986408" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 2px; object-fit: contain;">
+        <span>PubMed.AI</span>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# governamentais
+st.sidebar.markdown(f"""
+<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>
+<p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin-bottom:12px; letter-spacing: 0.05em;'>{t['gov_tit']}</p>
+<div style="display: flex; flex-direction: column;">
+    <a class="btn-custom-menu" href="https://cnpq.br/" target="_blank">
+        <img src="https://images.seeklogo.com/logo-png/18/1/cnpq-logo-png_seeklogo-181432.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>CNPq</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.gov.br/capes/pt-br" target="_blank">
+        <img src="https://www.clipartmax.com/png/middle/289-2899434_previous-next-capes-logo.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>CAPES</span>
+    </a>
+    <a class="btn-custom-menu" href="https://lattes.cnpq.br/" target="_blank">
+        <img src="https://www.gov.br/observatorio/pt-br/assuntos/programas-academicos/imagens/Lattes.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>Currículo Lattes</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.periodicos.capes.gov.br/" target="_blank">
+        <img src="https://www.periodicos.capes.gov.br/templates/periodicos_gov/images/icon-periodicos.png" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>Portal de Periódicos CAPES</span>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# institucionais
+st.sidebar.markdown(f"""
+<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>
+<p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin-bottom:12px; letter-spacing: 0.05em;'>{t['inst_tit']}</p>
+<div style="display: flex; flex-direction: column;">
+    <a class="btn-custom-menu" href="https://www.ufop.br" target="_blank">
+        <img src="https://labiiex.ufop.br/sites/default/files/styles/media_gallery_thumbnail/public/labiiex/files/ufop_logo.png?m=1597327148&itok=EmS_8t7o" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>UFOP</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.posedu.ufop.br" target="_blank">
+        <img src="https://posedu.ufop.br/sites/default/files/styles/os_files_small/public/ppge/files/logo_reduzida.png?m=1593192999&itok=0JX9OWRl" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>PPGE-UFOP</span>
+    </a>
+    <a class="btn-custom-menu" href="https://www.musica.ufop.br" target="_blank">
+        <img src="https://musica.ufop.br/sites/default/files/styles/os_files_xxlarge/public/musica/files/logo22_1_03.png?m=1542714207&itok=i3jpi-oe" style="width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; object-fit: cover;">
+        <span>Música-UFOP</span>
+    </a>
+    <a class="btn-custom-menu" href="https://professor.ufop.br/joaoquadros" target="_blank">
+        <span style="font-weight: 500; font-size: 0.9rem; color: #004B87;">{t['pessoal_lbl']}</span>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# --- 6. BLOCO CONTADOR DE VISITAS (SILENCIOSO E PERSISTENTE) ---
+arquivo_contador = "contador_visitas.txt"
+try:
+    if 'visitou' not in st.session_state:
+        st.session_state.visitou = True
+        incrementar = True
+    else:
+        incrementar = False
+
+    sucesso_db = False
+    visitas = 0
+
+    # Tenta ler/gravar no Firebase Firestore se disponível
+    if db is not None:
+        try:
+            doc_ref = db.collection("metadados").document("visitas")
+            doc = doc_ref.get()
+            
+            if doc.exists:
+                visitas = int(doc.to_dict().get("quantidade", 0))
+            else:
+                # Se não existir no DB, inicializa usando o valor do arquivo local como base para não zerar
+                visitas_inicial = 0
+                if os.path.exists(arquivo_contador):
+                    with open(arquivo_contador, "r") as f:
+                        conteudo = f.read().strip()
+                        visitas_inicial = int(conteudo) if conteudo.isdigit() else 0
+                visitas = visitas_inicial
+            
+            if incrementar:
+                visitas += 1
+                doc_ref.set({"quantidade": visitas}, merge=True)
+            sucesso_db = True
+        except Exception:
+            pass
+
+    # Fallback local caso o Firebase não esteja disponível/configurado
+    if not sucesso_db:
+        if not os.path.exists(arquivo_contador):
+            with open(arquivo_contador, "w") as f:
+                f.write("0")
+                
+        with open(arquivo_contador, "r") as f:
+            conteudo = f.read().strip()
+            visitas = int(conteudo) if conteudo.isdigit() else 0
+            
+        if incrementar:
+            visitas += 1
+            with open(arquivo_contador, "w") as f:
+                f.write(str(visitas))
+
+    # Calcula a soma de todos os acessos individuais dos usuários cadastrados
+    soma_acessos_individuais = 0
+    if db is not None:
+        try:
+            docs = db.collection("usuarios").stream()
+            for doc in docs:
+                soma_acessos_individuais += int(doc.to_dict().get("acessos", 0))
+        except Exception:
+            pass
+            
+    if soma_acessos_individuais == 0:
+        caminho_csv = "usuarios.csv"
+        if os.path.exists(caminho_csv):
+            try:
+                df_local = pd.read_csv(caminho_csv, sep=";")
+                if "Acessos" in df_local.columns:
+                    soma_acessos_individuais = int(df_local["Acessos"].sum())
+            except Exception:
+                pass
+
+    visitas_totais = visitas + soma_acessos_individuais
+
+    # --- ABA SECRETA DO ADMINISTRADOR (URL com ?admin=true ou ?visitas=true ou Admin Logado) ---
+    params = st.query_params
+    if "admin" in params or "visitas" in params or st.session_state.get("is_admin", False):
+        st.sidebar.markdown("<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>", unsafe_allow_html=True)
+        # Exibe em preto (color: #000000)
+        st.sidebar.markdown(f"<p style='color: #000000; font-weight: bold; margin-bottom: 0;'>📊 Total de Visitas (Admin): {visitas_totais}</p>", unsafe_allow_html=True)
+        
+        # Campo para atualizar manualmente o valor do contador no Firebase/Local
+        novo_valor = st.sidebar.number_input("Atualizar Contador:", min_value=0, value=visitas_totais, step=1, key="admin_visit_counter")
+        if st.sidebar.button("Salvar Novo Valor", key="admin_save_visits_btn"):
+            # O valor geral será ajustado descontando os acessos dos usuários
+            visitas = max(0, novo_valor - soma_acessos_individuais)
+            # Salva no Firestore se configurado
+            if db is not None:
+                try:
+                    db.collection("metadados").document("visitas").set({"quantidade": visitas}, merge=True)
+                    st.sidebar.success("Firebase atualizado!")
+                except Exception as e:
+                    st.sidebar.error(f"Erro no Firebase: {e}")
+            # Salva no arquivo local
+            try:
+                with open(arquivo_contador, "w") as f:
+                    f.write(str(visitas))
+                st.sidebar.success("Arquivo local atualizado!")
+            except Exception as e:
+                st.sidebar.error(f"Erro local: {e}")
+            st.rerun()
+except Exception:
+    pass
+
+# --- 7. METADADOS E DIREITOS AUTORAIS ---
+st.sidebar.markdown("<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 15px 0 10px 0;'>", unsafe_allow_html=True)
+st.sidebar.markdown(f"""
+    <div style='color: #0F172A; font-size: 0.8rem; padding-left: 5px; line-height: 1.6;'>
+        <p style='font-size:0.85rem; font-weight:700; color:#0F172A; margin:0 0 8px 0; letter-spacing: 0.05em;'>{t['meta_tit']}</p>
+        <span style='color: #A91D22;'> </span> <b>{t['meta_sistema']}:</b> {t['meta_status']}<br>
+        <b>{t['meta_versao']}:</b> 2026.1<br>
+        <b>{t['meta_padrao']}:</b> {t['meta_ativo']}
+        <br><br>
+        <hr style='border: 0; border-top: 1px dashed #E2E8F0; margin: 10px 0;'>
+        <b>{t['direitos_tit']}:</b><br>
+        <b>© 2026 João F. Soares-Quadros Jr.</b><br>
+        {t['direitos_autor']}
+    </div>
+""", unsafe_allow_html=True)
+
+# --- 8. BOTÃO DE DOWNLOAD DA VERSÃO DESKTOP ---
+texto_botao = t.get("btn_desktop", "💻 Baixar Versão para Windows")
+
+st.sidebar.markdown(
+    f"""
+    <a href="https://drive.google.com/..." target="_blank" style="text-decoration: none;">
+        <button style="
+            width: 100%;
+            background-color: #FF2B2B;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 15px;
+        " onmouseover="this.style.backgroundColor='#cc2222'" onmouseout="this.style.backgroundColor='#FF2B2B'">
+            {texto_botao}
+        </button>
+    </a>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- 9. PAINEL PRINCIPAL (HERO DESIGN) ---
+# Seleciona o arquivo de imagem correspondente ao idioma ativo
+nome_logo = "logo.png"
+if st.session_state.idioma == "English":
+    nome_logo = "logo_en.png"
+elif st.session_state.idioma == "Español":
+    nome_logo = "logo_es.png"
+
+imagem_base64 = obter_imagem_local_base64(nome_logo)
+# Fallback caso a versão traduzida específica não exista
+if not imagem_base64:
+    imagem_base64 = obter_imagem_local_base64("logo.png")
+
+if imagem_base64:
+    tag_imagem = f'<img src="data:image/png;base64,{imagem_base64}" style="height: 220px; width: auto; object-fit: contain;">'
+else:
+    tag_imagem = '<span class="emoji-logo" style="font-size: 6.5rem; line-height: 1; margin-right: 15px;">📚</span>'
+
+st.markdown(f"""<div class="premium-hero" style="display: flex; align-items: center; flex-wrap: nowrap; gap: 30px; padding: 25px 35px;">
+{tag_imagem}
+<div class="divider-line" style="width: 2px; height: 140px; background-color: rgba(255,255,255,0.15);"></div>
+<div class="premium-text-block">
+<h1 class="premium-title" style="margin: 0 !important; padding: 0 !important; font-size: 2.3rem !important; font-weight: 800 !important; letter-spacing: -0.5px;">{t['titulo']}</h1>
+<p class="premium-subtitle" style="margin: 5px 0 0 0 !important; padding: 0 !important; font-size: 1.1rem !important; opacity: 0.85;">{t['subtitulo']}</p>
+</div>
+</div>""", unsafe_allow_html=True)
+
+# --- 10. CONTROLE DE ACESSO COM REGISTRO ---
+# Funções auxiliares globais para banco de dados de credenciais
+def hash_senha(senha):
+    return hashlib.sha256(senha.encode()).hexdigest()
+
+def gerar_senha_temporaria():
+    caracteres = string.ascii_letters + string.digits
+    return "".join(random.choice(caracteres) for _ in range(8))
+
+def enviar_email_recuperacao(destinatario, login, senha_temporaria):
+    try:
+        smtp_secrets = st.secrets.get("smtp", {})
+        sender_email = smtp_secrets.get("email")
+        sender_password = smtp_secrets.get("password")
+        smtp_server = smtp_secrets.get("server", "smtp.gmail.com")
+        smtp_port = int(smtp_secrets.get("port", 587))
+        
+        if not sender_email or not sender_password:
+            return False, "SMTP_NOT_CONFIGURED"
+            
+        msg = MIMEMultipart()
+        msg["From"] = "SciPubs Support <support@scipubs.com>"
+        msg["To"] = destinatario
+        msg["Subject"] = "Recuperacao de Acesso - SciPubS"
+        
+        corpo = f"""Ola!
+
+Voce solicitou a recuperacao de acesso ao SciPubs.
+Aqui estao suas credenciais temporarias:
+
+• Login: {login}
+• Senha Temporaria: {senha_temporaria}
+
+Por favor, acesse o portal com estas credenciais e altere sua senha no menu de configuracoes (icone de engrenagem ⚙  na barra lateral).
+
+Atenciosamente,
+Equipe SciPubs"""
+        
+        msg.attach(MIMEText(corpo, "plain", "utf-8"))
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, destinatario, msg.as_string())
+        server.quit()
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+import uuid
+
+def gerar_token():
+    return str(uuid.uuid4())
+
+def enviar_email_confirmacao(destinatario, token):
+    try:
+        smtp_secrets = st.secrets.get("smtp", {})
+        sender_email = smtp_secrets.get("email")
+        sender_password = smtp_secrets.get("password")
+        smtp_server = smtp_secrets.get("server", "smtp.gmail.com")
+        smtp_port = int(smtp_secrets.get("port", 587))
+        
+        if not sender_email or not sender_password:
+            return False, "SMTP_NOT_CONFIGURED"
+            
+        msg = MIMEMultipart()
+        msg["From"] = "SciPubs Support <support@scipubs.com>"
+        msg["To"] = destinatario
+        msg["Subject"] = "Confirme seu Cadastro - SciPubs"
+        
+        # URL Oficial
+        url_oficial = "https://buscador-periodicos.streamlit.app"
+        link_confirmacao = f"{url_oficial}/?token={token}"
+        
+        corpo = f"""Ola!
+
+Obrigado por se cadastrar no SciPubs! Para finalizar a criacao da sua conta e liberar seu acesso, por favor clique no link abaixo:
+
+{link_confirmacao}
+
+Se voce nao solicitou este cadastro, pode ignorar este e-mail.
+
+Atenciosamente,
+Equipe SciPubs"""
+        
+        msg.attach(MIMEText(corpo, "plain", "utf-8"))
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, destinatario, msg.as_string())
+        server.quit()
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+def confirmar_token(token):
+    caminho = "usuarios.csv"
+    if os.path.exists(caminho):
+        try:
+            df = pd.read_csv(caminho, sep=";")
+            if "Token_Confirmacao" in df.columns:
+                # Transforma as colunas em string para evitar erro de tipo (float/NaN)
+                mask = df["Token_Confirmacao"].astype(str).str.strip() == str(token).strip()
+                if mask.any():
+                    idx = df[mask].index[0]
+                    email_encontrado = df.loc[idx, "Email"]
+                    nome_encontrado = df.loc[idx, "Nome"]
+                    df.loc[idx, "Status_Confirmado"] = True
+                    df.loc[idx, "Token_Confirmacao"] = ""
+                    df.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+                    
+                    # Atualiza também no firebase
+                    if db is not None:
+                        try:
+                            db.collection("usuarios").document(str(email_encontrado)).set({
+                                "status_confirmado": True,
+                                "token_confirmacao": ""
+                            }, merge=True)
+                        except: pass
+                        
+                    return True, email_encontrado, nome_encontrado
+        except Exception:
+            pass
+    return False, None, None
+
+def cadastrar_usuario(nome, email, pais, escolaridade, instituicao, senha, idade, sexo, raca, token_confirmacao, status_confirmado=False, aceitou_termos=False, aceitou_pesquisa=False, deseja_doar=False):
+    caminho = "usuarios.csv"
+    novo_usuario = pd.DataFrame([{
+        "Data/Hora": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Nome": nome,
+        "Email": email.lower().strip(),
+        "País": pais,
+        "Escolaridade": escolaridade,
+        "Instituição": instituicao,
+        "Data de Nascimento": idade,
+        "Sexo": sexo,
+        "Raça/Etnia": raca,
+        "Senha_Hash": hash_senha(senha),
+        "Acessos": 1,
+        "Status_Confirmado": status_confirmado,
+        "Token_Confirmacao": token_confirmacao,
+        "Aceitou_Termos": aceitou_termos,
+        "Aceitou_Pesquisa": aceitou_pesquisa,
+        "Deseja_Doar": deseja_doar
+    }])
+    if os.path.exists(caminho):
+        try:
+            df_existente = pd.read_csv(caminho, sep=";")
+            emails_cadastrados = df_existente["Email"].astype(str).str.lower().str.strip().tolist()
+            if email.lower().strip() in emails_cadastrados:
+                return False
+            df_novo = pd.concat([df_existente, novo_usuario], ignore_index=True)
+            df_novo.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+        except Exception:
+            novo_usuario.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+    else:
+        novo_usuario.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+
+    if db is not None:
+        try:
+            db.collection("usuarios").document(email.lower().strip()).set({
+                "nome": nome,
+                "email": email.lower().strip(),
+                "pais": pais,
+                "escolaridade": escolaridade,
+                "instituicao": instituicao,
+                "idade": idade,
+                "sexo": sexo,
+                "raca": raca,
+                "acessos": 1,
+                "status_confirmado": status_confirmado,
+                "token_confirmacao": token_confirmacao,
+                "aceitou_termos": aceitou_termos,
+                "aceitou_pesquisa": aceitou_pesquisa,
+                "deseja_doar": deseja_doar,
+                "data_cadastro": firestore.SERVER_TIMESTAMP,
+                "ultimo_acesso": firestore.SERVER_TIMESTAMP
+            }, merge=True)
+        except Exception:
+            pass
+    return True
+
+def verificar_recuperacao(email):
+    email_clean = email.lower().strip()
+    if db is not None:
+        try:
+            doc = db.collection("usuarios").document(email_clean).get()
+            if doc.exists:
+                d = doc.to_dict()
+                return True, d.get("nome", "Usuário")
+        except Exception:
+            pass
+    caminho = "usuarios.csv"
+    if os.path.exists(caminho):
+        try:
+            df = pd.read_csv(caminho, sep=";")
+            match = df[(df["Email"].astype(str).str.lower().str.strip() == email_clean)]
+            if not match.empty:
+                return True, match.iloc[0]["Nome"]
+        except Exception:
+            pass
+    return False, ""
+
+def redefinir_senha_usuario(email, nova_senha):
+    email_clean = email.lower().strip()
+    senha_hash_nova = hash_senha(nova_senha)
+    if db is not None:
+        try:
+            db.collection("usuarios").document(email_clean).set({
+                "Senha_Hash": senha_hash_nova
+            }, merge=True)
+        except Exception:
+            pass
+    caminho = "usuarios.csv"
+    if os.path.exists(caminho):
+        try:
+            df = pd.read_csv(caminho, sep=";")
+            idx = df[df["Email"].astype(str).str.lower().str.strip() == email_clean].index
+            if not idx.empty:
+                df.loc[idx, "Senha_Hash"] = senha_hash_nova
+                df.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+        except Exception:
+            pass
+    return True
+
+def verificar_login(email_ou_usuario, senha):
+    email_clean = email_ou_usuario.lower().strip()
+    senha_clean = senha.strip()
+    admin_email_conf = st.secrets.get("ADMIN_EMAIL", "joaoquadros@ufop.edu.br").lower().strip()
+    admin_pass_conf = st.secrets.get("ADMIN_PASSWORD", "Ufop@2026").strip()
+    
+    if email_clean == admin_email_conf and senha_clean == admin_pass_conf:
+        acessos_atuais = 0
+        if db is not None:
+            try:
+                doc_ref = db.collection("usuarios").document(admin_email_conf)
+                doc = doc_ref.get()
+                if doc.exists:
+                    acessos_atuais = int(doc.to_dict().get("acessos", 0))
+                doc_ref.set({
+                    "nome": "João F. Soares-Quadros Jr.",
+                    "email": admin_email_conf,
+                    "pais": "Brasil",
+                    "telefone": "N/A",
+                    "escolaridade": "Doutor",
+                    "instituicao": "Universidade Federal de Ouro Preto (UFOP)",
+                    "acessos": acessos_atuais + 1,
+                    "ultimo_acesso": firestore.SERVER_TIMESTAMP
+                }, merge=True)
+            except Exception:
+                pass
+        st.session_state.nome_usuario = "João"
+        st.session_state.acessos_usuario = acessos_atuais + 1
+        return True
+
+    caminho = "usuarios.csv"
+    if not os.path.exists(caminho):
+        return False
+    try:
+        df = pd.read_csv(caminho, sep=";")
+        senha_hash_calc = hash_senha(senha)
+        match = df[(df["Email"].astype(str).str.lower().str.strip() == email_clean) & (df["Senha_Hash"] == senha_hash_calc)]
+        if not match.empty:
+            idx = match.index[0]
+            
+            # Verifica se o e-mail foi confirmado (tratando contas antigas que não têm a coluna como confirmadas)
+            if "Status_Confirmado" in df.columns:
+                status = df.loc[idx, "Status_Confirmado"]
+                if pd.notna(status) and str(status).strip().lower() == "false":
+                    return "NOT_CONFIRMED"
+                    
+            if "Acessos" not in df.columns:
+                df["Acessos"] = 1
+            current_acessos = df.loc[idx, "Acessos"]
+            novo_acessos = int(current_acessos) + 1 if pd.notna(current_acessos) else 1
+            
+            # Seta as Session States do Usuário logado
+            st.session_state.nome_usuario = str(match.iloc[0]["Nome"]).split(" ")[0].capitalize()
+            st.session_state.acessos_usuario = novo_acessos
+            
+            try:
+                df.loc[idx, "Acessos"] = novo_acessos
+                df.to_csv(caminho, index=False, sep=";", encoding="utf-8-sig")
+            except Exception:
+                pass
+            if db is not None:
+                try:
+                    doc_ref = db.collection("usuarios").document(email_clean)
+                    doc = doc_ref.get()
+                    acessos_atuais = 0
+                    if doc.exists:
+                        acessos_atuais = int(doc.to_dict().get("acessos", 0))
+                    doc_ref.set({
+                        "acessos": acessos_atuais + 1,
+                        "ultimo_acesso": firestore.SERVER_TIMESTAMP
+                    }, merge=True)
+                except Exception:
+                    pass
+            return True
+        return False
+    except Exception:
+        return False
+
+# --- 10. CONTROLE DE ACESSO COM REGISTRO ---
+url_token = st.query_params.get("token")
+if url_token:
+    sucesso_token, email_token, nome_token = confirmar_token(url_token)
+    if sucesso_token:
+        st.session_state.registrado = True
+        st.session_state.login_via_google = False
+        st.session_state.email_usuario = email_token.lower().strip()
+        st.session_state.nome_usuario = str(nome_token).split(" ")[0].capitalize()
+        admin_email_conf = st.secrets.get("ADMIN_EMAIL", "joaoquadros@ufop.edu.br").lower().strip()
+        st.session_state.is_admin = (email_token.lower().strip() == admin_email_conf)
+        st.success("✅ Conta ativada e acesso liberado com sucesso!")
+        st.query_params.clear()
+        time.sleep(2)
+        st.rerun()
+    else:
+        st.error("    Token inválido ou já utilizado.")
+    st.query_params.clear()
+
+if not st.session_state.registrado:
+
+    # Escolha do Modo (Recuperação, Login ou Cadastro)
+    if st.session_state.get("modo_recuperacao", False):
+        col_rec_1, col_rec_2, col_rec_3 = st.columns([1, 1.5, 1])
+        with col_rec_2:
+            st.markdown(f"### {t['rec_titulo']}")
+            email_rec = st.text_input(t['rec_email'], placeholder="", key="email_rec_input")
+            
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+            
+            # Se já verificou os dados, exibe a redefinição de senha
+            if st.session_state.get("usuario_recuperado_email", ""):
+                email_confirmado = st.session_state.usuario_recuperado_email
+                st.info(f"Usuário identificado. Defina uma nova senha para a conta: **{email_confirmado}**")
+                
+                nova_senha = st.text_input(t['rec_nova_senha'], type="password", key="rec_nova_senha_input")
+                conf_senha = st.text_input(t['rec_conf_senha'], type="password", key="rec_conf_senha_input")
+                
+                if st.button(t['rec_btn_redefinir'], type="primary", use_container_width=True):
+                    if not nova_senha.strip():
+                        st.error(t['reg_erro_campos'] + " (Faltando: Nova Senha)")
+                    elif nova_senha != conf_senha:
+                        st.error(t['reg_erro_senha_diferente'])
+                    else:
+                        redefinir_senha_usuario(email_confirmado, nova_senha)
+                        st.success(t['rec_sucesso'])
+                        st.session_state.usuario_recuperado_email = ""
+                        st.session_state.modo_recuperacao = False
+                        st.session_state.modo_login = True
+                        time.sleep(1.5)
+                        st.rerun()
+            else:
+                if st.button(t['rec_btn_verificar'], type="primary", use_container_width=True):
+                    if not email_rec.strip():
+                        st.error(t['reg_erro_campos'] + " (Faltando: E-mail)")
+                    else:
+                        sucesso, nome = verificar_recuperacao(email_rec)
+                        if sucesso:
+                            # Gera senha temporária alfanumérica
+                            senha_temp = gerar_senha_temporaria()
+                            # Atualiza a senha no banco de dados
+                            redefinir_senha_usuario(email_rec.lower().strip(), senha_temp)
+                            
+                            # Envia por e-mail
+                            enviado, erro = enviar_email_recuperacao(email_rec.lower().strip(), email_rec.lower().strip(), senha_temp)
+                            
+                            if enviado:
+                                st.success("🎉 Uma senha temporária foi enviada para o seu e-mail cadastrado! Acesse o portal e atualize-a nas configurações.")
+                                st.session_state.modo_recuperacao = False
+                                st.session_state.modo_login = True
+                                time.sleep(3.0)
+                                st.rerun()
+                            else:
+                                # Fallback se SMTP não estiver configurado
+                                st.warning("    Não foi possível enviar o e-mail no momento (Servidor SMTP não configurado).")
+                                st.info(f"Para continuar seu acesso agora, utilize as credenciais abaixo:\n\n**Login:** `{email_rec.lower().strip()}`\n\n**Senha Temporária:** `{senha_temp}`\n\nEm caso de dúvidas, contate o suporte: **support@scipubs.com**")
+                                st.session_state.usuario_recuperado_email = email_rec.lower().strip()
+                        else:
+                            st.error(t['rec_erro_nao_encontrado'])
+            
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+            if st.button(t['rec_btn_voltar'], use_container_width=True):
+                st.session_state.usuario_recuperado_email = ""
+                st.session_state.modo_recuperacao = False
+                st.session_state.modo_login = True
+                st.rerun()
+
+    elif st.session_state.modo_login:
+        # T TULO E APRESENTAÇÃO MINIMALISTA
+        col_log_1, col_log_2, col_log_3 = st.columns([1, 1.5, 1])
+        with col_log_2:
+            # Formulário de Login
+            with st.form("form_login_usuario", clear_on_submit=False):
+                email_log = st.text_input(t['log_email'], placeholder="", key="email_login")
+                senha_log = st.text_input(t['log_senha'], type="password", placeholder="", key="senha_login")
+                
+                st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+                
+                btn_entrar = st.form_submit_button(t['log_btn_entrar'], type="primary", use_container_width=True)
+            
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+            
+            # Link para ir para a página de Cadastro colocado diretamente abaixo
+            if st.button(t['log_cadastrar_link'], key="btn_ir_cadastro", use_container_width=True):
+                st.session_state.modo_login = False
+                st.rerun()
+                
+            # Link para ir para a página de Recuperação
+            if st.button(f"🔑 {t['log_esqueceu']}", key="btn_ir_recuperacao", use_container_width=True):
+                st.session_state.modo_recuperacao = True
+                st.session_state.modo_login = False
+                st.session_state.usuario_recuperado_email = ""
+                st.rerun()
+                
+            if btn_entrar:
+                if not email_log.strip() or not senha_log.strip():
+                    faltam = []
+                    if not email_log.strip(): faltam.append("E-mail")
+                    if not senha_log.strip(): faltam.append("Senha")
+                    st.error(f"{t['reg_erro_campos']} (Faltando: {', '.join(faltam)})")
+                else:
+                    res_login = verificar_login(email_log, senha_log)
+                    if res_login == "NOT_CONFIRMED":
+                        st.warning("    Sua conta ainda não foi confirmada. Verifique o link enviado para o seu e-mail.")
+                    elif res_login:
+                        st.session_state.registrado = True
+                        st.session_state.login_via_google = False
+                        
+                        email_clean = email_log.lower().strip()
+                        st.session_state.email_usuario = email_clean
+                        admin_email_conf = st.secrets.get("ADMIN_EMAIL", "joaoquadros@ufop.edu.br").lower().strip()
+                        st.session_state.is_admin = (email_clean == admin_email_conf)
+                        
+                        st.success(t['reg_sucesso'])
+                        time.sleep(1.2)
+                        st.rerun()
+                    else:
+                        st.error(t['log_erro_invalido'])
+                        
+
+    else:
+        
+
+        with st.form("form_cadastro_usuario", clear_on_submit=False):
+            col_reg_1, col_reg_2 = st.columns(2)
+            with col_reg_1:
+                nome_cad = st.text_input(t['reg_nome_sobrenome'], placeholder="Ex: João Silva")
+                email_cad = st.text_input(t['reg_email'], placeholder="")
+                pais_cad = st.text_input(t['reg_pais'], placeholder="Ex: Brasil")
+                lbl_sexo = "Sexo (Opcional):"
+                opcoes_sexo = ["", "Masculino", "Feminino", "Não informar"]
+                if st.session_state.get('idioma', 'Português') == 'English':
+                    lbl_sexo = "Gender (Optional):"
+                    opcoes_sexo = ["", "Male", "Female", "Prefer not to say"]
+                elif st.session_state.get('idioma', 'Português') == 'Español':
+                    lbl_sexo = "Sexo (Opcional):"
+                    opcoes_sexo = ["", "Masculino", "Femenino", "Prefiero no decirlo"]
+                sexo_cad = st.selectbox(lbl_sexo, opcoes_sexo)
+                
+            with col_reg_2:
+                # Titulação
+                opcoes_esc = []
+                if st.session_state.idioma == "Português":
+                    opcoes_esc = ["Graduação", "Especialização", "Mestrado", "Doutorado", "Outra"]
+                elif st.session_state.idioma == "English":
+                    opcoes_esc = ["Undergraduate", "Specialization", "Master's", "Doctorate", "Other"]
+                else:
+                    opcoes_esc = ["Grado", "Especialización", "Maestría", "Doctorado", "Otra"]
+                    
+                escolaridade_cad = st.selectbox(t['reg_escolaridade'], opcoes_esc)
+                
+                # Vínculo Institucional
+                instituicao_cad = st.text_input(t['reg_instituicao'], placeholder="Ex: Universidade de São Paulo (USP)")
+                    
+                lbl_nascimento = "Data de Nascimento (Opcional):"
+                if st.session_state.get('idioma', 'Português') == 'English':
+                    lbl_nascimento = "Date of Birth (Optional):"
+                elif st.session_state.get('idioma', 'Português') == 'Español':
+                    lbl_nascimento = "Fecha de Nacimiento (Opcional):"
+                import datetime
+                if st.session_state.get('idioma', 'Português') == 'English':
+                    date_format = "YYYY/MM/DD"
+                else:
+                    date_format = "DD/MM/YYYY"
+                idade_cad = st.date_input(lbl_nascimento, value=None, min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today(), format=date_format)
+                
+                lbl_raca = "Raça/Etnia (Opcional):"
+                opcoes_raca = ["", "Branca", "Parda", "Preta", "Indígena", "Outra"]
+                if st.session_state.get('idioma', 'Português') == 'English':
+                    lbl_raca = "Race/Ethnicity (Optional):"
+                    opcoes_raca = ["", "White", "Mixed-race", "Black", "Indigenous", "Other"]
+                elif st.session_state.get('idioma', 'Português') == 'Español':
+                    lbl_raca = "Raza/Etnia (Opcional):"
+                    opcoes_raca = ["", "Blanca", "Mestiza", "Negra", "Indígena", "Otra"]
+                raca_cad = st.selectbox(lbl_raca, opcoes_raca)
+    
+            # Senha e confirmação de senha
+            st.markdown("<hr style='border-top:1px dashed #CBD5E1; margin:15px 0;'>", unsafe_allow_html=True)
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                senha_cad = st.text_input(t['reg_senha'], type="password", placeholder="", key="senha_cad_reg")
+            with col_s2:
+                senha_cad_conf = st.text_input(t['reg_confirmar_senha'], type="password", placeholder="", key="senha_cad_conf_reg")
+            
+            st.markdown("<hr style='border-top:1px solid #CBD5E1; margin:15px 0;'>", unsafe_allow_html=True)
+            lbl_t_c = "### Termos e Consentimentos" if st.session_state.get('idioma', 'Português') == 'Português' else ("### Terms and Consents" if st.session_state.get('idioma', 'Português') == 'English' else "### Términos y Consentimientos")
+            st.markdown(lbl_t_c)
+            # Como st.button não é permitido dentro de st.form, usamos um expander que age como um pop-up embutido
+            lbl_termos = "📄 Ler Termos de uso e política de privacidade" if st.session_state.get('idioma', 'Português') == 'Português' else ("📄 Read Terms of Use and Privacy Policy" if st.session_state.get('idioma', 'Português') == 'English' else "📄 Leer Términos de Uso y Política de Privacidad")
+            with st.expander(lbl_termos):
+                st.markdown(get_texto_termos(st.session_state.get('idioma', 'Português')))
+                
+            lbl_cb1 = "Ao clicar em Concordar e continuar, você aceita os Termos de uso e política de privacidade do SciPubs (Obrigatório)" if st.session_state.get('idioma', 'Português') == 'Português' else ("By clicking Agree and continue, you accept the SciPubs Terms of Use and Privacy Policy (Mandatory)" if st.session_state.get('idioma', 'Português') == 'English' else "Al hacer clic en Aceptar y continuar, aceptas los Términos de uso y la política de privacidad de SciPubs (Obligatorio)")
+            aceitou_termos = st.checkbox(lbl_cb1)
+            lbl_cb2 = "Concordo em participar de pesquisas futuras e dou o meu consentimento para utilização dos meus dados para fins acadêmicos e científicos (Opcional)" if st.session_state.get('idioma', 'Português') == 'Português' else ("I agree to participate in future research and give my consent for the use of my data for academic and scientific purposes (Optional)" if st.session_state.get('idioma', 'Português') == 'English' else "Acepto participar en futuras investigaciones y doy mi consentimiento para el uso de mis datos con fines académicos y científicos (Opcional)")
+            aceitou_pesquisa = st.checkbox(lbl_cb2)
+            lbl_doacao = "❤️ Desejo apoiar o SciPubs (Doação)" if st.session_state.get('idioma', 'Português') == 'Português' else ("❤️ I want to support SciPubs (Donation)" if st.session_state.get('idioma', 'Português') == 'English' else "❤️ Deseo apoyar SciPubs (Donación)")
+            st.link_button(lbl_doacao, "https://buymeacoffee.com/scipubs", type="secondary", use_container_width=True)
+            
+    
+            st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+            btn_registrar = st.form_submit_button(t['reg_btn_cadastrar'] + " (Concordar e continuar)", type="primary", use_container_width=True)
+            
+        if btn_registrar:
+            if not aceitou_termos:
+                st.error("    Você deve aceitar os Termos de Uso e Política de Privacidade para se cadastrar.")
+            elif not nome_cad.strip() or not email_cad.strip() or not pais_cad.strip() or not instituicao_cad.strip() or not senha_cad.strip():
+                faltam = []
+                if not nome_cad.strip(): faltam.append("Nome")
+                if not email_cad.strip(): faltam.append("E-mail")
+                if not pais_cad.strip(): faltam.append("País")
+                if not instituicao_cad.strip(): faltam.append("Instituição de Vínculo")
+                if not senha_cad.strip(): faltam.append("Senha")
+                st.error(f"{t['reg_erro_campos']} (Faltando: {', '.join(faltam)})")
+            elif not senha_cad_conf.strip():
+                st.error(f"{t['reg_erro_campos']} (Faltando: Confirmação de Senha)")
+            elif senha_cad != senha_cad_conf:
+                st.error(t['reg_erro_senha_diferente'])
+            else:
+                idade_final = idade_cad.strftime('%d/%m/%Y') if idade_cad else ""
+                
+                # Grava no CSV
+                token_confirmacao = gerar_token()
+                sucesso_cadastro = cadastrar_usuario(
+                    nome_cad.strip(),
+                    email_cad.strip(),
+                    pais_cad.strip(),
+                    escolaridade_cad,
+                    instituicao_cad.strip(),
+                    senha_cad.strip(),
+                    idade_final,
+                    sexo_cad,
+                    raca_cad,
+                    token_confirmacao,
+                    status_confirmado=False,
+                    aceitou_termos=aceitou_termos,
+                    aceitou_pesquisa=aceitou_pesquisa,
+                    deseja_doar=False
+                )
+                if sucesso_cadastro:
+                    enviado, erro = enviar_email_confirmacao(email_cad.strip(), token_confirmacao)
+                    if enviado:
+                        st.success("✅ Cadastro realizado! Verifique seu e-mail para confirmar a conta antes de fazer o login.")
+                    else:
+                        st.warning("    Conta criada, mas não foi possível enviar o e-mail de confirmação.")
+                        st.info(f"Para testes, você mesmo pode confirmar clicando aqui: https://buscador-periodicos.streamlit.app/?token={token_confirmacao}")
+                    
+                    st.session_state.modo_cadastro = False
+                    st.session_state.modo_login = True
+                    st.rerun()
+                    time.sleep(4)
+                    st.rerun()
+                else:
+                    st.error(t['reg_erro_ja_existe'])
+                    
+        st.markdown("<br>", unsafe_allow_html=True)
+        # Link para voltar ao Login
+        if st.button(t['log_entrar_link'], key="btn_ir_login", use_container_width=True):
+            st.session_state.modo_login = True
+            st.rerun()
+            
+    st.stop()
+
+# Textos informativos traduzidos
+

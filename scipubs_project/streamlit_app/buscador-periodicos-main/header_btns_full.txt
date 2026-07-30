@@ -1,0 +1,20 @@
+1880: 
+1881: # --- HEADER BUTTONS ---
+1882: _lang = st.session_state.get('idioma', 'English')
+1883: 
+1884: _btn_donate = "☕ Donate"
+1885: if _lang == 'Português':
+1886: _btn_sub = "☕ Doação"
+1887: elif _lang == 'Español':
+1888: _btn_sub = "☕ Donaciones"
+1889: 
+1890: _btn_sub = "✉️ Subscribe"
+1891: if _lang == 'Português':
+1892: _btn_sub = "✉️ Inscrever-se"
+1893: elif _lang == 'Español':
+1894: _btn_sub = "✉️ Suscribirse"
+1895: 
+1896: col_title, col_btns = st.columns([1, 1])
+1897: with col_title:
+1898: st.markdown(t['filtros_tit'])
+1899: with col_btns:

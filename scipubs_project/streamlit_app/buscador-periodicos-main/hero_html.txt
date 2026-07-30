@@ -1,0 +1,30 @@
+1591: imagem_base64 = obter_imagem_local_base64(nome_logo)
+1592: # Fallback caso a versão traduzida específica não exista
+1593: if not imagem_base64:
+1594: imagem_base64 = obter_imagem_local_base64("logo.png")
+1595: 
+1596: if imagem_base64:
+1597: tag_imagem = f'<img src="data:image/png;base64,{imagem_base64}" style="height: 220px; width: auto; object-fit: contain;">'
+1598: else:
+1599: tag_imagem = '<span class="emoji-logo" style="font-size: 6.5rem; line-height: 1; margin-right: 15px;">📚</span>'
+1600: 
+1601: st.markdown(f"""<div class="premium-hero" style="display: flex; align-items: center; flex-wrap: nowrap; gap: 30px; padding: 25px 35px;">
+1602: {tag_imagem}
+1603: <div class="divider-line" style="width: 2px; height: 140px; background-color: rgba(255,255,255,0.15);"></div>
+1604: <div class="premium-text-block">
+1605: <h1 class="premium-title" style="margin: 0 !important; padding: 0 !important; font-size: 2.3rem !important; font-weight: 800 !important; letter-spacing: -0.5px;">{t['titulo']}</h1>
+1606: <p class="premium-subtitle" style="margin: 5px 0 0 0 !important; padding: 0 !important; font-size: 1.1rem !important; opacity: 0.85;">{t['subtitulo']}</p>
+1607: </div>
+1608: </div>""", unsafe_allow_html=True)
+1609: 
+1610: # Textos informativos traduzidos
+1611: 
+1612: # --- TELA DE CONFIGURAÇÕES & AJUSTES ---
+1613: if st.session_state.get("abrir_configuracoes", False):
+1614: lang = st.session_state.get('idioma', 'Português')
+1615: 
+1616: # Dicionário de traduções da página
+1617: ts = {
+1618: 'titulo': "## ⚙ Configurações & Ajustes do SciPubs",
+1619: 'btn_voltar': "⬅ Voltar para o Buscador",
+1620: 'lbl_opcoes': "Selecione uma opção de ajuste:",

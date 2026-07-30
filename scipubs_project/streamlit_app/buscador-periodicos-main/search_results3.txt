@@ -1,0 +1,16 @@
+16: 1.1. Welcome to SciPubs: The Researcher's Portal ("Platform"). This document ("Terms") governs your relationship with our Platform, establishing the conditions of use and personal data processing practices.
+74: 1.1. Bienvenido a SciPubs: El Portal del Investigador ("Plataforma"). Este documento ("Términos") rige su relación con nuestra Plataforma, estableciendo las condiciones de uso y las prácticas de tratamiento de datos personales.
+132: 1.1. Bem-vindo ao SciPubs: O Portal do Pesquisador ("Plataforma"). Este documento ("Termos") rege a sua relação com a nossa Plataforma, estabelecendo as condições de uso e as práticas de tratamento de dados pessoais.
+505: "reg_boas_vindas": "### Bem-vindo(a) ao SciPubs!",
+523: "reg_sucesso": "🎉 Registro concluído com sucesso! Bem-vindo(a) ao SciPubs: O Portal do Pesquisador.",
+527: "reg_btn_sair": "Sair",
+642: "reg_boas_vindas": "### Welcome to the SciPubs: The Researcher's Portal!",
+660: "reg_sucesso": "🎉 Registration completed successfully! Welcome to the SciPubs: The Researcher's Portal.",
+782: "reg_boas_vindas": "### ¡Bienvenido a SciPubs: El Portal del Investigador!",
+803: "reg_sucesso": "🎉 ¡Registro completado con éxito! Bienvenido a SciPubs: El Portal del Investigador.",
+1153: status_texto = f"Bem-vindo(a) de volta, {usr_identificador}"
+1168: # Colunas para exibir botões de Sair e Configurações lado a lado
+1171: if st.button("🚪 Sair", key="btn_sair_sidebar", help="Encerrar sessão", use_container_width=True):
+2375: ### Bem-vindo(a) ao SciPubs: O Portal do Pesquisador!
+2388: ### Welcome to SciPubs: the Researcher's Portal!
+2401: ### ¡Bienvenido al Portal del Investigador!

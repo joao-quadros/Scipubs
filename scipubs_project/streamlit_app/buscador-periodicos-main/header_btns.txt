@@ -1,0 +1,7 @@
+1884: _btn_donate = "☕ Donate"
+1885: if _lang == 'Português':
+1886: _btn_sub = "☕ Doação"
+1887: elif _lang == 'Español':
+1888: _btn_sub = "☕ Donaciones"
+1889: 
+1890: _btn_sub = "✉️ Subscribe"

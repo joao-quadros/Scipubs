@@ -1,0 +1,3 @@
+1884: _btn_donate = "☕ Donate"
+1886: _btn_sub = "☕ Doação"
+1888: _btn_sub = "☕ Donaciones"

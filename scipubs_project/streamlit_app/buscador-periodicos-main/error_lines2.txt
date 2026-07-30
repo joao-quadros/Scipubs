@@ -1,0 +1,40 @@
+1161: if "email_usuario" not in st.session_state:
+1162: st.session_state.email_usuario = ""
+1163: if "nome_usuario" not in st.session_state:
+1164: st.session_state.nome_usuario = ""
+1165: if "acessos_usuario" not in st.session_state:
+1166: st.session_state.acessos_usuario = 0
+1167: if "login_via_google" not in st.session_state:
+1168: st.session_state.login_via_google = False
+1169: if "solicitar_email_google" not in st.session_state:
+1170: st.session_state.solicitar_email_google = False
+1171: if "dark_mode" not in st.session_state:
+1172: st.session_state.dark_mode = False
+1173: if "abrir_configuracoes" not in st.session_state:
+1174: st.session_state.abrir_configuracoes = False
+1175: if "is_admin" not in st.session_state:
+1176: st.session_state.is_admin = False
+1177: 
+1178: # Exibe o status de acesso na barra lateral
+1179: # Botão de Configurações
+1180: btn_conf_text = "⚙ Configs"
+1181: btn_conf_help = "Configurações"
+1182: if st.session_state.get("idioma", "English") == "English":
+1183: btn_conf_text = "⚙ Settings"
+1184: btn_conf_help = "Settings"
+1185: elif st.session_state.get("idioma", "English") == "Español":
+1186: btn_conf_text = "⚙ Config."
+1187: btn_conf_help = "Configuración"
+1188: 
+1189: if st.sidebar.button(btn_conf_text, key="btn_config_gear_sidebar", help=btn_conf_help, use_container_width=True):
+1190: st.session_state.abrir_configuracoes = not st.session_state.get("abrir_configuracoes", False)
+1191: st.rerun()
+1192: 
+1193: st.sidebar.markdown(f"""
+1194: <div style="background-color: {bg_cor}; color: white; padding: 10px 8px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.82rem; line-height: 1.3; margin-bottom: 8px;">
+1195: {status_texto}
+1196: </div>
+1197: """, unsafe_allow_html=True)
+1198: 
+1199: # Strings dos botões
+1200: btn_sair_text = "🚪 Sair"

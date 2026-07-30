@@ -1,0 +1,30 @@
+1211: btn_sair_help = "Cerrar sesión"
+1212: btn_conf_text = "⚙ Config."
+1213: btn_conf_help = "Configuración"
+1214: 
+1215: # Colunas para exibir botões de Sair e Configurações lado a lado
+1216: col_sair, col_config = st.sidebar.columns([1, 1])
+1217: with col_sair:
+1218: if st.button(btn_sair_text, key="btn_sair_sidebar", help=btn_sair_help, use_container_width=True):
+1219: st.session_state.registrado = False
+1220: st.session_state.email_usuario = ""
+1221: st.session_state.nome_usuario = ""
+1222: st.session_state.acessos_usuario = 0
+1223: st.session_state.login_via_google = False
+1224: st.session_state.solicitar_email_google = False
+1225: st.session_state.abrir_configuracoes = False
+1226: st.session_state.is_admin = False
+1227: st.rerun()
+1228: with col_config:
+1229: if st.button(btn_conf_text, key="btn_config_gear_sidebar", help=btn_conf_help, use_container_width=True):
+1230: st.session_state.abrir_configuracoes = not st.session_state.get("abrir_configuracoes", False)
+1231: st.rerun()
+1232: 
+1233: st.sidebar.markdown(f"""
+1234: <div style='display: flex; align-items: center; gap: 12px; margin-bottom: 20px;'>
+1235: <h2 style='margin: 0; font-size: 1.60rem; font-weight: 700; color: #0F172A;'>{t['nav_tit']}</h2>
+1236: </div>
+1237: """, unsafe_allow_html=True)
+1238: 
+1239: # indexadores
+1240: st.sidebar.markdown(f"""

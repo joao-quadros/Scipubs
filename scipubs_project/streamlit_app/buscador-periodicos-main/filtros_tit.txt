@@ -1,0 +1,4 @@
+472: "filtros_tit": "####   Buscador de Periódicos",
+610: "filtros_tit": "####   Journal Finder",
+750: "filtros_tit": "####   Buscador de Revistas",
+2477: st.markdown(t['filtros_tit'])

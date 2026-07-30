@@ -1,0 +1,200 @@
+2101: 
+2102: st.stop()
+2103: 
+2104: # Textos informativos traduzidos
+2105: 
+2106: # --- TELA DE CONFIGURAÇÕES & AJUSTES ---
+2107: if st.session_state.get("abrir_configuracoes", False):
+2108: st.markdown("## ⚙  Configurações & Ajustes do SciPubs")
+2109: 
+2110: # Botão para fechar e retornar ao buscador
+2111: if st.button("⬅  Voltar para o Buscador", key="btn_fechar_config"):
+2112: st.session_state.abrir_configuracoes = False
+2113: st.rerun()
+2114: 
+2115: st.markdown("<hr style='margin:10px 0;'>", unsafe_allow_html=True)
+2116: 
+2117: opc_config = st.radio(
+2118: "Selecione uma opção de ajuste:",
+2119: [
+2120: "👤 Atualização de Cadastro",
+2121: "🔑 Atualização de Senha",
+2122: "🎨 Tema da Plataforma (Claro/Escuro)",
+2123: "📢 Compartilhe o SciPubs"
+2124: ],
+2125: key="radio_opc_config"
+2126: )
+2127: 
+2128: st.markdown("<br>", unsafe_allow_html=True)
+2129: 
+2130: if "👤 Atualização de Cadastro" in opc_config:
+2131: st.subheader("👤 Atualizar Meus Dados de Cadastro")
+2132: email_atual = st.session_state.email_usuario
+2133: nome_atual = st.session_state.get("nome_usuario", "")
+2134: 
+2135: # Carrega dados atuais do usuário
+2136: caminho_csv = "usuarios.csv"
+2137: telefone_atual = ""
+2138: escolaridade_atual = "Doutor"
+2139: inst_atual = ""
+2140: 
+2141: if db is not None:
+2142: try:
+2143: doc = db.collection("usuarios").document(email_atual).get()
+2144: if doc.exists:
+2145: d = doc.to_dict()
+2146: nome_atual = d.get("nome", nome_atual)
+2147: telefone_atual = d.get("telefone", "")
+2148: escolaridade_atual = d.get("escolaridade", "Doutor")
+2149: inst_atual = d.get("instituicao", "")
+2150: except Exception:
+2151: pass
+2152: 
+2153: if not telefone_atual and os.path.exists(caminho_csv):
+2154: try:
+2155: df_u = pd.read_csv(caminho_csv, sep=";")
+2156: match = df_u[df_u["Email"].astype(str).str.lower().str.strip() == email_atual.lower().strip()]
+2157: if not match.empty:
+2158: nome_atual = match.iloc[0]["Nome"]
+2159: telefone_atual = match.iloc[0]["Telefone"]
+2160: escolaridade_atual = match.iloc[0]["Escolaridade"]
+2161: inst_atual = match.iloc[0]["Instituicao"]
+2162: except Exception:
+2163: pass
+2164: 
+2165: nome_edit = st.text_input("Nome Completo:", value=nome_atual)
+2166: tel_edit = st.text_input("Telefone:", value=telefone_atual)
+2167: 
+2168: opcoes_esc_edit = ["Estudante de Graduação", "Especialista / Pós-Graduado", "Mestrando", "Mestre", "Doutorando", "Doutor", "Pós-Doutor", "Outro"]
+2169: if escolaridade_atual not in opcoes_esc_edit:
+2170: opcoes_esc_edit.append(escolaridade_atual)
+2171: esc_edit = st.selectbox("Escolaridade:", opcoes_esc_edit, index=opcoes_esc_edit.index(escolaridade_atual))
+2172: 
+2173: inst_edit = st.text_input("Instituição de Vínculo:", value=inst_atual)
+2174: 
+2175: if st.button("Salvar Alterações do Cadastro", type="primary"):
+2176: if not nome_edit.strip() or not tel_edit.strip() or not inst_edit.strip():
+2177: st.error("    Preencha todos os campos obrigatórios.")
+2178: else:
+2179: if os.path.exists(caminho_csv):
+2180: try:
+2181: df_u = pd.read_csv(caminho_csv, sep=";")
+2182: idx = df_u[df_u["Email"].astype(str).str.lower().str.strip() == email_atual.lower().strip()].index
+2183: if not idx.empty:
+2184: df_u.loc[idx, "Nome"] = nome_edit.strip()
+2185: df_u.loc[idx, "Telefone"] = tel_edit.strip()
+2186: df_u.loc[idx, "Escolaridade"] = esc_edit
+2187: df_u.loc[idx, "Instituicao"] = inst_edit.strip()
+2188: df_u.to_csv(caminho_csv, index=False, sep=";", encoding="utf-8-sig")
+2189: except Exception:
+2190: pass
+2191: 
+2192: if db is not None:
+2193: try:
+2194: db.collection("usuarios").document(email_atual).set({
+2195: "nome": nome_edit.strip(),
+2196: "telefone": tel_edit.strip(),
+2197: "escolaridade": esc_edit,
+2198: "instituicao": inst_edit.strip()
+2199: }, merge=True)
+2200: except Exception:
+2201: pass
+2202: 
+2203: st.session_state.nome_usuario = nome_edit.strip().split(" ")[0].capitalize()
+2204: st.success("🎉 Dados do cadastro atualizados com sucesso!")
+2205: time.sleep(1.2)
+2206: st.rerun()
+2207: 
+2208: elif "🔑 Atualização de Senha" in opc_config:
+2209: st.subheader("🔑 Alterar Minha Senha de Acesso")
+2210: nova_s = st.text_input("Nova Senha:", type="password", key="settings_nova_senha")
+2211: conf_s = st.text_input("Confirmar Nova Senha:", type="password", key="settings_conf_senha")
+2212: if st.button("Atualizar Senha", type="primary"):
+2213: if not nova_s.strip():
+2214: st.error("    A senha não pode estar em branco.")
+2215: elif nova_s != conf_s:
+2216: st.error("    As senhas digitadas são diferentes.")
+2217: else:
+2218: redefinir_senha_usuario(st.session_state.email_usuario, nova_s)
+2219: st.success("🎉 Senha alterada com sucesso!")
+2220: time.sleep(1.2)
+2221: st.rerun()
+2222: 
+2223: elif "🎨 Tema da Plataforma (Claro/Escuro)" in opc_config:
+2224: st.subheader("🎨 Estilo e Aparência da Plataforma")
+2225: tema_atual = "Modo Noturno (Escuro)" if st.session_state.get("dark_mode", False) else "Modo Diurno (Claro)"
+2226: st.info(f"O tema ativo atualmente é: **{tema_atual}**")
+2227: 
+2228: if st.session_state.get("dark_mode", False):
+2229: if st.button("Ativar Modo Diurno (Claro)", type="primary"):
+2230: st.session_state.dark_mode = False
+2231: st.rerun()
+2232: else:
+2233: if st.button("Ativar Modo Noturno (Escuro)", type="primary"):
+2234: st.session_state.dark_mode = True
+2235: st.rerun()
+2236: 
+2237: elif "📢 Compartilhar o SciPubs" in opc_config:
+2238: st.subheader("📢 Compartilhar o SciPubs")
+2239: url_portal = "https://www.scipubs.com/"
+2240: texto_compartilhar = f"Confira o Buscador de Periodicos Cientificos do PPGE UFOP: {url_portal}"
+2241: 
+2242: msg_encoded = urllib.parse.quote(texto_compartilhar)
+2243: link_wa = f"https://api.whatsapp.com/send?text={msg_encoded}"
+2244: link_mail = f"mailto:?subject=Portal%20do%20Pesquisador&body={msg_encoded}"
+2245: 
+2246: st.write("Escolha uma das formas abaixo para divulgar o portal:")
+2247: col_c1, col_c2, col_c3 = st.columns(3)
+2248: with col_c1:
+2249: st.markdown(f"[💬 WhatsApp]({link_wa})", unsafe_allow_html=True)
+2250: with col_c2:
+2251: st.markdown(f"[✉  E-mail]({link_mail})", unsafe_allow_html=True)
+2252: with col_c3:
+2253: if st.button("📋 Copiar Link"):
+2254: st.info(f"Link: `{url_portal}`")
+2255: st.success("Link copiado para exibição!")
+2256: 
+2257: 
+2258: 
+2259: st.stop()
+2260: 
+2261: # Textos informativos traduzidos
+2262: if st.session_state.idioma == "Português":
+2263: expander_titulo = "💡 Sobre o SciPubs & Como Utilizar"
+2264: sobre_texto = """
+2265: ### Bem-vindo(a) ao SciPubs: O Portal do Pesquisador!
+2266: Esta é uma ferramenta desenvolvida para otimizar a busca por periódicos científicos de alto impacto.
+2267: 
+2268: ####     O que você pode fazer aqui?
+2269: 1. **Busca Avançada & Booleana:** Pesquise por termos exatos utilizando aspas (ex: `"educação musical"`) ou combine múltiplos critérios usando os operadores lógicos `AND`, `OR` e `NOT` (ex: `music AND education NOT medicine`).
+2270: 2. **Filtros por Subárea (CNPq):** Encontre periódicos perfeitamente alinhados    sua subárea específica de atuação e conhecimento.
+2271: 3. **Métricas de Impacto:** Analise o prestígio internacional através de quartis e indicadores consolidados das bases **JCR (Clarivate)**, **SJR (Scopus)**, **H-Index** e o link direto para o **Índice h5 (Google Scholar)**.
+2272: 4. **Recomendação Inteligente (IA):** Use a inteligência artificial do Google Gemini para colar o título e resumo do seu artigo e obter as recomendações de periódicos ideais com justificativa e link direto.
+2273: 5. **Exportação de Dados:** Filtre os resultados de acordo com sua necessidade e faça o download da tabela customizada imediatamente.
+2274: """
+2275: elif st.session_state.idioma == "English":
+2276: expander_titulo = "💡 About SciPubs & How to Use"
+2277: sobre_texto = """
+2278: ### Welcome to SciPubs: the Researcher's Portal!
+2279: This is a tool developed to optimize the search for high-impact scientific journals.
+2280: 
+2281: ####     What can you do here?
+2282: 1. **Advanced & Boolean Search:** Search for exact phrases using quotation marks (e.g., `"music education"`) or combine multiple criteria using the logical operators `AND`, `OR`, and `NOT` (e.g., `music AND education NOT medicine`).
+2283: 2. **Filters by Subarea (CNPq):** Find journals perfectly aligned with your specific subarea of expertise.
+2284: 3. **Impact Metrics:** Analyze international prestige through consolidated quartiles and indicators from **JCR (Clarivate)**, **SJR (Scopus)**, **H-Index**, and direct links to the **h5-Index (Google Scholar)**.
+2285: 4. **Smart Recommender (AI):** Paste your title and abstract, and let the Google Gemini AI recommend the best matches with specific rationale and homepage links.
+2286: 5. **Data Export:** Filter results according to your needs and download the customized table immediately.
+2287: """
+2288: else: # Español
+2289: expander_titulo = "📖 Sobre el Portal del Investigador y Cómo Utilizar"
+2290: sobre_texto = """
+2291: ### ¡Bienvenido al Portal del Investigador!
+2292: Esta es una herramienta desarrollada con el objetivo de optimizar la búsqueda de revistas científicas de alto impacto.
+2293: 
+2294: ####     ¿Qué puedes fazer aquí?
+2295: 1. **Búsqueda Avanzada y Booleana:** Busque términos exactos usando comillas (por ejemplo: `"educación musical"`) o combine múltiples criterios usando los operadores lógicos `AND`, `OR` y `NOT` (por ejemplo: `music AND education NOT medicine`).
+2296: 2. **Filtros por Subárea (CNPq):** Encuentre revistas perfectamente alineadas con su subárea específica de conocimiento.
+2297: 3. **Métricas de Impacto:** Analise el prestigio internacional a través de cuartiles e indicadores consolidados de las bases **JCR (Clarivate)**, **SJR (Scopus)**, **H-Index** y el enlace directo al **Índice h5 (Google Scholar)**.
+2298: 4. **Recomendador Inteligente (IA):** Use el motor de IA de Google Gemini para obtener sugerencias temáticas personalizadas basadas en el título y resumen de su artículo.
+2299: 5. **Exportación de Dados:** Filtre los resultados según sus necesidades y descargue la tabla personalizada inmediatamente.
+2300: """

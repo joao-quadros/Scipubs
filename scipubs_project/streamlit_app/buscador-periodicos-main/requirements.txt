@@ -1,0 +1,15 @@
+streamlit==1.59.1
+pandas>=2.0.0
+google-generativeai==0.7.2
+numpy>=2.0.0
+pyarrow>=14.0.1
+firebase-admin
+requests>=2.31.0
+ollama>=0.1.0
+psycopg2-binary>=2.9.9
+fastapi>=0.110.0
+uvicorn>=0.27.0
+pydantic>=2.6.0
+python-dotenv>=1.0.0
+fastembed>=0.8.0
+sentence-transformers>=2.5.0

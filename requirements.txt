@@ -1,0 +1,7 @@
+flet>=0.80.0
+pandas>=2.0.0
+numpy<2.0.0
+scikit-learn
+openpyxl
+google-generativeai==0.7.2
+pyarrow==14.0.1

@@ -1,0 +1,4 @@
+472: "filtros_tit": "####   Buscador de Periódicos",
+750: "filtros_tit": "####   Buscador de Revistas",
+2209: 'txt_comp': "Confira o Buscador de Periódicos Científicos do PPGE UFOP: ",
+2281: ts['txt_comp'] = "Conoce el Buscador de Revistas Científicas de PPGE UFOP: "

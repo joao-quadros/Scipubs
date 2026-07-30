@@ -1,0 +1,42 @@
+============================================================
+SciPubs - Busca de Aims & Scope + Mission
+Fontes: OpenAlex (description+summary) + SciELO (mission)
+============================================================
+
+Lendo C:\Users\jquad\Documents\app-revista\dados.csv...
+ISSN: 'ISSN', Total: 53564 registros
+Traceback (most recent call last):
+  File "C:\Users\jquad\Documents\app-revista\scripts\fetch_aims_scope.py", line 182, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\jquad\Documents\app-revista\scripts\fetch_aims_scope.py", line 124, in main
+    ja_preenchidos = df["Aims e Escopo"].astype(str).apply(
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        lambda x: len(x.strip()) > 10 and x.strip() not in ["-", "nan", "None"]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).sum()
+    ^
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\series.py", line 5084, in apply
+    ).apply()
+      ~~~~~^^
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\apply.py", line 1520, in apply
+    return self.apply_standard()
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\apply.py", line 1578, in apply_standard
+    mapped = obj._map_values(mapper=curried)
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\base.py", line 1020, in _map_values
+    return arr.map(mapper, na_action=na_action)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\arrays\arrow\array.py", line 1753, in map
+    return super().map(mapper, na_action)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\arrays\base.py", line 2745, in map
+    return map_array(self, mapper, na_action=na_action)
+  File "C:\Users\jquad\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pandas\core\algorithms.py", line 1715, in map_array
+    return lib.map_infer(values, mapper)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "pandas/_libs/lib.pyx", line 3071, in pandas._libs.lib.map_infer
+  File "C:\Users\jquad\Documents\app-revista\scripts\fetch_aims_scope.py", line 125, in <lambda>
+    lambda x: len(x.strip()) > 10 and x.strip() not in ["-", "nan", "None"]
+                  ^^^^^^^
+AttributeError: 'float' object has no attribute 'strip'

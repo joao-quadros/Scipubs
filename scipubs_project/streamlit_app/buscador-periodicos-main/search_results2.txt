@@ -1,0 +1,10 @@
+132: 1.1. Bem-vindo ao SciPubs: O Portal do Pesquisador ("Plataforma"). Este documento ("Termos") rege a sua relação com a nossa Plataforma, estabelecendo as condições de uso e as práticas de tratamento de dados pessoais.
+505: "reg_boas_vindas": "### Bem-vindo(a) ao SciPubs!",
+523: "reg_sucesso": "🎉 Registro concluído com sucesso! Bem-vindo(a) ao SciPubs: O Portal do Pesquisador.",
+527: "reg_btn_sair": "Sair",
+1153: status_texto = f"Bem-vindo(a) de volta, {usr_identificador}"
+1168: # Colunas para exibir botões de Sair e Configurações lado a lado
+1171: if st.button("🚪 Sair", key="btn_sair_sidebar", help="Encerrar sessão", use_container_width=True):
+1182: if st.button("⚙  Configs", key="btn_config_gear_sidebar", help="Configurações", use_container_width=True):
+2108: st.markdown("## ⚙  Configurações & Ajustes do SciPubs")
+2265: ### Bem-vindo(a) ao SciPubs: O Portal do Pesquisador!

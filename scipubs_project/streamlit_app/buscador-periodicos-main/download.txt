@@ -1,0 +1,6 @@
+509: "btn_desktop": "💻 Baixar Versão para Windows",
+646: "btn_desktop": "💻 Download Windows Version",
+786: "btn_desktop": "💻 Descargar Versión para Windows",
+994: div[data-testid="stDownloadButton"] button {
+1513: # --- 8. BOTÃO DE DOWNLOAD DA VERSÃO DESKTOP ---
+1514: texto_botao = t.get("btn_desktop", "💻 Baixar Versão para Windows")

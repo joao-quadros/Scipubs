@@ -1,0 +1,6 @@
+1646: "Idade": idade,
+1647: "Sexo": sexo,
+1648: "Raça/Etnia": raca,
+1964: sexo_cad = st.selectbox("Sexo (Opcional):", ["", "Masculino", "Feminino", "Não informar"])
+1981: idade_cad = st.number_input("Idade (Opcional):", min_value=0, max_value=120, value=0, step=1)
+1982: raca_cad = st.selectbox("Raça/Etnia (Opcional):", ["", "Branca", "Parda", "Preta", "Indígena", "Outra"])

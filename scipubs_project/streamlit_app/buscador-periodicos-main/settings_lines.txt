@@ -1,0 +1,90 @@
+1141: if st.session_state.registrado:
+1142: nome_usr_exibir = st.session_state.get("nome_usuario", "Usuário")
+1143: email_usr_exibir = st.session_state.get("email_usuario", "")
+1144: acessos_usr = st.session_state.get("acessos_usuario", 1)
+1145: 
+1146: # Se for login via Google, exibe o e-mail do usuário na mensagem de boas-vindas
+1147: usr_identificador = email_usr_exibir if st.session_state.get("login_via_google", False) else nome_usr_exibir
+1148: 
+1149: # Determina o texto de boas-vindas com base no número de acessos
+1150: if acessos_usr <= 1:
+1151: status_texto = f"Seja bem-vindo(a), {usr_identificador}"
+1152: else:
+1153: status_texto = f"Bem-vindo(a) de volta, {usr_identificador}"
+1154: 
+1155: if st.session_state.get("is_admin", False):
+1156: status_texto = f"🔑 Admin: {status_texto}"
+1157: bg_cor = "#0F172A"
+1158: else:
+1159: bg_cor = "#10B981"
+1160: 
+1161: # Caixa de boas-vindas
+1162: st.sidebar.markdown(f"""
+1163: <div style="background-color: {bg_cor}; color: white; padding: 10px 8px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.82rem; line-height: 1.3; margin-bottom: 8px;">
+1164: {status_texto}
+1165: </div>
+1166: """, unsafe_allow_html=True)
+1167: 
+1168: # Colunas para exibir botões de Sair e Configurações lado a lado
+1169: col_sair, col_config = st.sidebar.columns([1, 1])
+1170: with col_sair:
+1171: if st.button("🚪 Sair", key="btn_sair_sidebar", help="Encerrar sessão", use_container_width=True):
+1172: st.session_state.registrado = False
+1173: st.session_state.email_usuario = ""
+1174: st.session_state.nome_usuario = ""
+1175: st.session_state.acessos_usuario = 0
+1176: st.session_state.login_via_google = False
+1177: st.session_state.solicitar_email_google = False
+1178: st.session_state.abrir_configuracoes = False
+1179: st.session_state.is_admin = False
+1180: st.rerun()
+1181: with col_config:
+1182: if st.button("⚙  Configs", key="btn_config_gear_sidebar", help="Configurações", use_container_width=True):
+1183: st.session_state.abrir_configuracoes = not st.session_state.get("abrir_configuracoes", False)
+1184: st.rerun()
+1185: 
+1186: st.sidebar.markdown(f"""
+1187: <div style='display: flex; align-items: center; gap: 12px; margin-bottom: 20px;'>
+1188: <h2 style='margin: 0; font-size: 1.60rem; font-weight: 700; color: #0F172A;'>{t['nav_tit']}</h2>
+1189: </div>
+1190: """, unsafe_allow_html=True)
+2101: 
+2102: st.stop()
+2103: 
+2104: # Textos informativos traduzidos
+2105: 
+2106: # --- TELA DE CONFIGURAÇÕES & AJUSTES ---
+2107: if st.session_state.get("abrir_configuracoes", False):
+2108: st.markdown("## ⚙  Configurações & Ajustes do SciPubs")
+2109: 
+2110: # Botão para fechar e retornar ao buscador
+2111: if st.button("⬅  Voltar para o Buscador", key="btn_fechar_config"):
+2112: st.session_state.abrir_configuracoes = False
+2113: st.rerun()
+2114: 
+2115: st.markdown("<hr style='margin:10px 0;'>", unsafe_allow_html=True)
+2116: 
+2117: opc_config = st.radio(
+2118: "Selecione uma opção de ajuste:",
+2119: [
+2120: "👤 Atualização de Cadastro",
+2251: st.markdown(f"[✉  E-mail]({link_mail})", unsafe_allow_html=True)
+2252: with col_c3:
+2253: if st.button("📋 Copiar Link"):
+2254: st.info(f"Link: `{url_portal}`")
+2255: st.success("Link copiado para exibição!")
+2256: 
+2257: 
+2258: 
+2259: st.stop()
+2260: 
+2261: # Textos informativos traduzidos
+2262: if st.session_state.idioma == "Português":
+2263: expander_titulo = "💡 Sobre o SciPubs & Como Utilizar"
+2264: sobre_texto = """
+2265: ### Bem-vindo(a) ao SciPubs: O Portal do Pesquisador!
+2266: Esta é uma ferramenta desenvolvida para otimizar a busca por periódicos científicos de alto impacto.
+2267: 
+2268: ####     O que você pode fazer aqui?
+2269: 1. **Busca Avançada & Booleana:** Pesquise por termos exatos utilizando aspas (ex: `"educação musical"`) ou combine múltiplos critérios usando os operadores lógicos `AND`, `OR` e `NOT` (ex: `music AND education NOT medicine`).
+2270: 2. **Filtros por Subárea (CNPq):** Encontre periódicos perfeitamente alinhados    sua subárea específica de atuação e conhecimento.

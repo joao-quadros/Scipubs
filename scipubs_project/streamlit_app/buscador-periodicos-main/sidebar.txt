@@ -1,0 +1,36 @@
+1150: if acessos_usr <= 1:
+1151: status_texto = f"Seja bem-vindo(a), {usr_identificador}"
+1152: else:
+1153: status_texto = f"Bem-vindo(a) de volta, {usr_identificador}"
+1154: 
+1155: if st.session_state.get("is_admin", False):
+1156: status_texto = f"🔑 Admin: {status_texto}"
+1157: bg_cor = "#0F172A"
+1158: else:
+1159: bg_cor = "#10B981"
+1160: 
+1161: # Caixa de boas-vindas
+1162: st.sidebar.markdown(f"""
+1163: <div style="background-color: {bg_cor}; color: white; padding: 10px 8px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.82rem; line-height: 1.3; margin-bottom: 8px;">
+1164: {status_texto}
+1165: </div>
+1166: """, unsafe_allow_html=True)
+1167: 
+1168: # Colunas para exibir botões de Sair e Configurações lado a lado
+1169: col_sair, col_config = st.sidebar.columns([1, 1])
+1170: with col_sair:
+1171: if st.button("🚪 Sair", key="btn_sair_sidebar", help="Encerrar sessão", use_container_width=True):
+1172: st.session_state.registrado = False
+1173: st.session_state.email_usuario = ""
+1174: st.session_state.nome_usuario = ""
+1175: st.session_state.acessos_usuario = 0
+1176: st.session_state.login_via_google = False
+1177: st.session_state.solicitar_email_google = False
+1178: st.session_state.abrir_configuracoes = False
+1179: st.session_state.is_admin = False
+1180: st.rerun()
+1181: with col_config:
+1182: if st.button("⚙  Configs", key="btn_config_gear_sidebar", help="Configurações", use_container_width=True):
+1183: st.session_state.abrir_configuracoes = not st.session_state.get("abrir_configuracoes", False)
+1184: st.rerun()
+1185: 

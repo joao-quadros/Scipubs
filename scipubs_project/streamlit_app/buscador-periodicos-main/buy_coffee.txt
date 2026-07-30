@@ -1,0 +1,9 @@
+31: 3.3. PAYMENT INTERMEDIARY: Donation transactions will be processed through third-party payment platforms (e.g., Buy Me a Coffee). By choosing to donate, the Data Subject will be directed to the intermediary's secure environment and will be subject to the Terms of Use and Privacy Policies of the respective payment platform.
+91: 3.3. INTERMEDIARIO DE PAGO: Las transacciones de donación se procesarán a través de plataformas de pago de terceros (ej. Buy Me a Coffee). Al optar por donar, el Titular será dirigido al entorno seguro del intermediario y estará sujeto a los Términos de Uso y Políticas de Privacidad de la respectiva plataforma de pago.
+151: 3.3. INTERMEDIADOR DE PAGAMENTO: As transações de doação serão processadas por meio de plataformas de pagamento de terceiros (ex: Buy Me a Coffee). Ao optar por doar, o Titular será direcionado ao ambiente seguro do intermediador e estará sujeito aos Termos de Uso e Políticas de Privacidade da respectiva plataforma de pagamento.
+213: We use **Buy Me a Coffee**, a secure international platform. It's very simple:
+218: 👉 **[Click here to donate via Buy Me a Coffee](https://buymeacoffee.com/scipubs)**
+229: Utilizamos **Buy Me a Coffee**, una plataforma internacional segura. Es muy sencillo:
+234: 👉 **[Haga clic aquí para donar a través de Buy Me a Coffee](https://buymeacoffee.com/scipubs)**
+245: Nós utilizamos o **Buy Me a Coffee**, uma plataforma internacional segura. É muito simples:
+250: 👉 **[Clique aqui para doar pelo Buy Me a Coffee](https://buymeacoffee.com/scipubs)**

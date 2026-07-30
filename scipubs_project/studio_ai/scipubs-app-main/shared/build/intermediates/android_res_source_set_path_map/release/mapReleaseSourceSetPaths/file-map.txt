@@ -1,0 +1,10 @@
+com.example.shared-pngs-0 C:\Users\jquad\Downloads\scipubs\shared\build\generated\res\pngs\release
+com.example.shared-updated_navigation_xml-1 C:\Users\jquad\Downloads\scipubs\shared\build\generated\updated_navigation_xml\release
+com.example.shared-mergeReleaseResources-2 C:\Users\jquad\Downloads\scipubs\shared\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.example.shared-mergeReleaseResources-3 C:\Users\jquad\Downloads\scipubs\shared\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.example.shared-release-4 C:\Users\jquad\Downloads\scipubs\shared\build\intermediates\merged_res\release\mergeReleaseResources
+com.example.shared-release-5 C:\Users\jquad\Downloads\scipubs\shared\build\intermediates\packaged_res\release\packageReleaseResources
+com.example.shared-androidMain-6 C:\Users\jquad\Downloads\scipubs\shared\src\androidMain\res
+com.example.shared-androidRelease-7 C:\Users\jquad\Downloads\scipubs\shared\src\androidRelease\res
+com.example.shared-main-8 C:\Users\jquad\Downloads\scipubs\shared\src\main\res
+com.example.shared-release-9 C:\Users\jquad\Downloads\scipubs\shared\src\release\res
