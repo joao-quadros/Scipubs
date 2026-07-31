@@ -598,29 +598,29 @@ def extrair_grandes_areas(row):
         found.add("multidisciplinar")
     return found
 
-# 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (55% / 30% / 15%)
+# 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (1.0 / 0.7 / 0.2)
 def calcular_peso_grande_area(row, ga_principal, grupo_principal):
     gas_row = extrair_grandes_areas(row)
     if ga_principal in gas_row:
-        return 0.55, 1
+        return 1.0, 1  # 🥇 Grande Área de Maior Afinidade Direta (1.0)
     if grupo_principal in GRUPO_MAP:
         for sibling_ga in GRUPO_MAP[grupo_principal]:
             if sibling_ga in gas_row:
-                return 0.30, 2
+                return 0.7, 2  # 🥈 Demais Grandes Áreas do mesmo Grupo (0.7)
     if "multidisciplinar" in gas_row:
-        return 0.15, 3
+        return 0.2, 3  # 🥉 Multidisciplinar (0.2)
     return 0.0, 4
 
-# 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (50% / 30% / 15% / 5%)
+# 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (1.0 / 0.7 / 0.4 / 0.2)
 def calcular_peso_area_conhecimento(s_text, tier_ga):
     if tier_ga == 1 and s_text >= 0.25:
-        return 0.50  # 1ª Área de Maior Afinidade Direta (50%)
+        return 1.0  # 🥇 1ª Área de Maior Afinidade Direta (1.0)
     elif tier_ga <= 2 and s_text >= 0.15:
-        return 0.30  # Segunda área de maior afinidade (30%)
+        return 0.7  # 🥈 Segunda área de maior afinidade (0.7)
     elif tier_ga <= 3 and s_text >= 0.08:
-        return 0.15  # Terceira área de maior afinidade (15%)
+        return 0.4  # 🥉 Terceira área de maior afinidade (0.4)
     else:
-        return 0.05  # Demais áreas (5%)
+        return 0.2  # ▫️ Demais áreas (0.2)
 
 def detectar_hierarquia_manuscrito(texto):
     norm = normalizar_texto(texto)
@@ -826,7 +826,7 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        # 📌 REGRA (c): PESQUISA RESTREITA EXCLUSIVAMENTE AO GRUPO PRINCIPAL (AMPLIA Apenas Se Faltar Resultados)
+        # 📌 REGRA (c): RESTRIÇÃO ESTRITA - PESQUISA RESTRITA EXCLUSIVAMENTE AO GRUPO PRINCIPAL DO MANUSCRITO
         df_grupo_principal = df_calc[df_calc["tier_ga"] < 4].copy()
 
         if ordenacao_idx == 0:
@@ -838,21 +838,7 @@ class SciPubsDataEngine:
         elif ordenacao_idx == 3:
             df_grupo_principal = df_grupo_principal.sort_values(by="titulo", ascending=False)
 
-        if len(df_grupo_principal) >= limite:
-            res_final = df_grupo_principal.head(limite)
-        else:
-            # Ampliação condicional somente se faltarem periódicos no grupo principal
-            df_outros = df_calc[df_calc["tier_ga"] == 4].copy()
-            if ordenacao_idx == 0:
-                df_outros = df_outros.sort_values(by="Score_final", ascending=False)
-            elif ordenacao_idx == 1:
-                df_outros = df_outros.sort_values(by="Prob_aceitacao", ascending=False)
-            elif ordenacao_idx == 2:
-                df_outros = df_outros.sort_values(by="titulo", ascending=True)
-            elif ordenacao_idx == 3:
-                df_outros = df_outros.sort_values(by="titulo", ascending=False)
-            res_final = pd.concat([df_grupo_principal, df_outros]).head(limite)
-
+        res_final = df_grupo_principal.head(limite)
         return res_final.to_dict(orient="records")
 
     def buscar_geral(self, termo="", grande_area="Todas", base_dados="Todas", quartil_jcr="Todos", quartil_sjr="Todos", ordenacao="titulo_asc", limite=1000):
