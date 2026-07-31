@@ -559,7 +559,6 @@ DIC_TRANSLATE = {
     }
 }
 
-# 📌 REAGRUPADO: TODAS AS VARIAÇÕES DE WEB OF SCIENCE AGRUPADAS EM "Web of Science"
 BASES_DADOS_OPCOES = [
     "Todas",
     "Web of Science",
@@ -568,21 +567,78 @@ BASES_DADOS_OPCOES = [
     "Educ@"
 ]
 
+# 🏛️ 8 ÁREAS DE CONHECIMENTO OFICIAIS DO CNPQ
+CNPQ_AREAS_NORM = [
+    "ciencias exatas e da terra",
+    "ciencias biologicas",
+    "engenharias",
+    "ciencias da saude",
+    "ciencias agrarias",
+    "ciencias sociais aplicadas",
+    "ciencias humanas",
+    "linguistica, letras e artes"
+]
+
 # 🏛️ DEFINIÇÃO DOS 3 GRANDES GRUPOS MACRO DE ÁREAS DE CONHECIMENTO
-MACRO_GRUPOS = {
-    "EXATAS_TECNOLOGICAS": [
-        "engenharias", "ciencias exatas e da terra", "multidisciplinar",
-        "engineering", "exact sciences", "earth sciences", "multidisciplinary"
-    ],
-    "VIDA_SAUDE": [
-        "ciencias biologicas", "ciencias da saude", "ciencias agrarias", "multidisciplinar",
-        "biological sciences", "health sciences", "agricultural sciences", "multidisciplinary"
-    ],
-    "HUMANAS_SOCIAIS": [
-        "ciencias humanas", "ciencias sociais aplicadas", "linguistica, letras e artes", "multidisciplinar",
-        "human sciences", "humanities", "applied social sciences", "linguistics", "arts", "multidisciplinary"
-    ]
+MACRO_MAP = {
+    "EXATAS_TECNOLOGICAS": ["engenharias", "ciencias exatas e da terra"],
+    "VIDA_SAUDE": ["ciencias biologicas", "ciencias da saude", "ciencias agrarias"],
+    "HUMANAS_SOCIAIS": ["ciencias humanas", "ciencias sociais aplicadas", "linguistica, letras e artes"]
 }
+
+def extrair_areas_cnpq(row):
+    comb_norm = normalizar_texto(str(row.get("grande_area", "")) + " " + str(row.get("area", "")) + " " + str(row.get("categoria", "")))
+    areas_encontradas = set()
+    for a in CNPQ_AREAS_NORM:
+        if a in comb_norm:
+            areas_encontradas.add(a)
+    return areas_encontradas, comb_norm
+
+def detectar_grupo_e_area_primaria(texto):
+    norm = normalizar_texto(texto)
+    scores_cnpq = {
+        "linguistica, letras e artes": sum(1 for w in ["musica", "music", "artes", "arts", "letras", "linguistica", "teatro", "cinema", "literatura", "philology"] if w in norm),
+        "ciencias humanas": sum(1 for w in ["educacao", "education", "pedagogia", "historia", "history", "filosofia", "sociologia", "psicologia", "ensino"] if w in norm),
+        "ciencias sociais aplicadas": sum(1 for w in ["direito", "law", "administracao", "gestao", "management", "economia", "comunicacao", "jornalismo"] if w in norm),
+        "engenharias": sum(1 for w in ["engenharia", "engineering", "civil", "mecanica", "eletrica", "producao"] if w in norm),
+        "ciencias exatas e da terra": sum(1 for w in ["computacao", "computer", "matematica", "math", "fisica", "quimica", "geologia", "astronomia"] if w in norm),
+        "ciencias da saude": sum(1 for w in ["saude", "health", "medicina", "medicine", "enfermagem", "farmacia", "odontologia", "nutricao"] if w in norm),
+        "ciencias biologicas": sum(1 for w in ["biologia", "biology", "genetica", "ecologia", "zoologia", "botanica", "biomedicina"] if w in norm),
+        "ciencias agrarias": sum(1 for w in ["agronomia", "veterinaria", "zootecnia", "florestal", "agricola", "solos"] if w in norm)
+    }
+    
+    area_primaria = max(scores_cnpq, key=scores_cnpq.get)
+    if scores_cnpq[area_primaria] == 0:
+        area_primaria = "ciencias humanas"
+
+    if area_primaria in MACRO_MAP["HUMANAS_SOCIAIS"]:
+        grupo_macro = "HUMANAS_SOCIAIS"
+    elif area_primaria in MACRO_MAP["EXATAS_TECNOLOGICAS"]:
+        grupo_macro = "EXATAS_TECNOLOGICAS"
+    else:
+        grupo_macro = "VIDA_SAUDE"
+
+    return grupo_macro, area_primaria
+
+def classificar_afinidade_5_regras(row, grupo_macro, area_primaria):
+    areas_cnpq, comb_norm = extrair_areas_cnpq(row)
+    
+    # 📌 REGRA 4: Periódicos associados a mais de uma área ou 'multidisciplinar'
+    if len(areas_cnpq) > 1 or "multidisciplinar" in comb_norm or len(areas_cnpq) == 0:
+        return "MULTIDISCIPLINAR", 0.10, 3
+
+    # 📌 REGRA 2: Área de Maior Afinidade (70%) - Tier 1
+    if area_primaria in areas_cnpq:
+        return "AREA_PRINCIPAL", 0.70, 1
+
+    # 📌 REGRA 2: Demais Áreas do mesmo Grupo Macro (20%) - Tier 2
+    if grupo_macro in MACRO_MAP:
+        for a_sibling in MACRO_MAP[grupo_macro]:
+            if a_sibling in areas_cnpq:
+                return "DEMAIS_AREAS_GRUPO", 0.20, 2
+
+    # 📌 REGRA 5: Grupos Distantes (Bloqueado / Evitar) - Tier 4
+    return "GRUPO_DISTANTE", 0.0, 4
 
 class SciPubsDataEngine:
     """Motor de Dados e Algoritmo de Recomendação por IA do SciPubs"""
@@ -610,7 +666,6 @@ class SciPubsDataEngine:
                 
         if caminho_final:
             try:
-                # 📌 Preserva a estrutura integral com TODAS as colunas originais do dados.csv
                 df_raw = pd.read_csv(caminho_final, dtype=str, encoding="utf-8-sig", low_memory=False, on_bad_lines="skip").fillna("")
                 df_raw = df_raw.loc[:, ~df_raw.columns.duplicated()]
                 self.df_original = df_raw.copy()
@@ -702,20 +757,6 @@ class SciPubsDataEngine:
         if "esci" in s: return 0.5
         return 0.3 if s.strip() else 0.0
 
-    def detectar_grupo_macro(self, texto):
-        norm = normalizar_texto(texto)
-        score_exatas = sum(1 for w in ["engenharia", "engineering", "computacao", "computer", "math", "matematica", "physics", "fisica", "quimica", "chemistry", "technology", "tecnologia", "software"] if w in norm)
-        score_vida = sum(1 for w in ["biology", "biologia", "health", "saude", "medicine", "medicina", "clinical", "pharmacy", "farmacia", "agronomy", "agronomia", "genetics", "veterinary"] if w in norm)
-        score_humanas = sum(1 for w in ["education", "educacao", "music", "musica", "pedagogy", "pedagogia", "history", "historia", "law", "direito", "sociology", "sociologia", "arts", "artes", "literature", "literatura", "philosophy", "filosofia", "linguistics", "letras", "social"] if w in norm)
-
-        if score_humanas >= score_exatas and score_humanas >= score_vida and score_humanas > 0:
-            return "HUMANAS_SOCIAIS"
-        elif score_vida >= score_exatas and score_vida >= score_humanas and score_vida > 0:
-            return "VIDA_SAUDE"
-        elif score_exatas > 0:
-            return "EXATAS_TECNOLOGICAS"
-        return "TODOS"
-
     def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=20):
         if self.df is None or self.df.empty or not self.vectorizer:
             return []
@@ -732,9 +773,20 @@ class SciPubsDataEngine:
         df_calc = self.df.copy()
         df_calc["S_text"] = similarities
         df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
-        df_calc["Score_final"] = (0.80 * df_calc["S_text"] + 0.20 * df_calc["S_index"]) * 100
 
-        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (AUTÊNTICO DO DADOS.CSV)
+        # 📌 REGRAS 1 E 2: DETECÇÃO DO GRUPO MACRO E ÁREA PRIMÁRIA DE MAIOR AFINIDADE
+        grupo_macro, area_primaria = detectar_grupo_e_area_primaria(texto_artigo)
+
+        # 📌 REGRAS 2, 4 E 5: CLASSIFICAÇÃO DE AFINIDADE (ÁREA PRINCIPAL 70%, DEMAIS ÁREAS GRUPO 20%, MULTIDISCIPLINAR 10%)
+        df_calc["afinidade_info"] = df_calc.apply(lambda r: classificar_afinidade_5_regras(r, grupo_macro, area_primaria), axis=1)
+        df_calc["tier_nome"] = df_calc["afinidade_info"].apply(lambda x: x[0])
+        df_calc["peso_afinidade"] = df_calc["afinidade_info"].apply(lambda x: x[1])
+        df_calc["tier_num"] = df_calc["afinidade_info"].apply(lambda x: x[2])
+
+        # 📌 REGRA 5: BLOQUEIO EXCLUSIVO DE GRUPOS DISTANTES (EXCLUI TIER 4)
+        df_calc = df_calc[df_calc["tier_num"] < 4].copy()
+
+        # 📌 REFINAMENTO DE BUSCA POR BASE DE DADOS
         if area_filtro and area_filtro not in ["Todas", "All"]:
             db_k = area_filtro.lower()
             if "web of science" in db_k or "wos" in db_k:
@@ -746,20 +798,10 @@ class SciPubsDataEngine:
             elif "educ" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)]
 
-        # 📌 2. BLOQUEIO RIGOROSO DE ÁREAS DE CONHECIMENTO DISTANTES (3 MACRO GRUPOS)
-        grupo_detectado = self.detectar_grupo_macro(texto_artigo)
-        if grupo_detectado != "TODOS":
-            termos_grupo = MACRO_GRUPOS[grupo_detectado]
-            pattern_grupo = "|".join([re.escape(t) for t in termos_grupo])
-            
-            mask_grupo = (
-                df_calc["grande_area"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False) |
-                df_calc["area"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False) |
-                df_calc["categoria"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False)
-            )
-            df_calc = df_calc[mask_grupo]
+        # 📌 CÁLCULO PONDERADO DO MATCH FINAL (70% SEMÂNTICA + AFINIDADE, 20% INDEXADORES, 10% AFINIDADE DIRETA)
+        df_calc["Score_final"] = (0.50 * df_calc["S_text"] + 0.30 * df_calc["peso_afinidade"] + 0.20 * df_calc["S_index"]) * 100.0
 
-        # 📌 3. CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
+        # 📌 CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
         def calcular_prob_aceitacao(row):
             s_text = row["S_text"]
             jif_val = pd.to_numeric(str(row["jif"]).replace(",", "."), errors="coerce") or 0.0
@@ -774,18 +816,29 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        # 📌 4. ORDENAÇÃO DE RESULTADOS SOLICITADA
-        if ordenacao_idx == 0:
-            df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
-        elif ordenacao_idx == 1:
-            df_sorted = df_calc.sort_values(by="Prob_aceitacao", ascending=False)
-        elif ordenacao_idx == 2:
-            df_sorted = df_calc.sort_values(by="titulo", ascending=True)
-        elif ordenacao_idx == 3:
-            df_sorted = df_calc.sort_values(by="titulo", ascending=False)
-        else:
-            df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
+        # 📌 REGRAS 3 E 4: CASCATA DE SELEÇÃO POR TIER (TIER 1 -> TIER 2 -> TIER 3)
+        t1 = df_calc[df_calc["tier_num"] == 1]
+        t2 = df_calc[df_calc["tier_num"] == 2]
+        t3 = df_calc[df_calc["tier_num"] == 3]
 
+        if ordenacao_idx == 0:
+            t1 = t1.sort_values(by="Score_final", ascending=False)
+            t2 = t2.sort_values(by="Score_final", ascending=False)
+            t3 = t3.sort_values(by="Score_final", ascending=False)
+        elif ordenacao_idx == 1:
+            t1 = t1.sort_values(by="Prob_aceitacao", ascending=False)
+            t2 = t2.sort_values(by="Prob_aceitacao", ascending=False)
+            t3 = t3.sort_values(by="Prob_aceitacao", ascending=False)
+        elif ordenacao_idx == 2:
+            t1 = t1.sort_values(by="titulo", ascending=True)
+            t2 = t2.sort_values(by="titulo", ascending=True)
+            t3 = t3.sort_values(by="titulo", ascending=True)
+        elif ordenacao_idx == 3:
+            t1 = t1.sort_values(by="titulo", ascending=False)
+            t2 = t2.sort_values(by="titulo", ascending=False)
+            t3 = t3.sort_values(by="titulo", ascending=False)
+
+        df_sorted = pd.concat([t1, t2, t3])
         return df_sorted.head(limite).to_dict(orient="records")
 
     def buscar_geral(self, termo="", grande_area="Todas", base_dados="Todas", quartil_jcr="Todos", quartil_sjr="Todos", ordenacao="titulo_asc", limite=1000):
@@ -1001,7 +1054,6 @@ def main(page: ft.Page):
         if not export_ids:
             return
 
-        # 📌 EXPORTAÇÃO INTEGRAL: Filtra as linhas selecionadas no DataFrame Original com TODAS as 15 colunas do dados.csv
         if hasattr(engine, 'df_original') and engine.df_original is not None and not engine.df_original.empty:
             cols = list(engine.df_original.columns)
             col_issn = [c for c in cols if 'issn' in str(c).lower()][0] if any('issn' in str(c).lower() for c in cols) else cols[2]
@@ -1015,7 +1067,7 @@ def main(page: ft.Page):
         if df_export.empty and resultados_totais_atuais:
             df_export = pd.DataFrame(resultados_totais_atuais[:200])
 
-        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao"]
+        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao", "afinidade_info", "tier_nome", "peso_afinidade", "tier_num"]
         df_export = df_export.drop(columns=[c for c in colunas_auxiliares if c in df_export.columns], errors="ignore")
 
         fname = f"scipubs_export_{int(time.time())}.{'csv' if formato == 'csv' else 'xlsx'}"
@@ -1067,7 +1119,6 @@ def main(page: ft.Page):
         lista_resultados.controls.clear()
         
         total_items = len(resultados_totais_atuais)
-        # 📌 MENSAGEM CLARA DE SEM RESULTADOS QUANDO O REFINAMENTO RETORNA 0 REGISTROS
         if total_items == 0:
             lbl_info_paginacao.value = ""
             row_paginacao_botoes.controls.clear()
@@ -1165,7 +1216,6 @@ def main(page: ft.Page):
             cat_item = item.get("categoria", "-")
             if not cat_item or cat_item in ["", "nan", "None"]: cat_item = t("multidisciplinar")
 
-            # 📌 INDEXADORES 100% FIÉIS AO BANCO DADOS.CSV (SEM REESCRITA OU INVENÇÃO DE DADOS)
             indexadores = item.get("indexador", t("nao_informado"))
             if not indexadores or str(indexadores).strip() in ["", "nan", "None"]: indexadores = t("nao_informado")
 
@@ -1297,7 +1347,6 @@ def main(page: ft.Page):
                 limite=1000
             )
         else:
-            # 📌 RECOMENDADOR IA - ORDENAÇÃO EXPLICITA DAS 4 OPÇÕES SOLICITADAS
             tit = rec_titulo.current.value if rec_titulo.current else ""
             res = rec_resumo.current.value if rec_resumo.current else ""
             db_sel = rec_db_dropdown.current.value if rec_db_dropdown.current else "Todas"
@@ -1333,7 +1382,6 @@ def main(page: ft.Page):
     lbl_inst = ft.Text(t("inst_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
     btn_pessoal_txt = ft.Ref[ft.Text]()
 
-    # 📌 CONTROLES DE TEXTO EXPLÍCITOS DOS 4 BOTÕES SUPERIORES PARA GARANTIR TRADUÇÃO INSTANTÂNEA
     btn_busca_txt = ft.Text(t("busca_cat"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
     btn_rec_txt = ft.Text(t("busca_ia"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
     btn_doar_txt = ft.Text(t("doacoes"), color="#000000", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
@@ -1475,7 +1523,6 @@ def main(page: ft.Page):
 
     btn_fale_txt = ft.Text(t("fale_conosco"), color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
     
-    # 📌 BOTÃO FALE CONOSCO COM HOVER VERMELHO / TEXTO BRANCO
     btn_fale = ft.Container(
         content=ft.Row([
             ft.Icon(ft.Icons.EMAIL, color="#FFFFFF", size=18),
@@ -1489,7 +1536,6 @@ def main(page: ft.Page):
         ink=True
     )
 
-    # 📌 BOTÃO WIN COM HOVER VERMELHO / TEXTO BRANCO
     btn_win = ft.Button(
         t("baixar_win"),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, shape=ft.RoundedRectangleBorder(radius=8), text_style=ft.TextStyle(size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")),
@@ -1501,19 +1547,16 @@ def main(page: ft.Page):
     lbl_copyright_tit = ft.Text(t("copyright_tit"), size=11, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
     lbl_copyright_desc = ft.Text(t("copyright_desc"), size=11, color=TEXT_DARK, font_family="Roboto")
 
-    # Links da sidebar com suporte a tradução
     btn_capes_cat = ft.Ref[ft.Text]()
     btn_lattes = ft.Ref[ft.Text]()
     btn_periodicos_capes = ft.Ref[ft.Text]()
     btn_musica_ufop = ft.Ref[ft.Text]()
 
-    # 🌐 ATUALIZAÇÃO TRILÍNGUE EXPLICITA DE TODOS OS BOTÕES DE AÇÃO E COMPONENTES
     def mudar_idioma(novo_idioma):
         nonlocal idioma_atual
         idioma_atual = novo_idioma
         page.title = t("titulo_pagina")
 
-        # 📌 ATUALIZAÇÃO DIRETA DOS OBJETOS DE TEXTO DOS 4 BOTÕES SUPERIORES
         btn_busca_txt.value = t("busca_cat")
         btn_rec_txt.value = t("busca_ia")
         btn_doar_txt.value = t("doacoes")
@@ -1571,13 +1614,9 @@ def main(page: ft.Page):
         render_responsive_layout()
         executar_pesquisa()
 
-    # 📌 LOGO E BANNER INICIAIS EM INGLÊS
     logo_src = get_image_src("logo_en.png")
     sidebar_logo_ctrl = ft.Image(src=logo_src, width=200, fit="contain") if logo_src else ft.Text("SCIPUBS", size=24, weight=ft.FontWeight.BOLD, color=TEXT_DARK, font_family="Roboto")
 
-    # ==========================================
-    # 🔴 BOTÕES DO MENU LATERAL COM HOVER VERMELHO E TEXTO EM BRANCO
-    # ==========================================
     def criar_btn_link(texto_key, url, icon_filename=None, default_icon=ft.Icons.LANGUAGE, ref_ctrl=None, is_pessoal=False):
         txt_display = t(texto_key) if texto_key in DIC_TRANSLATE["English"] else texto_key
         text_ctrl = ft.Text(txt_display, ref=ref_ctrl, size=14, weight=ft.FontWeight.W_600 if is_pessoal else ft.FontWeight.W_500, color="#004B87", font_family="Roboto")
@@ -1992,7 +2031,6 @@ def main(page: ft.Page):
                 on_select=executar_pesquisa
             )
 
-            # 📌 NOVO CONTROLADOR DE ORDENAÇÃO EXPLICITO COM AS 4 OPÇÕES SOLICITADAS
             rec_ordem_opts = t("ordem_opts")
             rec_ordem_dropdown_ctrl = ft.Dropdown(
                 ref=rec_ordem_dropdown,
@@ -2056,7 +2094,6 @@ def main(page: ft.Page):
 
     page.on_resize = render_responsive_layout
 
-    # 📌 BARRA SUPERIOR EXCLUSIVAMENTE COM PÁGINAS E REGISTROS ENCONTRADOS
     top_results_bar = ft.Row([
         lbl_info_paginacao,
         row_paginacao_botoes
