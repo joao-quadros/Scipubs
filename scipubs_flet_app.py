@@ -8,10 +8,14 @@ import functools
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+HAS_SENTENCE_TRANSFORMERS = False
+SentenceTransformer = None
 try:
-    from sentence_transformers import SentenceTransformer
+    import sentence_transformers
+    from sentence_transformers import SentenceTransformer as ST
+    SentenceTransformer = ST
     HAS_SENTENCE_TRANSFORMERS = True
-except ImportError:
+except BaseException:
     SentenceTransformer = None
     HAS_SENTENCE_TRANSFORMERS = False
 
