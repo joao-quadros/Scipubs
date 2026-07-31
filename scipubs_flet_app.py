@@ -7,7 +7,13 @@ import pickle
 import functools
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
+
+try:
+    from sentence_transformers import SentenceTransformer
+    HAS_SENTENCE_TRANSFORMERS = True
+except ImportError:
+    SentenceTransformer = None
+    HAS_SENTENCE_TRANSFORMERS = False
 
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
@@ -600,6 +606,8 @@ def get_s_index(indexer_str):
 
 @functools.lru_cache(maxsize=1)
 def carregar_modelo_transformer():
+    if not HAS_SENTENCE_TRANSFORMERS or SentenceTransformer is None:
+        return None
     try:
         return SentenceTransformer("all-MiniLM-L6-v2")
     except Exception as e:
