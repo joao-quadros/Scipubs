@@ -620,22 +620,23 @@ def detectar_grupo_e_area_primaria(texto):
 
     return grupo_macro, area_primaria
 
+# 📌 REGRA DE OURO DA AFINIDADE POR ÁREAS DO CNPQ (55% / 30% / 15%)
 def classificar_afinidade_5_regras(row, grupo_macro, area_primaria):
     areas_cnpq, comb_norm = extrair_areas_cnpq(row)
     
-    # 📌 REGRA 4: Periódicos associados a mais de uma área ou 'multidisciplinar'
+    # 📌 REGRA 4: Periódicos associados a mais de uma área ou 'multidisciplinar' (15%) - Tier 3
     if len(areas_cnpq) > 1 or "multidisciplinar" in comb_norm or len(areas_cnpq) == 0:
-        return "MULTIDISCIPLINAR", 0.10, 3
+        return "MULTIDISCIPLINAR", 0.15, 3
 
-    # 📌 REGRA 2: Área de Maior Afinidade (70%) - Tier 1
+    # 📌 REGRA 2: Área de Maior Afinidade Direta (55%) - Tier 1
     if area_primaria in areas_cnpq:
-        return "AREA_PRINCIPAL", 0.70, 1
+        return "AREA_PRINCIPAL", 0.55, 1
 
-    # 📌 REGRA 2: Demais Áreas do mesmo Grupo Macro (20%) - Tier 2
+    # 📌 REGRA 2: Demais Áreas do mesmo Grupo Macro (30%) - Tier 2
     if grupo_macro in MACRO_MAP:
         for a_sibling in MACRO_MAP[grupo_macro]:
             if a_sibling in areas_cnpq:
-                return "DEMAIS_AREAS_GRUPO", 0.20, 2
+                return "DEMAIS_AREAS_GRUPO", 0.30, 2
 
     # 📌 REGRA 5: Grupos Distantes (Bloqueado / Evitar) - Tier 4
     return "GRUPO_DISTANTE", 0.0, 4
@@ -777,7 +778,7 @@ class SciPubsDataEngine:
         # 📌 REGRAS 1 E 2: DETECÇÃO DO GRUPO MACRO E ÁREA PRIMÁRIA DE MAIOR AFINIDADE
         grupo_macro, area_primaria = detectar_grupo_e_area_primaria(texto_artigo)
 
-        # 📌 REGRAS 2, 4 E 5: CLASSIFICAÇÃO DE AFINIDADE (ÁREA PRINCIPAL 70%, DEMAIS ÁREAS GRUPO 20%, MULTIDISCIPLINAR 10%)
+        # 📌 REGRA DE OURO DA AFINIDADE (55% ÁREA PRINCIPAL, 30% DEMAIS ÁREAS DO GRUPO, 15% MULTIDISCIPLINAR)
         df_calc["afinidade_info"] = df_calc.apply(lambda r: classificar_afinidade_5_regras(r, grupo_macro, area_primaria), axis=1)
         df_calc["tier_nome"] = df_calc["afinidade_info"].apply(lambda x: x[0])
         df_calc["peso_afinidade"] = df_calc["afinidade_info"].apply(lambda x: x[1])
@@ -798,7 +799,7 @@ class SciPubsDataEngine:
             elif "educ" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)]
 
-        # 📌 CÁLCULO PONDERADO DO MATCH FINAL (70% SEMÂNTICA + AFINIDADE, 20% INDEXADORES, 10% AFINIDADE DIRETA)
+        # 📌 CÁLCULO PONDERADO DO MATCH FINAL (50% SEMÂNTICA, 30% PONDERADOR DE AFINIDADE DO CNPQ, 20% INDEXADORES)
         df_calc["Score_final"] = (0.50 * df_calc["S_text"] + 0.30 * df_calc["peso_afinidade"] + 0.20 * df_calc["S_index"]) * 100.0
 
         # 📌 CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
