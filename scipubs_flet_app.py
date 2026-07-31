@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 import os
 import time
+import pickle
+import functools
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
 
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
@@ -14,7 +17,6 @@ import webbrowser
 import unicodedata
 import logging
 
-# Configuração de logging leve para evitar estouro de memória
 logging.getLogger("flet_web").setLevel(logging.WARNING)
 logging.getLogger("uvicorn").setLevel(logging.WARNING)
 
@@ -39,7 +41,16 @@ TEXT_MUTED = "#94A3B8"       # Texto secundário
 BORDER_DARK = "#1E293B"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main", "dados.csv")
+STREAMLIT_DIR = os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main")
+
+DADOS_CSV_PATH = os.path.join(STREAMLIT_DIR, "dados.csv")
+if not os.path.exists(DADOS_CSV_PATH):
+    DADOS_CSV_PATH = os.path.join(BASE_DIR, "dados.csv")
+
+CACHE_PATH = os.path.join(STREAMLIT_DIR, "data", "aims_scope_minilm_vectors.pkl")
+if not os.path.exists(CACHE_PATH):
+    CACHE_PATH = os.path.join(BASE_DIR, "data", "aims_scope_minilm_vectors.pkl")
+
 ICONS_DIR = os.path.join(BASE_DIR, "icons")
 os.makedirs(ICONS_DIR, exist_ok=True)
 
@@ -60,9 +71,6 @@ def get_banner_src(idioma="English"):
         fname = "banner_pt.png"
     return get_image_src(fname)
 
-# ==========================================
-# 🔤 CORREÇÃO ORTOGRÁFICA E BUSCA BOOLEANA MULTILÍNGUE
-# ==========================================
 REGRAS_ORTOGRAFIA = [
     (r'\bEducacao\b', 'Educação'),
     (r'\beducacao\b', 'educação'),
@@ -98,7 +106,6 @@ REGRAS_ORTOGRAFIA = [
     (r'\bpedagogica\b', 'pedagógica'),
 ]
 
-# 🌐 DICIONÁRIO DE PONTE TRILÍNGUE AUTOMÁTICA (EXPANSÃO DE TERMOS)
 DIC_PONTE_TRILINGUE = {
     "educacao": "education educacion teaching pedagogy",
     "educacao musical": "music education educacion musical pedagogy",
@@ -260,8 +267,8 @@ DIC_TRANSLATE = {
         "nao_informado": "Not provided",
         "geral": "General",
         "multidisciplinar": "Multidisciplinary",
-        "ia_titulo": "Thematic Recommendation with Artificial Intelligence",
-        "ia_subtitulo": "Paste your article title and abstract. The AI analyzes your content and suggests the best-matching journals with enriched metrics.",
+        "ia_titulo": "Hybrid Recommendation Engine (AI + TF-IDF)",
+        "ia_subtitulo": "Paste your article title and abstract. Our Hybrid Transformer + TF-IDF engine suggests top matching journals.",
         "ia_campo_titulo": "Article Title / Manuscript",
         "ia_campo_resumo": "Abstract (Supports Portuguese, English, or Spanish)",
         "ia_gemini_key": "Gemini Key (optional)",
@@ -269,7 +276,7 @@ DIC_TRANSLATE = {
         "ia_gemini_status": "🔑 Gemini API key configured",
         "ia_btn_gerar": "Analyze and Recommend",
         "ai_engine_tit": "AI Engine",
-        "ai_engine_sub": "Recommendations via generative AI — Gemini (cloud) or Ollama (local, 100% free).",
+        "ai_engine_sub": "Hybrid Recommendations (SentenceTransformer + TF-IDF + Indexers).",
         "about_modes_tit": "About AI modes",
         "how_gemini_tit": "How to get a free Gemini key?",
         "refine_targets": "Refine Search by Database",
@@ -339,7 +346,7 @@ DIC_TRANSLATE = {
         "copyright_tit": "Direitos Autorais:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidade Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos os direitos reservados.",
         "busca_cat": "🔎 Buscador de Periódicos",
-        "busca_ia": "Recomendador Inteligente (IA)",
+        "busca_ia": "Recomendador Inteligente Híbrido (IA + TF-IDF)",
         "fale_conosco": "Fale conosco",
         "doacoes": "☕ Doações",
         "inscrever": "✉️ Inscrever-se",
@@ -378,16 +385,16 @@ DIC_TRANSLATE = {
         "nao_informado": "Não informado",
         "geral": "Geral",
         "multidisciplinar": "Multidisciplinar",
-        "ia_titulo": "Recomendação Temática com Inteligência Artificial",
-        "ia_subtitulo": "Cole o título e o resumo do seu artigo. A IA analisa seu conteúdo e sugere as melhores revistas com métricas enriquecidas.",
+        "ia_titulo": "Recomendação Temática Híbrida (IA Transformer + TF-IDF)",
+        "ia_subtitulo": "Cole o título e o resumo do seu artigo. Nosso motor híbrido de IA (SentenceTransformer + TF-IDF) analisa seu conteúdo e sugere as melhores revistas com métricas enriquecidas.",
         "ia_campo_titulo": "Título do Artigo / Manuscrito",
         "ia_campo_resumo": "Resumo / Abstract (Suporta Português, Inglês ou Espanhol)",
         "ia_gemini_key": "Chave Gemini (opcional)",
         "ia_gemini_hint": "Deixe em branco para usar Ollama local ou algoritmo local",
         "ia_gemini_status": "🔑 Chave API do Gemini configurada",
         "ia_btn_gerar": "Analisar e Recomendar",
-        "ai_engine_tit": "Motor de IA",
-        "ai_engine_sub": "Recomendações via IA generativa — Gemini (nuvem) ou Ollama (local, 100% gratuito).",
+        "ai_engine_tit": "Motor Híbrido de IA",
+        "ai_engine_sub": "Recomendações de Alta Precisão (SentenceTransformer + TF-IDF + Indexadores).",
         "about_modes_tit": "Sobre os modos de IA",
         "how_gemini_tit": "Como obter chave Gemini gratuita?",
         "refine_targets": "Refinar Pesquisa por Base de Dados",
@@ -419,9 +426,9 @@ DIC_TRANSLATE = {
         "snack_msg": "✅ Arquivo {fname} gerado com sucesso! Se o download não iniciar, verifique a permissão de pop-up do navegador.",
         "prob_aceitacao": "Prob. Aceitação",
         "exp1_items": [
-            "A IA analisa semanticamente seu título e resumo",
+            "A IA analisa semanticamente seu título e resumo usando SentenceTransformers e TF-IDF",
             "Cruza com o catálogo local e bases acadêmicas (OpenAlex)",
-            "Retorna recomendações com métricas enriquecidas",
+            "Retorna recomendações de máxima precisão temáticas e indexadores",
             "Para obter resultados mais ágeis, você pode inserir uma chave API do Gemini AI; o passo a passo para a obtenção gratuita é explicado abaixo.",
             "Caso não tenha ou não queira usar essa opção, você poderá realizar a busca deixando em branco essa janela e usando o Ollama (Llama 3) como IA."
         ],
@@ -457,7 +464,7 @@ DIC_TRANSLATE = {
         "copyright_tit": "Derechos de Autor:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidad Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos los derechos reservados.",
         "busca_cat": "🔎 Buscador de Revistas",
-        "busca_ia": "Recomendador Inteligente (IA)",
+        "busca_ia": "Recomendador Inteligente Híbrido (IA + TF-IDF)",
         "fale_conosco": "Contáctenos",
         "doacoes": "☕ Donaciones",
         "inscrever": "✉️ Suscribirse",
@@ -496,16 +503,16 @@ DIC_TRANSLATE = {
         "nao_informado": "No informado",
         "geral": "General",
         "multidisciplinar": "Multidisciplinar",
-        "ia_titulo": "Recomendación Temática con Inteligencia Artificial",
-        "ia_subtitulo": "Pegue el título y el resumen de su artículo. La IA analiza su contenido y sugiere las mejores revistas con métricas enriquecidas.",
+        "ia_titulo": "Recomendación Temática Híbrida (IA Transformer + TF-IDF)",
+        "ia_subtitulo": "Pegue el título y el resumen de su artículo. Nuestro motor híbrido de IA (SentenceTransformer + TF-IDF) sugiere las mejores revistas.",
         "ia_campo_titulo": "Título del Artículo / Manuscrito",
         "ia_campo_resumo": "Resumen / Abstract (Soporta Portugués, Inglés o Español)",
         "ia_gemini_key": "Clave Gemini (opcional)",
         "ia_gemini_hint": "Deje en blanco para usar Ollama local o algoritmo local",
         "ia_gemini_status": "🔑 Clave API de Gemini configurada",
         "ia_btn_gerar": "Analizar y Recomendar",
-        "ai_engine_tit": "Motor de IA",
-        "ai_engine_sub": "Recomendaciones via IA generativa — Gemini (nube) o Ollama (local, 100% gratuito).",
+        "ai_engine_tit": "Motor Híbrido de IA",
+        "ai_engine_sub": "Recomendaciones de Alta Precisión (SentenceTransformer + TF-IDF + Indexadores).",
         "about_modes_tit": "Sobre los modos de IA",
         "how_gemini_tit": "¿Cómo obtener clave Gemini gratuita?",
         "refine_targets": "Refinar Búsqueda por Base de Datos",
@@ -537,9 +544,9 @@ DIC_TRANSLATE = {
         "snack_msg": "✅ ¡Archivo {fname} generado con éxito! Si la descarga no inicia, verifique los permisos de ventanas emergentes.",
         "prob_aceitacao": "Prob. Aceptación",
         "exp1_items": [
-            "La IA analiza semánticamente su título y resumen",
+            "La IA analiza semánticamente su título y resumen usando SentenceTransformers y TF-IDF",
             "Cruza con el catálogo local y bases académicas (OpenAlex)",
-            "Devuelve recomendaciones con métricas enriquecidas",
+            "Devuelve recomendaciones de máxima precisión temáticas y indexadores",
             "Para obtener resultados más ágiles, puede insertar una clave API de Gemini AI; el paso a paso para obtenerla gratis se explica a continuación.",
             "Si no tiene o no desea usar esta opción, puede realizar la búsqueda dejando este campo en blanco y usando Ollama (Llama 3) como IA."
         ],
@@ -567,107 +574,72 @@ BASES_DADOS_OPCOES = [
     "Educ@"
 ]
 
-# 🏛️ AS 9 GRANDES ÁREAS OFICIAIS DO CNPQ
-CNPQ_9_GRANDES_AREAS = [
-    "ciencias exatas e da terra",
-    "ciencias biologicas",
-    "engenharias",
-    "ciencias da saude",
-    "ciencias agrarias",
-    "ciencias sociais aplicadas",
-    "ciencias humanas",
-    "linguistica, letras e artes",
-    "multidisciplinar"
-]
+def safe_float(val):
+    if pd.isna(val) or val is None:
+        return 0.0
+    val_str = str(val).strip().replace(",", ".")
+    if val_str in ["", "-", "nan", "none", "None"]:
+        return 0.0
+    try:
+        return float(val_str)
+    except ValueError:
+        return 0.0
 
-# 🏛️ OS 3 GRUPOS DE ÁREA
-GRUPO_MAP = {
-    "EXATAS_TECNOLOGICAS": ["ciencias exatas e da terra", "engenharias"],
-    "VIDA_SAUDE": ["ciencias biologicas", "ciencias da saude", "ciencias agrarias"],
-    "HUMANAS_SOCIAIS": ["ciencias humanas", "ciencias sociais aplicadas", "linguistica, letras e artes"]
-}
+def get_s_index(indexer_str):
+    if pd.isna(indexer_str) or not isinstance(indexer_str, str) or not indexer_str.strip():
+        return 0.0
+    tokens = [t.strip() for t in re.split(r'[,;\-\s]+', indexer_str.lower()) if t.strip()]
+    scores = [0.0]
+    if "scie" in tokens or "ssci" in tokens: scores.append(1.0)
+    if "scopus" in tokens: scores.append(0.8)
+    if "ahci" in tokens or "achi" in tokens: scores.append(0.7)
+    if "scielo" in tokens: scores.append(0.6)
+    if "esci" in tokens: scores.append(0.5)
+    if "educ@" in tokens or "educa" in tokens: scores.append(0.4)
+    return max(scores)
 
-def extrair_grandes_areas(row):
-    g_norm = normalizar_texto(str(row.get("grande_area", "")))
-    c_norm = normalizar_texto(str(row.get("categoria", "")) + " " + str(row.get("area", "")))
-    found = set()
-    for ga in CNPQ_9_GRANDES_AREAS[:-1]:
-        if ga in g_norm or ga in c_norm:
-            found.add(ga)
-    if "multidisciplinar" in g_norm or "multidisciplinar" in c_norm or "outras" in g_norm or len(found) > 1 or len(found) == 0:
-        found.add("multidisciplinar")
-    return found
+@functools.lru_cache(maxsize=1)
+def carregar_modelo_transformer():
+    try:
+        return SentenceTransformer("all-MiniLM-L6-v2")
+    except Exception as e:
+        print(f"[AVISO] Não foi possível carregar SentenceTransformer: {e}")
+        return None
 
-# 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (1.0 / 0.7 / 0.2)
-def calcular_peso_grande_area(row, ga_principal, grupo_principal):
-    gas_row = extrair_grandes_areas(row)
-    if ga_principal in gas_row:
-        return 1.0, 1  # 🥇 Grande Área de Maior Afinidade Direta (1.0)
-    if grupo_principal in GRUPO_MAP:
-        for sibling_ga in GRUPO_MAP[grupo_principal]:
-            if sibling_ga in gas_row:
-                return 0.7, 2  # 🥈 Demais Grandes Áreas do mesmo Grupo (0.7)
-    if "multidisciplinar" in gas_row:
-        return 0.2, 3  # 🥉 Multidisciplinar (0.2)
-    return 0.0, 4
-
-# 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (1.0 / 0.7 / 0.4 / 0.2)
-def calcular_peso_area_conhecimento(s_text, tier_ga):
-    if tier_ga == 1 and s_text >= 0.25:
-        return 1.0  # 🥇 1ª Área de Maior Afinidade Direta (1.0)
-    elif tier_ga <= 2 and s_text >= 0.15:
-        return 0.7  # 🥈 Segunda área de maior afinidade (0.7)
-    elif tier_ga <= 3 and s_text >= 0.08:
-        return 0.4  # 🥉 Terceira área de maior afinidade (0.4)
-    else:
-        return 0.2  # ▫️ Demais áreas (0.2)
-
-def detectar_hierarquia_manuscrito(texto):
-    norm = normalizar_texto(texto)
-    scores_ga = {
-        "linguistica, letras e artes": sum(1 for w in ["musica", "music", "artes", "arts", "letras", "linguistica", "teatro", "cinema", "literatura", "philology"] if w in norm),
-        "ciencias humanas": sum(1 for w in ["educacao", "education", "pedagogia", "historia", "history", "filosofia", "sociologia", "psicologia", "ensino"] if w in norm),
-        "ciencias sociais aplicadas": sum(1 for w in ["direito", "law", "administracao", "gestao", "management", "economia", "comunicacao", "jornalismo"] if w in norm),
-        "engenharias": sum(1 for w in ["engenharia", "engineering", "civil", "mecanica", "eletrica", "producao"] if w in norm),
-        "ciencias exatas e da terra": sum(1 for w in ["computacao", "computer", "matematica", "math", "fisica", "quimica", "geologia", "astronomia"] if w in norm),
-        "ciencias da saude": sum(1 for w in ["saude", "health", "medicina", "medicine", "enfermagem", "farmacia", "odontologia", "nutricao"] if w in norm),
-        "ciencias biologicas": sum(1 for w in ["biologia", "biology", "genetica", "ecologia", "zoologia", "botanica", "biomedicina"] if w in norm),
-        "ciencias agrarias": sum(1 for w in ["agronomia", "veterinaria", "zootecnia", "florestal", "agricola", "solos"] if w in norm)
-    }
-    ga_principal = max(scores_ga, key=scores_ga.get)
-    if scores_ga[ga_principal] == 0:
-        ga_principal = "ciencias humanas"
-
-    if ga_principal in GRUPO_MAP["HUMANAS_SOCIAIS"]:
-        grupo_principal = "HUMANAS_SOCIAIS"
-    elif ga_principal in GRUPO_MAP["EXATAS_TECNOLOGICAS"]:
-        grupo_principal = "EXATAS_TECNOLOGICAS"
-    else:
-        grupo_principal = "VIDA_SAUDE"
-
-    return grupo_principal, ga_principal
+@functools.lru_cache(maxsize=1)
+def carregar_dense_embeddings_cache():
+    if os.path.exists(CACHE_PATH):
+        try:
+            with open(CACHE_PATH, "rb") as f:
+                return pickle.load(f)
+        except Exception as e:
+            print(f"[AVISO] Falha ao carregar cache de embeddings: {e}")
+    return None
 
 class SciPubsDataEngine:
-    """Motor de Dados e Algoritmo de Recomendação por IA do SciPubs"""
+    """Motor de Dados Híbrido (SentenceTransformer + TF-IDF + Indexadores) do SciPubs"""
     def __init__(self):
         self.df = None
         self.df_original = None
         self.total_revistas = 33921
         self.vectorizer = None
         self.tfidf_matrix = None
+        self.transformer_model = None
+        self.dense_embeddings = None
         self.load_data()
 
     def load_data(self):
         caminhos = [
-            DATA_PATH,
-            os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main", "dados.csv"),
+            DADOS_CSV_PATH,
+            DATA_PATH if 'DATA_PATH' in globals() else "",
+            os.path.join(STREAMLIT_DIR, "dados.csv"),
             os.path.join(BASE_DIR, "dados.csv"),
             "dados.csv"
         ]
         
         caminho_final = None
         for p in caminhos:
-            if os.path.exists(p):
+            if p and os.path.exists(p):
                 caminho_final = p
                 break
                 
@@ -732,7 +704,7 @@ class SciPubsDataEngine:
                 self.total_revistas = len(self.df)
                 print(f"[OK] Base dados.csv carregada e normalizada! Total de periodicos: {self.total_revistas:,}")
                 
-                # 📌 PERFIL TEXTUAL DO PERIÓDICO COM PESO 3X REFORÇADO NO ESCOPO (AIMS & SCOPE)
+                # 📌 MOTOR SPARSE TF-IDF
                 textos_completos = (
                     self.df["escopo"].astype(str) + " " +
                     self.df["escopo"].astype(str) + " " +
@@ -743,7 +715,13 @@ class SciPubsDataEngine:
                 
                 self.vectorizer = TfidfVectorizer(max_features=16000, stop_words='english')
                 self.tfidf_matrix = self.vectorizer.fit_transform(textos_completos)
-                print("[OK] Vetorizador TF-IDF inicializado com peso 3x no Escopo.")
+                print("[OK] Vetorizador TF-IDF inicializado.")
+
+                # 📌 MOTOR DENSE SENTENCETRANSFORMER
+                self.transformer_model = carregar_modelo_transformer()
+                self.dense_embeddings = carregar_dense_embeddings_cache()
+                if self.dense_embeddings is not None:
+                    print(f"[OK] Cache de embeddings densos carregado: {len(self.dense_embeddings):,} vetores.")
             except Exception as e:
                 print(f"[ERRO] Falha ao carregar dados.csv: {e}")
                 self.df = pd.DataFrame()
@@ -753,68 +731,77 @@ class SciPubsDataEngine:
             self.df = pd.DataFrame()
             self.df_original = pd.DataFrame()
 
-    def get_s_index(self, indexer_str):
-        if not indexer_str or not isinstance(indexer_str, str):
-            return 0.0
-        s = indexer_str.lower()
-        if "wos" in s or "web of science" in s or "scie" in s or "ssci" in s: return 1.0
-        if "scopus" in s: return 0.8
-        if "ahci" in s or "achi" in s: return 0.7
-        if "scielo" in s: return 0.6
-        if "esci" in s: return 0.5
-        return 0.3 if s.strip() else 0.0
-
     def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=20):
-        if self.df is None or self.df.empty or not self.vectorizer:
+        if self.df is None or self.df.empty:
             return []
 
-        # 📌 TRADUÇÃO E EXPANSÃO MULTILÍNGUE AUTOMÁTICA
+        # 📌 PREPARAÇÃO DO MANUSCRITO (TRÊS VEZES O TÍTULO)
         texto_trilingue = expandir_texto_trilingue(f"{titulo} {resumo}")
-
-        # 📌 VETOR DO ARTIGO COM PESO 3X REFORÇADO NO TÍTULO
         texto_artigo = f"{titulo} {titulo} {titulo} {resumo} {texto_trilingue}"
-        vec_artigo = self.vectorizer.transform([texto_artigo])
-        
-        similarities = cosine_similarity(vec_artigo, self.tfidf_matrix).flatten()
 
         df_calc = self.df.copy()
-        df_calc["S_text"] = similarities
-        df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
 
-        # 📌 DETECÇÃO HIERÁRQUICA: ÁREA DE CONHECIMENTO, 9 GRANDES ÁREAS E 3 GRUPOS DE ÁREA
-        grupo_principal, ga_principal = detectar_hierarquia_manuscrito(texto_artigo)
+        # 1. CÁLCULO DE SIMILARIDADE DENSA (SENTENCETRANSFORMER)
+        if self.transformer_model is not None and self.dense_embeddings is not None:
+            vec_dense = self.transformer_model.encode([texto_artigo], convert_to_numpy=True)
+            n_rows = len(df_calc)
+            emb_subset = self.dense_embeddings[:n_rows]
+            sim_dense = cosine_similarity(vec_dense, emb_subset).flatten()
+            sim_dense = np.nan_to_num(sim_dense, nan=0.0)
+        else:
+            sim_dense = np.zeros(len(df_calc))
 
-        # 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (55% / 30% / 15%)
-        df_calc["ga_info"] = df_calc.apply(lambda r: calcular_peso_grande_area(r, ga_principal, grupo_principal), axis=1)
-        df_calc["peso_ga"] = df_calc["ga_info"].apply(lambda x: x[0])
-        df_calc["tier_ga"] = df_calc["ga_info"].apply(lambda x: x[1])
+        # 2. CÁLCULO DE SIMILARIDADE ESPARSA (TF-IDF)
+        if self.vectorizer is not None:
+            vec_sparse = self.vectorizer.transform([texto_artigo])
+            sim_sparse = cosine_similarity(vec_sparse, self.tfidf_matrix).flatten()
+            sim_sparse = np.nan_to_num(sim_sparse, nan=0.0)
+        else:
+            sim_sparse = np.zeros(len(df_calc))
 
-        # 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (50% / 30% / 15% / 5%)
-        df_calc["peso_area"] = df_calc.apply(lambda r: calcular_peso_area_conhecimento(r["S_text"], r["tier_ga"]), axis=1)
+        # 3. CÁLCULO DO SCORE DO INDEXADOR (SCIE/SSCI=1.0, SCOPUS=0.8, AHCI=0.7, SCIELO=0.6, ESCI=0.5, EDUC@=0.4)
+        s_index = np.array([get_s_index(x) for x in df_calc["indexador"]])
 
-        # 📌 REFINAMENTO DE BUSCA POR BASE DE DADOS
+        # 4. REFINAMENTO DE BUSCA POR BASE DE DADOS
         if area_filtro and area_filtro not in ["Todas", "All"]:
             db_k = area_filtro.lower()
             if "web of science" in db_k or "wos" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("web of science|wos", regex=True, na=False)]
+                mask_db = df_calc["indexador"].astype(str).str.lower().str.contains("web of science|wos", regex=True, na=False)
             elif "scopus" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scopus", na=False)]
+                mask_db = df_calc["indexador"].astype(str).str.lower().str.contains("scopus", na=False)
             elif "scielo" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scielo", na=False)]
+                mask_db = df_calc["indexador"].astype(str).str.lower().str.contains("scielo", na=False)
             elif "educ" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)]
+                mask_db = df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)
+            else:
+                mask_db = df_calc["indexador"].astype(str).str.contains(area_filtro, case=False, na=False)
+            
+            df_calc = df_calc[mask_db].copy()
+            idx_validos = df_calc.index
+            sim_dense = sim_dense[idx_validos]
+            sim_sparse = sim_sparse[idx_validos]
+            s_index = s_index[idx_validos]
 
-        # 📌 CÁLCULO PONDERADO FINAL DO MATCH
-        df_calc["Score_final"] = (
-            0.40 * df_calc["S_text"] +
-            0.35 * df_calc["peso_ga"] +
-            0.25 * df_calc["peso_area"]
-        ) * 100.0
+        # 📌 SCORE FUSÃO HÍBRIDA FINAL: 65% Dense (Transformer) + 15% Sparse (TF-IDF) + 20% Indexador
+        if self.transformer_model is not None and self.dense_embeddings is not None:
+            score_final = (0.65 * sim_dense + 0.15 * sim_sparse + 0.20 * s_index) * 100.0
+        else:
+            score_final = (0.80 * sim_sparse + 0.20 * s_index) * 100.0
 
-        # 📌 CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
+        df_calc["S_text"] = sim_dense if (self.transformer_model is not None and self.dense_embeddings is not None) else sim_sparse
+        df_calc["S_sparse"] = sim_sparse
+        df_calc["S_index"] = s_index
+        df_calc["Score_final"] = score_final
+
+        # 📌 FATOR DE IMPACTO PARA DESEMPATE MULTINÍVEL (MAX JIF / SJR)
+        df_calc["jif_num"] = df_calc["jif"].apply(safe_float)
+        df_calc["sjr_num"] = df_calc["sjr"].apply(safe_float)
+        df_calc["fator_impacto"] = np.maximum(df_calc["jif_num"], df_calc["sjr_num"])
+
+        # 📌 PROBABILIDADE PROXY DE ACEITAÇÃO (%)
         def calcular_prob_aceitacao(row):
             s_text = row["S_text"]
-            jif_val = pd.to_numeric(str(row["jif"]).replace(",", "."), errors="coerce") or 0.0
+            jif_val = row["fator_impacto"]
             
             q_jcr = str(row["quartil_jcr"]).upper()
             dificuldade_q = 0.85 if "Q1" in q_jcr else (0.65 if "Q2" in q_jcr else (0.45 if "Q3" in q_jcr else 0.25))
@@ -826,19 +813,17 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        # 📌 REGRA (c): RESTRIÇÃO ESTRITA - PESQUISA RESTRITA EXCLUSIVAMENTE AO GRUPO PRINCIPAL DO MANUSCRITO
-        df_grupo_principal = df_calc[df_calc["tier_ga"] < 4].copy()
-
+        # 📌 ORDENAÇÃO MULTINÍVEL
         if ordenacao_idx == 0:
-            df_grupo_principal = df_grupo_principal.sort_values(by="Score_final", ascending=False)
+            df_sorted = df_calc.sort_values(by=["Score_final", "fator_impacto", "S_text"], ascending=[False, False, False])
         elif ordenacao_idx == 1:
-            df_grupo_principal = df_grupo_principal.sort_values(by="Prob_aceitacao", ascending=False)
+            df_sorted = df_calc.sort_values(by=["Prob_aceitacao", "Score_final", "fator_impacto"], ascending=[False, False, False])
         elif ordenacao_idx == 2:
-            df_grupo_principal = df_grupo_principal.sort_values(by="titulo", ascending=True)
+            df_sorted = df_calc.sort_values(by="titulo", ascending=True)
         elif ordenacao_idx == 3:
-            df_grupo_principal = df_grupo_principal.sort_values(by="titulo", ascending=False)
+            df_sorted = df_calc.sort_values(by="titulo", ascending=False)
 
-        res_final = df_grupo_principal.head(limite)
+        res_final = df_sorted.head(limite)
         return res_final.to_dict(orient="records")
 
     def buscar_geral(self, termo="", grande_area="Todas", base_dados="Todas", quartil_jcr="Todos", quartil_sjr="Todos", ordenacao="titulo_asc", limite=1000):
@@ -920,11 +905,9 @@ def main(page: ft.Page):
 
     aba_atual = "buscador"
     botao_selecionado = "buscador"
-    # 📌 IDIOMA PADRÃO DEFINIDO PARA INGLÊS (DEFAULT = ENGLISH)
     idioma_atual = "English"
     sobre_expandido = False
     
-    # 📌 ESTADO DE SELEÇÃO POR CHECKBOX E PAGINAÇÃO
     pagina_atual = 1
     itens_por_pagina = 20
     resultados_totais_atuais = []
@@ -1042,9 +1025,6 @@ def main(page: ft.Page):
             btn_export_excel.text = t('baixar_excel')
         page.update()
 
-    # ==========================================
-    # 📥 EXPORTAÇÃO CSV E EXCEL WEB NATIVA (TODAS AS COLUNAS DO DADOS.CSV)
-    # ==========================================
     def exportar_resultados(formato="csv"):
         if revistas_selecionadas:
             export_ids = list(revistas_selecionadas)
@@ -1067,7 +1047,7 @@ def main(page: ft.Page):
         if df_export.empty and resultados_totais_atuais:
             df_export = pd.DataFrame(resultados_totais_atuais[:200])
 
-        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao", "ga_info", "peso_ga", "tier_ga", "peso_area"]
+        colunas_auxiliares = ["search_text", "S_text", "S_sparse", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao", "fator_impacto"]
         df_export = df_export.drop(columns=[c for c in colunas_auxiliares if c in df_export.columns], errors="ignore")
 
         fname = f"scipubs_export_{int(time.time())}.{'csv' if formato == 'csv' else 'xlsx'}"
@@ -1111,9 +1091,6 @@ def main(page: ft.Page):
         on_click=lambda e: exportar_resultados("excel")
     )
 
-    # ==========================================
-    # 📄 RENDERIZAÇÃO DA PÁGINA ATUAL DOS RESULTADOS
-    # ==========================================
     def renderizar_pagina():
         nonlocal pagina_atual, itens_por_pagina
         lista_resultados.controls.clear()
@@ -1235,11 +1212,11 @@ def main(page: ft.Page):
             badge_score = None
             badge_prob = None
             if score is not None:
-                percentual = min(100, max(5, int(score)))
+                percentual = min(100, max(5, int(round(score))))
                 badge_score = ft.Container(
                     content=ft.Row([
                         ft.Icon(ft.Icons.AUTO_AWESOME, color=GOLD_YELLOW, size=14),
-                        ft.Text(f"{percentual}% Match", color=GOLD_YELLOW, size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+                        ft.Text(f"{percentual}% Match Híbrido", color=GOLD_YELLOW, size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
                     ], spacing=4),
                     bgcolor="#1E1B4B",
                     padding=ft.Padding(8, 4, 8, 4),
