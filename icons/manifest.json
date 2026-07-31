@@ -1,0 +1,31 @@
+{
+  "name": "SciPubs - O Portal do Pesquisador",
+  "short_name": "SciPubs",
+  "description": "Busca e Recomendação Inteligente de Periódicos Científicos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080D1A",
+  "theme_color": "#080D1A",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "id": "scipubs-pwa-app",
+  "categories": [
+    "education",
+    "science",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1069,6 +1069,66 @@ def main(page: ft.Page):
             pass
         page.update()
 
+    def abrir_modal_pwa(e=None):
+        atualizar_destaque_botoes("pwa")
+
+        content_column = ft.Column([
+            ft.Text(
+                "Instale o SciPubs como um aplicativo nativo no seu celular (Android ou iPhone) sem precisar baixar de lojas de aplicativos!",
+                color="#CBD5E1", size=13, font_family="Roboto"
+            ),
+            ft.Container(height=6),
+            ft.Container(
+                content=ft.Column([
+                    ft.Text("🤖 No Android (Chrome / Edge / Samsung Internet):", color="#38BDF8", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                    ft.Text("1. Acesse https://www.scipubs.com pelo navegador.", color="#FFFFFF", size=12),
+                    ft.Text("2. Toque no menu de 3 pontinhos (⋮) no canto superior direito.", color="#FFFFFF", size=12),
+                    ft.Text("3. Selecione 'Instalar aplicativo' ou 'Adicionar à tela inicial'.", color="#FFFFFF", size=12),
+                ], spacing=4),
+                bgcolor="#0F172A", padding=12, border_radius=10, border=ft.border.all(1, "#1E293B")
+            ),
+            ft.Container(height=6),
+            ft.Container(
+                content=ft.Column([
+                    ft.Text("🍏 No iPhone / iPad (iOS - Safari):", color="#F43F5E", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                    ft.Text("1. Acesse https://www.scipubs.com usando o Safari.", color="#FFFFFF", size=12),
+                    ft.Text("2. Toque no ícone de Compartilhar (o quadrado com seta para cima na barra inferior).", color="#FFFFFF", size=12),
+                    ft.Text("3. Role para baixo e toque em 'Adicionar à Tela de Início'.", color="#FFFFFF", size=12),
+                ], spacing=4),
+                bgcolor="#0F172A", padding=12, border_radius=10, border=ft.border.all(1, "#1E293B")
+            ),
+            ft.Container(height=6),
+            ft.Container(
+                content=ft.Column([
+                    ft.Text("💻 No Computador (Chrome / Edge):", color="#10B981", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                    ft.Text("Clique no ícone de instalação na barra de endereço do navegador para instalar a versão desktop.", color="#FFFFFF", size=12),
+                ], spacing=4),
+                bgcolor="#0F172A", padding=12, border_radius=10, border=ft.border.all(1, "#1E293B")
+            ),
+        ], spacing=8, tight=True, scroll=ft.ScrollMode.AUTO)
+
+        dialog = ft.AlertDialog(
+            bgcolor=CARD_BG,
+            shape=ft.RoundedRectangleBorder(radius=16),
+            title=ft.Text("📲 Instalar Aplicativo SciPubs (PWA)", color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+            content=ft.Container(width=500, height=400, content=content_column),
+            actions=[
+                ft.Button(
+                    t("fechar"),
+                    style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, shape=ft.RoundedRectangleBorder(radius=8)),
+                    on_click=lambda e: (setattr(dialog, "open", False), page.update())
+                )
+            ]
+        )
+        if dialog not in page.overlay:
+            page.overlay.append(dialog)
+        dialog.open = True
+        try:
+            page.open(dialog)
+        except Exception:
+            pass
+        page.update()
+
     def abrir_modal_doacao(e=None):
         atualizar_destaque_botoes("doar")
         abrir_link(page, "https://buymeacoffee.com/scipubs")
@@ -1457,6 +1517,14 @@ def main(page: ft.Page):
         on_click=lambda e: alternar_aba("recomendador")
     )
 
+    btn_pwa_txt = ft.Text("📱 App Mobile", color="#FFFFFF", size=13, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    btn_pwa = ft.Button(
+        content=ft.Row([btn_pwa_txt], alignment=ft.MainAxisAlignment.CENTER),
+        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#0284C7", padding=ft.Padding(14, 14, 14, 14), shape=ft.RoundedRectangleBorder(radius=10)),
+        expand=True,
+        on_click=abrir_modal_pwa
+    )
+
     btn_doar = ft.Button(
         content=ft.Row([btn_doar_txt], alignment=ft.MainAxisAlignment.CENTER),
         style=ft.ButtonStyle(color="#000000", bgcolor=ACCENT_YELLOW, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
@@ -1471,7 +1539,7 @@ def main(page: ft.Page):
         on_click=abrir_modal_inscricao
     )
 
-    action_buttons_row = ft.Row([btn_busca_tab, btn_rec_tab, btn_doar, btn_inscrever], spacing=10)
+    action_buttons_row = ft.Row([btn_busca_tab, btn_rec_tab, btn_pwa, btn_doar, btn_inscrever], spacing=8)
 
     def toggle_sobre(e):
         nonlocal sobre_expandido
