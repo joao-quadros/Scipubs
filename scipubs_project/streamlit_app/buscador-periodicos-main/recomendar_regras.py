@@ -225,9 +225,91 @@ def carregar_embeddings_cache(df, model):
         print(f"Erro ao carregar cache de embeddings: {e}. Recriando...")
         return precomputar_e_salvar_embeddings(df, model)
 
+# 🌐 DICIONÁRIO DE PONTE TRILÍNGUE AUTOMÁTICA
+DIC_PONTE_TRILINGUE = {
+    "educacao": "education educacion teaching pedagogy",
+    "educacao musical": "music education educacion musical pedagogy",
+    "musica": "music musica musical acoustics ethnomusicology",
+    "saude": "health salud medicine medical clinical public health",
+    "gestao": "management gestion administration business policy",
+    "producao": "production produccion manufacturing industrial engineering",
+    "engenharia": "engineering ingenieria technology technical",
+    "computacao": "computing computer science informatica software artificial intelligence",
+    "direito": "law derecho legal jurisprudence justice",
+    "historia": "history historia historical heritage",
+    "literatura": "literature literatura literary arts linguistics",
+    "lingua": "language lengua linguistics philology",
+    "biologia": "biology biologia biological genetics ecology",
+    "fisica": "physics fisica physical optics quantum",
+    "quimica": "chemistry quimica chemical materials",
+    "matematica": "mathematics matematica mathematical algebra statistics",
+    "economia": "economics economia economic finance market",
+    "sociologia": "sociology sociologia social culture society",
+    "psicologia": "psychology psicologia psychological mental behavioral",
+    "filosofia": "philosophy filosofia philosophical ethics logic",
+    "artes": "arts arte artistic visual music theater performance"
+}
+
+def normalizar_texto(txt):
+    if not txt or not isinstance(txt, str):
+        return ""
+    import unicodedata
+    nfkd = unicodedata.normalize('NFKD', txt)
+    return "".join([c for c in nfkd if not unicodedata.combining(c)]).lower().strip()
+
+def expandir_texto_trilingue(txt):
+    if not txt or not isinstance(txt, str):
+        return ""
+    norm = normalizar_texto(txt)
+    palavras = norm.split()
+    expansao = [txt]
+    for p in palavras:
+        if p in DIC_PONTE_TRILINGUE:
+            expansao.append(DIC_PONTE_TRILINGUE[p])
+    return " ".join(expansao)
+
+def calcular_probabilidade_aceitacao(row):
+    """Calcula a Probabilidade Proxy de Aceitação (%) com tratamento robusto para periódicos com e sem Fator de Impacto."""
+    s_text = float(row.get("S_text", 0.5))
+    jif_val = float(row.get("jif_parsed", 0.0))
+    sjr_val = float(row.get("sjr_parsed", 0.0))
+    fator_imp = max(jif_val, sjr_val)
+    
+    q_jcr = str(row.get("quartil_jcr", "")).upper()
+    q_sjr = str(row.get("sjr_quartile", "")).upper()
+
+    possui_impacto = (fator_imp > 0.0) or ("Q" in q_jcr) or ("Q" in q_sjr)
+
+    if possui_impacto:
+        dificuldade_q = 0.85 if ("Q1" in q_jcr or "Q1" in q_sjr) else (0.65 if ("Q2" in q_jcr or "Q2" in q_sjr) else (0.45 if ("Q3" in q_jcr or "Q3" in q_sjr) else 0.25))
+        dificuldade_jif = min(1.0, fator_imp / 10.0)
+        dificuldade = 0.40 * dificuldade_jif + 0.35 * dificuldade_q + 0.25 * (1.0 - s_text)
+    else:
+        # 📌 TRATAMENTO PARA REVISTAS SEM FATOR DE IMPACTO (Utiliza o Nível do Indexador como Proxy de Seletividade)
+        s_idx = float(row.get("S_index", 0.3))
+        if s_idx >= 1.0:
+            dif_base = 0.65
+        elif s_idx >= 0.8:
+            dif_base = 0.50
+        elif s_idx >= 0.7:
+            dif_base = 0.45
+        elif s_idx >= 0.6:
+            dif_base = 0.40
+        elif s_idx >= 0.5:
+            dif_base = 0.35
+        elif s_idx >= 0.4:
+            dif_base = 0.30
+        else:
+            dif_base = 0.20
+            
+        dificuldade = 0.60 * dif_base + 0.40 * (1.0 - s_text)
+
+    prob = (s_text * 0.65 + (1.0 - dificuldade) * 0.35) * 100.0
+    return int(min(85, max(15, round(prob))))
+
 def recomendar_periodicos(titulo, resumo, top_n=100, filtrar_area=True, area_manual=None, indexador_manual=None, area=None, indexador=None, **kwargs):
     """
-    Executa o algoritmo de recomendação de periódicos científicos com as otimizações.
+    Executa o algoritmo HÍBRIDO (Transformer + TF-IDF + Ponte Trilíngue + Métrica Proxy de Aceite sem JIF).
     """
     if not area_manual and area:
         area_manual = area
@@ -252,13 +334,11 @@ def recomendar_periodicos(titulo, resumo, top_n=100, filtrar_area=True, area_man
         area_msg = f"Grande(s) Área(s) detectada(s): {', '.join(areas_detectadas)}"
         print(area_msg)
         
-        # Filtra o dataframe original para manter apenas revistas das áreas identificadas
         mask = df["grande_area"].apply(
             lambda x: any(area.lower() in str(x).lower() for area in areas_detectadas)
         )
         df_filtered = df[mask].copy()
         
-        # Se o filtro resultar em nada, mantém tudo como fallback
         if len(df_filtered) == 0:
             print("Nenhum periódico encontrado na Grande Área filtrada. Mantendo catálogo completo.")
             df_filtered = df.copy()
@@ -277,67 +357,70 @@ def recomendar_periodicos(titulo, resumo, top_n=100, filtrar_area=True, area_man
             df_filtered = df_idx
             indices_validos = df_filtered.index.tolist()
         
-    # 3. Carrega modelo e embeddings do catálogo
+    # 3. Carrega modelo Transformer e embeddings do catálogo
     model = obter_modelo_embeddings()
     catalog_embeddings_all = carregar_embeddings_cache(df, model)
-    
-    # Filtra a matriz de embeddings do catálogo para bater com os índices válidos
     catalog_embeddings = catalog_embeddings_all[indices_validos]
     
-    # 4. Processa entrada do manuscrito
-    # Repete o título 3 vezes para valorizar o tema em relação à metodologia descrita no resumo
-    manuscrito_texto = f"{titulo} {titulo} {titulo} {resumo}".strip()
+    # 4. Processa entrada do manuscrito com PONTE TRILÍNGUE e REFORÇO NO TÍTULO (3X)
+    texto_trilingue = expandir_texto_trilingue(f"{titulo} {resumo}")
+    manuscrito_texto = f"{titulo} {titulo} {titulo} {resumo} {texto_trilingue}".strip()
     manuscrito_embedding = model.encode([manuscrito_texto], convert_to_numpy=True)
     
-    # 5. Similaridade Semântica (S_text)
-    similarities = cosine_similarity(manuscrito_embedding, catalog_embeddings).flatten()
+    # 5. Similaridade Semântica Densa (S_text)
+    sim_dense = cosine_similarity(manuscrito_embedding, catalog_embeddings).flatten()
+    sim_dense = np.nan_to_num(sim_dense, nan=0.0)
     
-    # Trata NaN que podem ocorrer se embeddings forem corrompidos
-    similarities = np.nan_to_num(similarities, nan=0.0)
+    # 6. Similaridade Esparsa TF-IDF (S_sparse)
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        escopos_fl = df_filtered["aims_scope"].fillna("").astype(str).tolist()
+        tfidf_vec = TfidfVectorizer(max_features=16000, stop_words='english')
+        tfidf_matrix = tfidf_vec.fit_transform(escopos_fl)
+        v_sparse = tfidf_vec.transform([manuscrito_texto])
+        sim_sparse = cosine_similarity(v_sparse, tfidf_matrix).flatten()
+        sim_sparse = np.nan_to_num(sim_sparse, nan=0.0)
+    except Exception:
+        sim_sparse = np.zeros(len(df_filtered))
+
+    df_filtered["S_text"] = sim_dense
+    df_filtered["S_sparse"] = sim_sparse
     
-    # Atribui S_text ao DataFrame filtrado
-    df_filtered["S_text"] = similarities
-    
-    # Calcula fator_impacto (trata NaN como 0.0)
+    # Calcula fator_impacto
     df_filtered["jif_parsed"] = df_filtered["jif"].apply(safe_float)
     df_filtered["sjr_parsed"] = df_filtered["sjr"].apply(safe_float)
     df_filtered["fator_impacto"] = df_filtered[["jif_parsed", "sjr_parsed"]].max(axis=1).fillna(0.0)
     
-    # Etapa 1 (Filtro de Candidatos): Seleciona os Top 100 periódicos com maior S_text do conjunto filtrado
-    top_indices = np.argsort(similarities)[::-1][:100]
+    top_indices = np.argsort(sim_dense)[::-1][:100]
     df_candidates = df_filtered.iloc[top_indices].copy()
     
-    # Etapa 2 (Reranking): Calcula S_index e Score_final apenas para os Top 100
     df_candidates["S_index"] = df_candidates["indexador"].apply(get_s_index)
     
-    # Fórmula atualizada com novos pesos (80% S_text + 20% S_index)
-    df_candidates["Score_final"] = (0.80 * df_candidates["S_text"] + 0.20 * df_candidates["S_index"]).fillna(0.0)
+    # 📌 FÓRMULA HÍBRIDA (65% Dense + 15% Sparse + 20% Indexador)
+    df_candidates["Score_final"] = (0.65 * df_candidates["S_text"] + 0.15 * df_candidates["S_sparse"] + 0.20 * df_candidates["S_index"]).fillna(0.0)
     
-    # Ordenação e critério de desempate:
-    # 1. Score_final (DECRESCENTE)
-    # 2. fator_impacto (DECRESCENTE)
-    # 3. S_text (DECRESCENTE)
+    # 📌 CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
+    df_candidates["Prob_aceitacao"] = df_candidates.apply(calcular_probabilidade_aceitacao, axis=1)
+
     df_ranked = df_candidates.sort_values(
         by=["Score_final", "fator_impacto", "S_text"],
         ascending=[False, False, False]
     )
     
-    # Seleciona as colunas finais relevantes para exibição
     cols_to_show = [
         "titulo_revista", "issn", "homepage", "aims_scope", "indexador", "jif", "quartil_jcr", "sjr", "sjr_quartile", "h_index", "h5_link", "grande_area",
-        "S_text", "S_index", "fator_impacto", "Score_final"
+        "S_text", "S_sparse", "S_index", "fator_impacto", "Score_final", "Prob_aceitacao"
     ]
     
     return df_ranked[cols_to_show].head(top_n)
 
 if __name__ == "__main__":
-    # Teste de execução rápida
-    print("Testando inicialização do recomendador otimizado...")
+    print("Testando inicialização do recomendador otimizado HÍBRIDO...")
     df_test = recomendar_periodicos(
         titulo="Humane: estudo piloto para validação de instrumento sobre Humanização na Educação Musical",
         resumo="Este estudo piloto objetivou desenvolver e validar o questionário Humane na Educação Musical.",
         top_n=5,
         filtrar_area=True
     )
-    print("\nResultados do teste (Top 5):")
-    print(df_test[["titulo_revista", "grande_area", "Score_final", "fator_impacto", "S_text", "S_index"]])
+    print("\nResultados do teste HÍBRIDO (Top 5):")
+    print(df_test[["titulo_revista", "grande_area", "Score_final", "Prob_aceitacao", "fator_impacto", "S_text", "S_index"]])
