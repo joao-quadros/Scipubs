@@ -61,6 +61,42 @@ def get_banner_src(idioma="English"):
     return get_image_src(fname)
 
 # ==========================================
+# 🔤 DETALHAMENTO EXPLÍCITO DAS VARIAÇÕES WEB OF SCIENCE
+# ==========================================
+def formatar_indexadores_wos(indexador_str):
+    if not indexador_str or str(indexador_str).strip() in ["-", "None", "nan", ""]:
+        return "-"
+    
+    idx_str = str(indexador_str).strip()
+    idx_lower = idx_str.lower()
+
+    wos_vars = []
+    if "scie" in idx_lower or "science citation index expanded" in idx_lower:
+        wos_vars.append("SCIE")
+    if "ssci" in idx_lower or "social sciences citation index" in idx_lower:
+        wos_vars.append("SSCI")
+    if "ahci" in idx_lower or "achi" in idx_lower or "arts & humanities" in idx_lower:
+        wos_vars.append("AHCI")
+    if "esci" in idx_lower or "emerging sources" in idx_lower:
+        wos_vars.append("ESCI")
+
+    if ("wos" in idx_lower or "web of science" in idx_lower) and not wos_vars:
+        wos_vars.append("Main Collection")
+
+    if wos_vars:
+        vars_join = ", ".join(wos_vars)
+        wos_tag = f"Web of Science ({vars_join})"
+        clean = re.sub(r'web of science\s*\(?\s*\)?', '', idx_str, flags=re.IGNORECASE)
+        clean = re.sub(r'\b(scie|ssci|ahci|esci)\b', '', clean, flags=re.IGNORECASE)
+        clean = re.sub(r'[\(\)\-\:\;]', ' ', clean)
+        parts = [p.strip() for p in clean.split(",") if p.strip()]
+        other_parts = [p for p in parts if p.lower() not in ["wos", "web of science", ""]]
+        res = [wos_tag] + other_parts
+        return ", ".join(dict.fromkeys(res))
+        
+    return idx_str
+
+# ==========================================
 # 🔤 CORREÇÃO ORTOGRÁFICA E BUSCA BOOLEANA MULTILÍNGUE
 # ==========================================
 REGRAS_ORTOGRAFIA = [
@@ -1165,8 +1201,9 @@ def main(page: ft.Page):
             cat_item = item.get("categoria", "-")
             if not cat_item or cat_item in ["", "nan", "None"]: cat_item = t("multidisciplinar")
 
-            indexadores = item.get("indexador", t("nao_informado"))
-            if not indexadores or indexadores in ["", "nan", "None"]: indexadores = t("nao_informado")
+            # 📌 INDEXADORES DETALHADOS COM INDICAÇÃO EXPLÍCITA DAS VARIAÇÕES WEB OF SCIENCE
+            indexadores_raw = item.get("indexador", t("nao_informado"))
+            indexadores = formatar_indexadores_wos(indexadores_raw)
 
             fator = item.get("jif", "-")
             q_jcr = item.get("quartil_jcr", "-")
