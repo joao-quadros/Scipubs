@@ -98,6 +98,42 @@ REGRAS_ORTOGRAFIA = [
     (r'\bpedagogica\b', 'pedagógica'),
 ]
 
+# 🌐 DICIONÁRIO DE PONTE TRILÍNGUE AUTOMÁTICA (EXPANSÃO DE TERMOS)
+DIC_PONTE_TRILINGUE = {
+    "educacao": "education educacion teaching pedagogy",
+    "educacao musical": "music education educacion musical pedagogy",
+    "musica": "music musica musical acoustics ethnomusicology",
+    "saude": "health salud medicine medical clinical public health",
+    "gestao": "management gestion administration business policy",
+    "producao": "production produccion manufacturing industrial engineering",
+    "engenharia": "engineering ingenieria technology technical",
+    "computacao": "computing computer science informatica software artificial intelligence",
+    "direito": "law derecho legal jurisprudence justice",
+    "historia": "history historia historical heritage",
+    "literatura": "literature literatura literary arts linguistics",
+    "lingua": "language lengua linguistics philology",
+    "biologia": "biology biologia biological genetics ecology",
+    "fisica": "physics fisica physical optics quantum",
+    "quimica": "chemistry quimica chemical materials",
+    "matematica": "mathematics matematica mathematical algebra statistics",
+    "economia": "economics economia economic finance market",
+    "sociologia": "sociology sociologia social culture society",
+    "psicologia": "psychology psicologia psychological mental behavioral",
+    "filosofia": "philosophy filosofia philosophical ethics logic",
+    "artes": "arts arte artistic visual music theater performance"
+}
+
+def expandir_texto_trilingue(txt):
+    if not txt or not isinstance(txt, str):
+        return ""
+    norm = normalizar_texto(txt)
+    palavras = norm.split()
+    expansao = [txt]
+    for p in palavras:
+        if p in DIC_PONTE_TRILINGUE:
+            expansao.append(DIC_PONTE_TRILINGUE[p])
+    return " ".join(expansao)
+
 def corrigir_ortografia_titulo(texto):
     if not texto or not isinstance(texto, str):
         return texto
@@ -263,6 +299,7 @@ DIC_TRANSLATE = {
         "pag_proxima": "Next",
         "pagina_fmt": "Page {atual} of {total} ({total_itens} records found)",
         "snack_msg": "✅ File {fname} successfully generated! If download does not start, check browser pop-up permissions.",
+        "prob_aceitacao": "Acceptance Prob.",
         "exp1_items": [
             "AI semantically analyzes your title and abstract",
             "Cross-references with local catalog and academic databases (OpenAlex)",
@@ -382,6 +419,7 @@ DIC_TRANSLATE = {
         "pag_proxima": "Próxima",
         "pagina_fmt": "Página {atual} de {total} ({total_itens} registros encontrados)",
         "snack_msg": "✅ Arquivo {fname} gerado com sucesso! Se o download não iniciar, verifique a permissão de pop-up do navegador.",
+        "prob_aceitacao": "Prob. Aceitação",
         "exp1_items": [
             "A IA analisa semanticamente seu título e resumo",
             "Cruza com o catálogo local e bases acadêmicas (OpenAlex)",
@@ -452,7 +490,7 @@ DIC_TRANSLATE = {
         "cat_lbl": "Categoría / Subárea del Conocimiento",
         "bases_lbl": "Bases de datos",
         "quartil_jcr_lbl": "Cuartil JCR",
-        "quartil_sjr_lbl": "Cuartil SJR",
+        "quartil_sjr_lbl": "Quartil SJR",
         "ordenar_lbl": "Ordenar resultados por",
         "itens_pag_lbl": "Mostrar por página",
         "h_lbl": "Índice H",
@@ -501,6 +539,7 @@ DIC_TRANSLATE = {
         "pag_proxima": "Siguiente",
         "pagina_fmt": "Página {atual} de {total} ({total_itens} registros encontrados)",
         "snack_msg": "✅ ¡Archivo {fname} generado con éxito! Si la descarga no inicia, verifique los permisos de ventanas emergentes.",
+        "prob_aceitacao": "Prob. Aceptación",
         "exp1_items": [
             "La IA analiza semánticamente su título y resumen",
             "Cruza con el catálogo local y bases académicas (OpenAlex)",
@@ -536,6 +575,22 @@ BASES_DADOS_OPCOES = [
     "Scielo",
     "Educ@"
 ]
+
+# 🏛️ DEFINIÇÃO DOS 3 GRANDES GRUPOS MACRO DE ÁREAS DE CONHECIMENTO
+MACRO_GRUPOS = {
+    "EXATAS_TECNOLOGICAS": [
+        "engenharias", "ciencias exatas e da terra", "multidisciplinar",
+        "engineering", "exact sciences", "earth sciences", "multidisciplinary"
+    ],
+    "VIDA_SAUDE": [
+        "ciencias biologicas", "ciencias da saude", "ciencias agrarias", "multidisciplinar",
+        "biological sciences", "health sciences", "agricultural sciences", "multidisciplinary"
+    ],
+    "HUMANAS_SOCIAIS": [
+        "ciencias humanas", "ciencias sociais aplicadas", "linguistica, letras e artes", "multidisciplinar",
+        "human sciences", "humanities", "applied social sciences", "linguistics", "arts", "multidisciplinary"
+    ]
+}
 
 class SciPubsDataEngine:
     """Motor de Dados e Algoritmo de Recomendação por IA do SciPubs"""
@@ -623,11 +678,18 @@ class SciPubsDataEngine:
                 self.total_revistas = len(self.df)
                 print(f"[OK] Base dados.csv carregada e normalizada! Total de periodicos: {self.total_revistas:,}")
                 
-                textos_completos = (self.df["titulo"].astype(str) + " " + self.df["area"].astype(str) + " " + self.df["escopo"].astype(str)).fillna("")
+                # 📌 PERFIL TEXTUAL DO PERIÓDICO COM PESO 3X REFORÇADO NO ESCOPO (AIMS & SCOPE)
+                textos_completos = (
+                    self.df["escopo"].astype(str) + " " +
+                    self.df["escopo"].astype(str) + " " +
+                    self.df["escopo"].astype(str) + " " +
+                    self.df["titulo"].astype(str) + " " +
+                    self.df["area"].astype(str)
+                ).fillna("")
                 
-                self.vectorizer = TfidfVectorizer(max_features=12000, stop_words='english')
+                self.vectorizer = TfidfVectorizer(max_features=16000, stop_words='english')
                 self.tfidf_matrix = self.vectorizer.fit_transform(textos_completos)
-                print("[OK] Vetorizador TF-IDF inicializado para o Recomendador de IA.")
+                print("[OK] Vetorizador TF-IDF inicializado com peso 3x no Escopo.")
             except Exception as e:
                 print(f"[ERRO] Falha ao carregar dados.csv: {e}")
                 self.df = pd.DataFrame()
@@ -648,11 +710,29 @@ class SciPubsDataEngine:
         if "esci" in s: return 0.5
         return 0.3 if s.strip() else 0.0
 
+    def detectar_grupo_macro(self, texto):
+        norm = normalizar_texto(texto)
+        score_exatas = sum(1 for w in ["engenharia", "engineering", "computacao", "computer", "math", "matematica", "physics", "fisica", "quimica", "chemistry", "technology", "tecnologia", "software"] if w in norm)
+        score_vida = sum(1 for w in ["biology", "biologia", "health", "saude", "medicine", "medicina", "clinical", "pharmacy", "farmacia", "agronomy", "agronomia", "genetics", "veterinary"] if w in norm)
+        score_humanas = sum(1 for w in ["education", "educacao", "music", "musica", "pedagogy", "pedagogia", "history", "historia", "law", "direito", "sociology", "sociologia", "arts", "artes", "literature", "literatura", "philosophy", "filosofia", "linguistics", "letras", "social"] if w in norm)
+
+        if score_humanas >= score_exatas and score_humanas >= score_vida and score_humanas > 0:
+            return "HUMANAS_SOCIAIS"
+        elif score_vida >= score_exatas and score_vida >= score_humanas and score_vida > 0:
+            return "VIDA_SAUDE"
+        elif score_exatas > 0:
+            return "EXATAS_TECNOLOGICAS"
+        return "TODOS"
+
     def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", limite=20):
         if self.df is None or self.df.empty or not self.vectorizer:
             return []
 
-        texto_artigo = f"{titulo} {titulo} {resumo}"
+        # 📌 TRADUÇÃO E EXPANSÃO MULTILÍNGUE AUTOMÁTICA
+        texto_trilingue = expandir_texto_trilingue(f"{titulo} {resumo}")
+
+        # 📌 VETOR DO ARTIGO COM PESO 3X REFORÇADO NO TÍTULO
+        texto_artigo = f"{titulo} {titulo} {titulo} {resumo} {texto_trilingue}"
         vec_artigo = self.vectorizer.transform([texto_artigo])
         
         similarities = cosine_similarity(vec_artigo, self.tfidf_matrix).flatten()
@@ -662,6 +742,7 @@ class SciPubsDataEngine:
         df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
         df_calc["Score_final"] = (0.80 * df_calc["S_text"] + 0.20 * df_calc["S_index"]) * 100
 
+        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (100% OPERACIONAL)
         if area_filtro and area_filtro not in ["Todas", "All"]:
             db_k = area_filtro.lower()
             if "scie" in db_k:
@@ -678,6 +759,34 @@ class SciPubsDataEngine:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scielo", na=False)]
             elif "educ" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)]
+
+        # 📌 2. BLOQUEIO RIGOROSO DE ÁREAS DE CONHECIMENTO DISTANTES (3 MACRO GRUPOS)
+        grupo_detectado = self.detectar_grupo_macro(texto_artigo)
+        if grupo_detectado != "TODOS":
+            termos_grupo = MACRO_GRUPOS[grupo_detectado]
+            pattern_grupo = "|".join([re.escape(t) for t in termos_grupo])
+            
+            mask_grupo = (
+                df_calc["grande_area"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False) |
+                df_calc["area"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False) |
+                df_calc["categoria"].astype(str).apply(normalizar_texto).str.contains(pattern_grupo, regex=True, na=False)
+            )
+            df_calc = df_calc[mask_grupo]
+
+        # 📌 3. CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
+        def calcular_prob_aceitacao(row):
+            s_text = row["S_text"]
+            jif_val = pd.to_numeric(str(row["jif"]).replace(",", "."), errors="coerce") or 0.0
+            
+            q_jcr = str(row["quartil_jcr"]).upper()
+            dificuldade_q = 0.85 if "Q1" in q_jcr else (0.65 if "Q2" in q_jcr else (0.45 if "Q3" in q_jcr else 0.25))
+            dificuldade_jif = min(1.0, jif_val / 10.0)
+            
+            dificuldade = 0.40 * dificuldade_jif + 0.35 * dificuldade_q + 0.25 * (1.0 - s_text)
+            prob = (s_text * 0.65 + (1.0 - dificuldade) * 0.35) * 100.0
+            return int(min(82, max(12, round(prob))))
+
+        df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
         df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
         return df_sorted.head(limite).to_dict(orient="records")
@@ -914,7 +1023,7 @@ def main(page: ft.Page):
         if df_export.empty and resultados_totais_atuais:
             df_export = pd.DataFrame(resultados_totais_atuais[:200])
 
-        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num"]
+        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao"]
         df_export = df_export.drop(columns=[c for c in colunas_auxiliares if c in df_export.columns], errors="ignore")
 
         fname = f"scipubs_export_{int(time.time())}.{'csv' if formato == 'csv' else 'xlsx'}"
@@ -1077,8 +1186,10 @@ def main(page: ft.Page):
             site_url = item.get("homepage", "")
             h5_url = item.get("h5_link", f"https://scholar.google.com/citations?hl=pt-BR&view_op=search_venues&vq={urllib.parse.quote(titulo_p)}&btnG=")
             score = item.get("Score_final", None)
+            prob_val = item.get("Prob_aceitacao", None)
 
             badge_score = None
+            badge_prob = None
             if score is not None:
                 percentual = min(100, max(5, int(score)))
                 badge_score = ft.Container(
@@ -1090,6 +1201,18 @@ def main(page: ft.Page):
                     padding=ft.Padding(8, 4, 8, 4),
                     border_radius=6,
                     border=ft.Border.all(1, GOLD_YELLOW)
+                )
+
+            if prob_val is not None:
+                badge_prob = ft.Container(
+                    content=ft.Row([
+                        ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, color="#4ADE80", size=14),
+                        ft.Text(f"{t('prob_aceitacao')}: {prob_val}%", color="#4ADE80", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+                    ], spacing=4),
+                    bgcolor="#064E3B",
+                    padding=ft.Padding(8, 4, 8, 4),
+                    border_radius=6,
+                    border=ft.Border.all(1, "#059669")
                 )
 
             title_spans = [
@@ -1112,6 +1235,7 @@ def main(page: ft.Page):
                         ft.Row([chk_item, ft.Text(spans=title_spans, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)], expand=True, spacing=8),
                         ft.Row([
                             badge_score if badge_score else ft.Container(),
+                            badge_prob if badge_prob else ft.Container(),
                             ft.Button(
                                 t("acesse_site"),
                                 icon=ft.Icons.OPEN_IN_NEW,
@@ -1179,6 +1303,7 @@ def main(page: ft.Page):
                 limite=1000
             )
         else:
+            # 📌 RECOMENDADOR IA - FORÇA NOVA PESQUISA SEMPRE QUE O BOTÃO É CLICADO
             tit = rec_titulo.current.value if rec_titulo.current else ""
             res = rec_resumo.current.value if rec_resumo.current else ""
             db_sel = rec_db_dropdown.current.value if rec_db_dropdown.current else "Todas"
@@ -1488,7 +1613,7 @@ def main(page: ft.Page):
             border_radius=6,
             border=ft.Border.all(1, "#004B87"),
             width=240,
-            on_click=lambda e, u=url: abrir_link(page, u),
+            on_click=lambda e: abrir_link(page, url),
             ink=True
         )
 
