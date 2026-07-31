@@ -38,7 +38,7 @@ TEXT_DARK = "#0F172A"        # Texto para fundos claros
 TEXT_MUTED = "#94A3B8"       # Texto secundário
 BORDER_DARK = "#1E293B"
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main", "dados.csv")
 ICONS_DIR = os.path.join(BASE_DIR, "icons")
 os.makedirs(ICONS_DIR, exist_ok=True)
@@ -550,7 +550,8 @@ class SciPubsDataEngine:
     def load_data(self):
         caminhos = [
             DATA_PATH,
-            os.path.join("scipubs_project", "streamlit_app", "buscador-periodicos-main", "dados.csv"),
+            os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main", "dados.csv"),
+            os.path.join(BASE_DIR, "dados.csv"),
             "dados.csv"
         ]
         
@@ -1949,4 +1950,6 @@ def main(page: ft.Page):
     executar_pesquisa()
 
 if __name__ == "__main__":
-    ft.app(main, assets_dir=ICONS_DIR, port=8581, view=ft.AppView.WEB_BROWSER)
+    port = int(os.environ.get("PORT", 8080))
+    host = os.environ.get("HOST", "0.0.0.0")
+    ft.app(main, assets_dir=ICONS_DIR, host=host, port=port, view=ft.AppView.WEB_BROWSER)
