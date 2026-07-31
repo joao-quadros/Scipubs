@@ -290,7 +290,7 @@ DIC_TRANSLATE = {
         ),
         "link_doacao": "Click here to donate via Buy Me a Coffee",
         "lang_lbl": "Language / Idioma:",
-        "sem_resultados": "No journals found matching the specified criteria.",
+        "sem_resultados": "No journals found matching the specified search criteria.",
         "alerta_ia": "Please enter the manuscript title and/or abstract to generate recommendations.",
         "baixar_csv": "Download (.csv)",
         "baixar_excel": "Download (.xlsx)",
@@ -315,12 +315,10 @@ DIC_TRANSLATE = {
         ],
         "areas": ["All", "Exact and Earth Sciences", "Biological Sciences", "Engineering", "Health Sciences", "Agricultural Sciences", "Applied Social Sciences", "Human Sciences", "Linguistics, Letters and Arts"],
         "ordem_opts": [
-            "Journal Title (A-Z)",
-            "Journal Title (Z-A)",
-            "Database",
-            "JIF (highest to lowest)",
-            "SJR (highest to lowest)",
-            "H-Index (highest to lowest)"
+            "% Match (highest to lowest)",
+            "% Acceptance Probability (highest to lowest)",
+            "Title (A-Z)",
+            "Title (Z-A)"
         ]
     },
     "Português": {
@@ -435,12 +433,10 @@ DIC_TRANSLATE = {
         ],
         "areas": ["Todas", "Ciências Exatas e da Terra", "Ciências Biológicas", "Engenharias", "Ciências da Saúde", "Ciências Agrárias", "Ciências Sociais Aplicadas", "Ciências Humanas", "Linguística, Letras e Artes"],
         "ordem_opts": [
-            "Título da Revista (A-Z)",
-            "Título da Revista (Z-A)",
-            "Base de dados",
-            "JIF (maior para o menor)",
-            "SJR (maior para o menor)",
-            "H-Index (maior para o menor)"
+            "% de Match (maior para o menor)",
+            "% Probabilidade de aceitação (maior para a menor)",
+            "Título (A-Z)",
+            "Título (Z-A)"
         ]
     },
     "Español": {
@@ -555,22 +551,18 @@ DIC_TRANSLATE = {
         ],
         "areas": ["Todas", "Ciencias Exactas y de la Tierra", "Ciencias Biológicas", "Ingenierías", "Ciencias de la Salud", "Ciencias Agrarias", "Ciencias Sociales Aplicadas", "Ciencias Humanas", "Lingüística, Letras y Artes"],
         "ordem_opts": [
-            "Título de la Revista (A-Z)",
-            "Título de la Revista (Z-A)",
-            "Base de datos",
-            "JIF (mayor a menor)",
-            "SJR (mayor a menor)",
-            "H-Index (mayor a menor)"
+            "% de Match (mayor a menor)",
+            "% Probabilidad de aceptación (mayor a menor)",
+            "Título (A-Z)",
+            "Título (Z-A)"
         ]
     }
 }
 
+# 📌 REAGRUPADO: TODAS AS VARIAÇÕES DE WEB OF SCIENCE AGRUPADAS EM "Web of Science"
 BASES_DADOS_OPCOES = [
     "Todas",
-    "Web of Science - SCIE",
-    "Web of Science - SSCI",
-    "Web of Science - AHCI",
-    "Web of Science - ESCI",
+    "Web of Science",
     "Scopus",
     "Scielo",
     "Educ@"
@@ -703,7 +695,7 @@ class SciPubsDataEngine:
         if not indexer_str or not isinstance(indexer_str, str):
             return 0.0
         s = indexer_str.lower()
-        if "scie" in s or "ssci" in s: return 1.0
+        if "wos" in s or "web of science" in s or "scie" in s or "ssci" in s: return 1.0
         if "scopus" in s: return 0.8
         if "ahci" in s or "achi" in s: return 0.7
         if "scielo" in s: return 0.6
@@ -724,7 +716,7 @@ class SciPubsDataEngine:
             return "EXATAS_TECNOLOGICAS"
         return "TODOS"
 
-    def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", limite=20):
+    def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=20):
         if self.df is None or self.df.empty or not self.vectorizer:
             return []
 
@@ -742,17 +734,11 @@ class SciPubsDataEngine:
         df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
         df_calc["Score_final"] = (0.80 * df_calc["S_text"] + 0.20 * df_calc["S_index"]) * 100
 
-        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (100% OPERACIONAL)
+        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (AGRUPADO: Web of Science)
         if area_filtro and area_filtro not in ["Todas", "All"]:
             db_k = area_filtro.lower()
-            if "scie" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scie", na=False)]
-            elif "ssci" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("ssci", na=False)]
-            elif "ahci" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("ahci|achi", regex=True, na=False)]
-            elif "esci" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("esci", na=False)]
+            if "web of science" in db_k or "wos" in db_k:
+                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("wos|web of science|scie|ssci|ahci|achi|esci", regex=True, na=False)]
             elif "scopus" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scopus", na=False)]
             elif "scielo" in db_k:
@@ -788,7 +774,18 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
+        # 📌 4. ORDENAÇÃO DE RESULTADOS SOLICITADA
+        if ordenacao_idx == 0:
+            df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
+        elif ordenacao_idx == 1:
+            df_sorted = df_calc.sort_values(by="Prob_aceitacao", ascending=False)
+        elif ordenacao_idx == 2:
+            df_sorted = df_calc.sort_values(by="titulo", ascending=True)
+        elif ordenacao_idx == 3:
+            df_sorted = df_calc.sort_values(by="titulo", ascending=False)
+        else:
+            df_sorted = df_calc.sort_values(by="Score_final", ascending=False)
+
         return df_sorted.head(limite).to_dict(orient="records")
 
     def buscar_geral(self, termo="", grande_area="Todas", base_dados="Todas", quartil_jcr="Todos", quartil_sjr="Todos", ordenacao="titulo_asc", limite=1000):
@@ -805,14 +802,8 @@ class SciPubsDataEngine:
 
         if base_dados and base_dados not in ["Todas", "All"]:
             db_k = base_dados.lower()
-            if "scie" in db_k:
-                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("scie", na=False)]
-            elif "ssci" in db_k:
-                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("ssci", na=False)]
-            elif "ahci" in db_k:
-                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("ahci|achi", regex=True, na=False)]
-            elif "esci" in db_k:
-                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("esci", na=False)]
+            if "web of science" in db_k or "wos" in db_k:
+                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("wos|web of science|scie|ssci|ahci|achi|esci", regex=True, na=False)]
             elif "scopus" in db_k:
                 df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("scopus", na=False)]
             elif "scielo" in db_k:
@@ -909,6 +900,7 @@ def main(page: ft.Page):
     rec_resumo = ft.Ref[ft.TextField]()
     rec_gemini_key = ft.Ref[ft.TextField]()
     rec_db_dropdown = ft.Ref[ft.Dropdown]()
+    rec_ordem_dropdown = ft.Ref[ft.Dropdown]()
     rec_slider_ctrl = ft.Ref[ft.Slider]()
 
     ia_icon_src = get_image_src("target_arrow_colored.svg")
@@ -1075,14 +1067,15 @@ def main(page: ft.Page):
         lista_resultados.controls.clear()
         
         total_items = len(resultados_totais_atuais)
+        # 📌 MENSAGEM CLARA DE SEM RESULTADOS QUANDO O REFINAMENTO RETORNA 0 REGISTROS
         if total_items == 0:
             lbl_info_paginacao.value = ""
             row_paginacao_botoes.controls.clear()
             lista_resultados.controls.append(
                 ft.Container(
                     content=ft.Column([
-                        ft.Icon(ft.Icons.SEARCH_OFF, size=48, color=TEXT_MUTED),
-                        ft.Text(t("sem_resultados"), color=TEXT_MUTED, size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
+                        ft.Icon(ft.Icons.SEARCH_OFF, size=54, color=ACCENT_RED),
+                        ft.Text(t("sem_resultados"), color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto")
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                     alignment=ft.Alignment(0, 0), padding=40
                 )
@@ -1303,18 +1296,24 @@ def main(page: ft.Page):
                 limite=1000
             )
         else:
-            # 📌 RECOMENDADOR IA - FORÇA NOVA PESQUISA SEMPRE QUE O BOTÃO É CLICADO
+            # 📌 RECOMENDADOR IA - ORDENAÇÃO EXPLICITA DAS 4 OPÇÕES SOLICITADAS
             tit = rec_titulo.current.value if rec_titulo.current else ""
             res = rec_resumo.current.value if rec_resumo.current else ""
             db_sel = rec_db_dropdown.current.value if rec_db_dropdown.current else "Todas"
             limite_sel = int(rec_slider_ctrl.current.value) if rec_slider_ctrl.current else 20
+
+            ordem_rec_idx = 0
+            if rec_ordem_dropdown.current and rec_ordem_dropdown.current.value:
+                curr_opts = t("ordem_opts")
+                if rec_ordem_dropdown.current.value in curr_opts:
+                    ordem_rec_idx = curr_opts.index(rec_ordem_dropdown.current.value)
 
             if not tit.strip() and not res.strip():
                 resultados_totais_atuais = []
                 renderizar_pagina()
                 return
 
-            resultados_totais_atuais = engine.recomendar_manuscrito(titulo=tit, resumo=res, area_filtro=db_sel, limite=limite_sel)
+            resultados_totais_atuais = engine.recomendar_manuscrito(titulo=tit, resumo=res, area_filtro=db_sel, ordenacao_idx=ordem_rec_idx, limite=limite_sel)
 
         renderizar_pagina()
 
@@ -1988,7 +1987,23 @@ def main(page: ft.Page):
                 color="#FFFFFF",
                 border_radius=10,
                 width=RIGHT_COL_WIDTH,
-                text_size=12
+                text_size=12,
+                on_select=executar_pesquisa
+            )
+
+            # 📌 NOVO CONTROLADOR DE ORDENAÇÃO EXPLICITO COM AS 4 OPÇÕES SOLICITADAS
+            rec_ordem_opts = t("ordem_opts")
+            rec_ordem_dropdown_ctrl = ft.Dropdown(
+                ref=rec_ordem_dropdown,
+                options=[ft.dropdown.Option(o) for o in rec_ordem_opts],
+                value=rec_ordem_opts[0],
+                bgcolor=INPUT_BG,
+                border_color=BORDER_DARK,
+                color="#FFFFFF",
+                border_radius=10,
+                width=RIGHT_COL_WIDTH,
+                text_size=12,
+                on_select=executar_pesquisa
             )
 
             def on_slider_change(e):
@@ -2020,6 +2035,9 @@ def main(page: ft.Page):
                 ft.Container(height=8),
                 ft.Text(t("refine_targets"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto"),
                 rec_db_dropdown_ctrl,
+                ft.Container(height=4),
+                ft.Text(t("ordenar_lbl"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                rec_ordem_dropdown_ctrl,
                 ft.Container(height=4),
                 ft.Row([
                     ft.Text(t("num_recs_lbl"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True),
