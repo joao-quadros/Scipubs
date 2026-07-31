@@ -291,7 +291,7 @@ DIC_TRANSLATE = {
         "how_gemini_tit": "How to get a free Gemini key?",
         "refine_targets": "Refine Search by Database",
         "database_ia_lbl": "Database (IA)",
-        "num_recs_lbl": "Number of desired recommendations (max. 20)",
+        "num_recs_lbl": "Number of desired recommendations (max. 40)",
         "acesse_site": "Visit Website",
         "ver_h5": "View h5-Index",
         "fechar": "Close",
@@ -409,7 +409,7 @@ DIC_TRANSLATE = {
         "how_gemini_tit": "Como obter chave Gemini gratuita?",
         "refine_targets": "Refinar Pesquisa por Base de Dados",
         "database_ia_lbl": "Base de dados (IA)",
-        "num_recs_lbl": "Quantidade de recomendações desejadas (máx. 20)",
+        "num_recs_lbl": "Quantidade de recomendações desejadas (máx. 40)",
         "acesse_site": "Acesse o site",
         "ver_h5": "Ver Índice-H5",
         "fechar": "Fechar",
@@ -527,7 +527,7 @@ DIC_TRANSLATE = {
         "how_gemini_tit": "¿Cómo obtener clave Gemini gratuita?",
         "refine_targets": "Refinar Búsqueda por Base de Datos",
         "database_ia_lbl": "Bases de datos (IA)",
-        "num_recs_lbl": "Cantidad de recomendaciones deseadas (máx. 20)",
+        "num_recs_lbl": "Cantidad de recomendaciones deseadas (máx. 40)",
         "acesse_site": "Visitar sitio",
         "ver_h5": "Ver Índice-H5",
         "fechar": "Cerrar",
@@ -786,7 +786,7 @@ class SciPubsDataEngine:
             self.df = pd.DataFrame()
             self.df_original = pd.DataFrame()
 
-    def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=20):
+    def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=40):
         if self.df is None or self.df.empty:
             return []
 
@@ -1392,7 +1392,7 @@ def main(page: ft.Page):
             tit = rec_titulo.current.value if rec_titulo.current else ""
             res = rec_resumo.current.value if rec_resumo.current else ""
             db_sel = rec_db_dropdown.current.value if rec_db_dropdown.current else "Todas"
-            limite_sel = int(rec_slider_ctrl.current.value) if rec_slider_ctrl.current else 20
+            limite_sel = int(rec_slider_ctrl.current.value) if rec_slider_ctrl.current else 40
 
             ordem_rec_idx = 0
             if rec_ordem_dropdown.current and rec_ordem_dropdown.current.value:
@@ -2092,13 +2092,13 @@ def main(page: ft.Page):
                 lbl_slider.value = str(val)
                 lbl_slider.update()
 
-            lbl_slider = ft.Text("20", color=ACCENT_RED, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            lbl_slider = ft.Text("40", color=ACCENT_RED, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
             rec_slider = ft.Slider(
                 ref=rec_slider_ctrl,
                 min=1,
-                max=20,
-                divisions=19,
-                value=20,
+                max=40,
+                divisions=39,
+                value=40,
                 active_color=ACCENT_RED,
                 on_change=on_slider_change
             )
