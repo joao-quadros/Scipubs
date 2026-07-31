@@ -332,8 +332,8 @@ DIC_TRANSLATE = {
         ],
         "areas": ["All", "Exact and Earth Sciences", "Biological Sciences", "Engineering", "Health Sciences", "Agricultural Sciences", "Applied Social Sciences", "Human Sciences", "Linguistics, Letters and Arts"],
         "ordem_opts": [
-            "% Match (highest to lowest)",
             "% Acceptance Probability (highest to lowest)",
+            "% Match (highest to lowest)",
             "Title (A-Z)",
             "Title (Z-A)"
         ]
@@ -450,8 +450,8 @@ DIC_TRANSLATE = {
         ],
         "areas": ["Todas", "Ciências Exatas e da Terra", "Ciências Biológicas", "Engenharias", "Ciências da Saúde", "Ciências Agrárias", "Ciências Sociais Aplicadas", "Ciências Humanas", "Linguística, Letras e Artes"],
         "ordem_opts": [
-            "% de Match (maior para o menor)",
             "% Probabilidade de aceitação (maior para a menor)",
+            "% de Match (maior para o menor)",
             "Título (A-Z)",
             "Título (Z-A)"
         ]
@@ -568,8 +568,8 @@ DIC_TRANSLATE = {
         ],
         "areas": ["Todas", "Ciencias Exactas y de la Tierra", "Ciencias Biológicas", "Ingenierías", "Ciencias de la Salud", "Ciencias Agrarias", "Ciencias Sociales Aplicadas", "Ciencias Humanas", "Lingüística, Letras y Artes"],
         "ordem_opts": [
-            "% de Match (mayor a menor)",
             "% Probabilidad de aceptación (mayor a menor)",
+            "% de Match (mayor a menor)",
             "Título (A-Z)",
             "Título (Z-A)"
         ]
@@ -878,11 +878,11 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        # 📌 ORDENAÇÃO MULTINÍVEL
+        # 📌 ORDENAÇÃO MULTINÍVEL (PADRÃO = PROBABILIDADE DE ACEITAÇÃO)
         if ordenacao_idx == 0:
-            df_sorted = df_calc.sort_values(by=["Score_final", "fator_impacto", "S_text"], ascending=[False, False, False])
-        elif ordenacao_idx == 1:
             df_sorted = df_calc.sort_values(by=["Prob_aceitacao", "Score_final", "fator_impacto"], ascending=[False, False, False])
+        elif ordenacao_idx == 1:
+            df_sorted = df_calc.sort_values(by=["Score_final", "fator_impacto", "S_text"], ascending=[False, False, False])
         elif ordenacao_idx == 2:
             df_sorted = df_calc.sort_values(by="titulo", ascending=True)
         elif ordenacao_idx == 3:
