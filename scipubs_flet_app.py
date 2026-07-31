@@ -608,6 +608,49 @@ def get_s_index(indexer_str):
     if "educ@" in tokens or "educa" in tokens: scores.append(0.4)
     return max(scores)
 
+def identificar_grandes_areas(titulo, resumo):
+    text = f"{titulo} {resumo}".lower()
+    scores = {
+        "Linguística, Letras e Artes": 0,
+        "Ciências Humanas": 0,
+        "Ciências Sociais Aplicadas": 0,
+        "Ciências da Saúde": 0,
+        "Ciências Biológicas": 0,
+        "Ciências Exatas e da Terra": 0,
+        "Engenharias": 0,
+        "Ciências Agrárias": 0
+    }
+    art_keywords = ["música", "music", "arte", "art", "teatro", "dança", "cinema", "filologia", "literatura", "linguagem", "linguística", "linguistics", "letras", "poesia", "estética"]
+    hum_keywords = ["educação", "education", "ensino", "pedagogia", "didática", "história", "history", "geografia", "psicologia", "psychology", "sociologia", "antropologia", "teologia", "filosofia", "humanização", "freire", "escola", "estudantes", "alunos"]
+    soc_keywords = ["direito", "law", "administração", "management", "economia", "economics", "contabilidade", "jornalismo", "comunicação", "arquitetura", "urbanismo", "turismo", "políticas públicas"]
+    health_keywords = ["saúde", "health", "médica", "medicine", "clínica", "hospital", "paciente", "doença", "tratamento", "terapia", "enfermagem", "farmácia", "odontologia", "nutrição", "nefrologia", "diálise", "transplante"]
+    bio_keywords = ["biologia", "biology", "genética", "genetics", "proteína", "célula", "cell", "dna", "rna", "evolução", "espécie", "botânica", "zoologia", "fisiologia", "veterinária"]
+    exact_keywords = ["matemática", "physics", "física", "química", "chemistry", "computação", "computer", "software", "algoritmo", "dados", "geologia", "astronomia", "estatística"]
+    eng_keywords = ["engenharia", "engineering", "tecnologia", "sistema", "materiais", "infraestrutura", "mecânica", "elétrica", "civil"]
+    agri_keywords = ["agricultura", "agronomia", "florestal", "agropecuária", "veterinária", "zootecnia", "solo", "cultivo"]
+    
+    for kw in art_keywords:
+        if kw in text: scores["Linguística, Letras e Artes"] += 2
+    for kw in hum_keywords:
+        if kw in text: scores["Ciências Humanas"] += 2
+    for kw in soc_keywords:
+        if kw in text: scores["Ciências Sociais Aplicadas"] += 1
+    for kw in health_keywords:
+        if kw in text: scores["Ciências da Saúde"] += 1
+    for kw in bio_keywords:
+        if kw in text: scores["Ciências Biológicas"] += 1
+    for kw in exact_keywords:
+        if kw in text: scores["Ciências Exatas e da Terra"] += 1
+    for kw in eng_keywords:
+        if kw in text: scores["Engenharias"] += 1
+    for kw in agri_keywords:
+        if kw in text: scores["Ciências Agrárias"] += 1
+            
+    max_score = max(scores.values())
+    if max_score == 0:
+        return ["Ciências Humanas"]
+    return [area for area, sc in scores.items() if sc >= max_score - 2 and sc > 0]
+
 @functools.lru_cache(maxsize=1)
 def carregar_modelo_transformer():
     if not HAS_SENTENCE_TRANSFORMERS or SentenceTransformer is None:
@@ -751,22 +794,32 @@ class SciPubsDataEngine:
         texto_trilingue = expandir_texto_trilingue(f"{titulo} {resumo}")
         texto_artigo = f"{titulo} {titulo} {titulo} {resumo} {texto_trilingue}"
 
-        df_calc = self.df.copy()
+        # 🎯 FILTRAGEM PRÉVIA PELO GRUPO PRINCIPAL (REGRA C & OTIMIZAÇÃO DE MEMÓRIA DE 50% RAM)
+        areas_detectadas = identificar_grandes_areas(titulo, resumo)
+        mask_grupo = self.df["grande_area"].apply(
+            lambda x: any(area.lower() in str(x).lower() for area in areas_detectadas)
+        )
+        df_grupo = self.df[mask_grupo].copy()
+        if len(df_grupo) == 0:
+            df_calc = self.df.copy()
+            indices_validos = list(range(len(self.df)))
+        else:
+            df_calc = df_grupo.copy()
+            indices_validos = df_calc.index.tolist()
 
-        # 1. CÁLCULO DE SIMILARIDADE DENSA (SENTENCETRANSFORMER)
+        # 1. CÁLCULO DE SIMILARIDADE DENSA (SENTENCETRANSFORMER SOBRE O SUB-ESPAÇO FILTRADO)
         if self.transformer_model is not None and self.dense_embeddings is not None:
             vec_dense = self.transformer_model.encode([texto_artigo], convert_to_numpy=True)
-            n_rows = len(df_calc)
-            emb_subset = self.dense_embeddings[:n_rows]
+            emb_subset = self.dense_embeddings[indices_validos]
             sim_dense = cosine_similarity(vec_dense, emb_subset).flatten()
             sim_dense = np.nan_to_num(sim_dense, nan=0.0)
         else:
             sim_dense = np.zeros(len(df_calc))
 
-        # 2. CÁLCULO DE SIMILARIDADE ESPARSA (TF-IDF)
-        if self.vectorizer is not None:
+        # 2. CÁLCULO DE SIMILARIDADE ESPARSA (TF-IDF SOBRE O SUB-ESPAÇO FILTRADO)
+        if self.vectorizer is not None and self.tfidf_matrix is not None:
             vec_sparse = self.vectorizer.transform([texto_artigo])
-            sim_sparse = cosine_similarity(vec_sparse, self.tfidf_matrix).flatten()
+            sim_sparse = cosine_similarity(vec_sparse, self.tfidf_matrix[indices_validos]).flatten()
             sim_sparse = np.nan_to_num(sim_sparse, nan=0.0)
         else:
             sim_sparse = np.zeros(len(df_calc))
