@@ -2123,3 +2123,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
     ft.app(main, assets_dir=ICONS_DIR, host=host, port=port, view=ft.AppView.WEB_BROWSER)
+
+# DEPLOY_VER = 2026_07_31_v3
