@@ -567,8 +567,8 @@ BASES_DADOS_OPCOES = [
     "Educ@"
 ]
 
-# 🏛️ 8 ÁREAS DE CONHECIMENTO OFICIAIS DO CNPQ
-CNPQ_AREAS_NORM = [
+# 🏛️ AS 9 GRANDES ÁREAS OFICIAIS DO CNPQ
+CNPQ_9_GRANDES_AREAS = [
     "ciencias exatas e da terra",
     "ciencias biologicas",
     "engenharias",
@@ -576,27 +576,55 @@ CNPQ_AREAS_NORM = [
     "ciencias agrarias",
     "ciencias sociais aplicadas",
     "ciencias humanas",
-    "linguistica, letras e artes"
+    "linguistica, letras e artes",
+    "multidisciplinar"
 ]
 
-# 🏛️ DEFINIÇÃO DOS 3 GRANDES GRUPOS MACRO DE ÁREAS DE CONHECIMENTO
-MACRO_MAP = {
-    "EXATAS_TECNOLOGICAS": ["engenharias", "ciencias exatas e da terra"],
+# 🏛️ OS 3 GRUPOS DE ÁREA
+GRUPO_MAP = {
+    "EXATAS_TECNOLOGICAS": ["ciencias exatas e da terra", "engenharias"],
     "VIDA_SAUDE": ["ciencias biologicas", "ciencias da saude", "ciencias agrarias"],
     "HUMANAS_SOCIAIS": ["ciencias humanas", "ciencias sociais aplicadas", "linguistica, letras e artes"]
 }
 
-def extrair_areas_cnpq(row):
-    comb_norm = normalizar_texto(str(row.get("grande_area", "")) + " " + str(row.get("area", "")) + " " + str(row.get("categoria", "")))
-    areas_encontradas = set()
-    for a in CNPQ_AREAS_NORM:
-        if a in comb_norm:
-            areas_encontradas.add(a)
-    return areas_encontradas, comb_norm
+def extrair_grandes_areas(row):
+    g_norm = normalizar_texto(str(row.get("grande_area", "")))
+    c_norm = normalizar_texto(str(row.get("categoria", "")) + " " + str(row.get("area", "")))
+    found = set()
+    for ga in CNPQ_9_GRANDES_AREAS[:-1]:
+        if ga in g_norm or ga in c_norm:
+            found.add(ga)
+    if "multidisciplinar" in g_norm or "multidisciplinar" in c_norm or "outras" in g_norm or len(found) > 1 or len(found) == 0:
+        found.add("multidisciplinar")
+    return found
 
-def detectar_grupo_e_area_primaria(texto):
+# 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (55% / 30% / 15%)
+def calcular_peso_grande_area(row, ga_principal, grupo_principal):
+    gas_row = extrair_grandes_areas(row)
+    if ga_principal in gas_row:
+        return 0.55, 1
+    if grupo_principal in GRUPO_MAP:
+        for sibling_ga in GRUPO_MAP[grupo_principal]:
+            if sibling_ga in gas_row:
+                return 0.30, 2
+    if "multidisciplinar" in gas_row:
+        return 0.15, 3
+    return 0.0, 4
+
+# 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (50% / 30% / 15% / 5%)
+def calcular_peso_area_conhecimento(s_text, tier_ga):
+    if tier_ga == 1 and s_text >= 0.25:
+        return 0.50  # 1ª Área de Maior Afinidade Direta (50%)
+    elif tier_ga <= 2 and s_text >= 0.15:
+        return 0.30  # Segunda área de maior afinidade (30%)
+    elif tier_ga <= 3 and s_text >= 0.08:
+        return 0.15  # Terceira área de maior afinidade (15%)
+    else:
+        return 0.05  # Demais áreas (5%)
+
+def detectar_hierarquia_manuscrito(texto):
     norm = normalizar_texto(texto)
-    scores_cnpq = {
+    scores_ga = {
         "linguistica, letras e artes": sum(1 for w in ["musica", "music", "artes", "arts", "letras", "linguistica", "teatro", "cinema", "literatura", "philology"] if w in norm),
         "ciencias humanas": sum(1 for w in ["educacao", "education", "pedagogia", "historia", "history", "filosofia", "sociologia", "psicologia", "ensino"] if w in norm),
         "ciencias sociais aplicadas": sum(1 for w in ["direito", "law", "administracao", "gestao", "management", "economia", "comunicacao", "jornalismo"] if w in norm),
@@ -606,40 +634,18 @@ def detectar_grupo_e_area_primaria(texto):
         "ciencias biologicas": sum(1 for w in ["biologia", "biology", "genetica", "ecologia", "zoologia", "botanica", "biomedicina"] if w in norm),
         "ciencias agrarias": sum(1 for w in ["agronomia", "veterinaria", "zootecnia", "florestal", "agricola", "solos"] if w in norm)
     }
-    
-    area_primaria = max(scores_cnpq, key=scores_cnpq.get)
-    if scores_cnpq[area_primaria] == 0:
-        area_primaria = "ciencias humanas"
+    ga_principal = max(scores_ga, key=scores_ga.get)
+    if scores_ga[ga_principal] == 0:
+        ga_principal = "ciencias humanas"
 
-    if area_primaria in MACRO_MAP["HUMANAS_SOCIAIS"]:
-        grupo_macro = "HUMANAS_SOCIAIS"
-    elif area_primaria in MACRO_MAP["EXATAS_TECNOLOGICAS"]:
-        grupo_macro = "EXATAS_TECNOLOGICAS"
+    if ga_principal in GRUPO_MAP["HUMANAS_SOCIAIS"]:
+        grupo_principal = "HUMANAS_SOCIAIS"
+    elif ga_principal in GRUPO_MAP["EXATAS_TECNOLOGICAS"]:
+        grupo_principal = "EXATAS_TECNOLOGICAS"
     else:
-        grupo_macro = "VIDA_SAUDE"
+        grupo_principal = "VIDA_SAUDE"
 
-    return grupo_macro, area_primaria
-
-# 📌 REGRA DE OURO DA AFINIDADE POR ÁREAS DO CNPQ (55% / 30% / 15%)
-def classificar_afinidade_5_regras(row, grupo_macro, area_primaria):
-    areas_cnpq, comb_norm = extrair_areas_cnpq(row)
-    
-    # 📌 REGRA 4: Periódicos associados a mais de uma área ou 'multidisciplinar' (15%) - Tier 3
-    if len(areas_cnpq) > 1 or "multidisciplinar" in comb_norm or len(areas_cnpq) == 0:
-        return "MULTIDISCIPLINAR", 0.15, 3
-
-    # 📌 REGRA 2: Área de Maior Afinidade Direta (55%) - Tier 1
-    if area_primaria in areas_cnpq:
-        return "AREA_PRINCIPAL", 0.55, 1
-
-    # 📌 REGRA 2: Demais Áreas do mesmo Grupo Macro (30%) - Tier 2
-    if grupo_macro in MACRO_MAP:
-        for a_sibling in MACRO_MAP[grupo_macro]:
-            if a_sibling in areas_cnpq:
-                return "DEMAIS_AREAS_GRUPO", 0.30, 2
-
-    # 📌 REGRA 5: Grupos Distantes (Bloqueado / Evitar) - Tier 4
-    return "GRUPO_DISTANTE", 0.0, 4
+    return grupo_principal, ga_principal
 
 class SciPubsDataEngine:
     """Motor de Dados e Algoritmo de Recomendação por IA do SciPubs"""
@@ -775,17 +781,16 @@ class SciPubsDataEngine:
         df_calc["S_text"] = similarities
         df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
 
-        # 📌 REGRAS 1 E 2: DETECÇÃO DO GRUPO MACRO E ÁREA PRIMÁRIA DE MAIOR AFINIDADE
-        grupo_macro, area_primaria = detectar_grupo_e_area_primaria(texto_artigo)
+        # 📌 DETECÇÃO HIERÁRQUICA: ÁREA DE CONHECIMENTO, 9 GRANDES ÁREAS E 3 GRUPOS DE ÁREA
+        grupo_principal, ga_principal = detectar_hierarquia_manuscrito(texto_artigo)
 
-        # 📌 REGRA DE OURO DA AFINIDADE (55% ÁREA PRINCIPAL, 30% DEMAIS ÁREAS DO GRUPO, 15% MULTIDISCIPLINAR)
-        df_calc["afinidade_info"] = df_calc.apply(lambda r: classificar_afinidade_5_regras(r, grupo_macro, area_primaria), axis=1)
-        df_calc["tier_nome"] = df_calc["afinidade_info"].apply(lambda x: x[0])
-        df_calc["peso_afinidade"] = df_calc["afinidade_info"].apply(lambda x: x[1])
-        df_calc["tier_num"] = df_calc["afinidade_info"].apply(lambda x: x[2])
+        # 📌 REGRA (b): PONDERAÇÃO POR GRANDE ÁREA (55% / 30% / 15%)
+        df_calc["ga_info"] = df_calc.apply(lambda r: calcular_peso_grande_area(r, ga_principal, grupo_principal), axis=1)
+        df_calc["peso_ga"] = df_calc["ga_info"].apply(lambda x: x[0])
+        df_calc["tier_ga"] = df_calc["ga_info"].apply(lambda x: x[1])
 
-        # 📌 REGRA 5: BLOQUEIO EXCLUSIVO DE GRUPOS DISTANTES (EXCLUI TIER 4)
-        df_calc = df_calc[df_calc["tier_num"] < 4].copy()
+        # 📌 REGRA (a): PONDERAÇÃO POR ÁREA DE CONHECIMENTO (50% / 30% / 15% / 5%)
+        df_calc["peso_area"] = df_calc.apply(lambda r: calcular_peso_area_conhecimento(r["S_text"], r["tier_ga"]), axis=1)
 
         # 📌 REFINAMENTO DE BUSCA POR BASE DE DADOS
         if area_filtro and area_filtro not in ["Todas", "All"]:
@@ -799,8 +804,12 @@ class SciPubsDataEngine:
             elif "educ" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("educa|educ@", regex=True, na=False)]
 
-        # 📌 CÁLCULO PONDERADO DO MATCH FINAL (50% SEMÂNTICA, 30% PONDERADOR DE AFINIDADE DO CNPQ, 20% INDEXADORES)
-        df_calc["Score_final"] = (0.50 * df_calc["S_text"] + 0.30 * df_calc["peso_afinidade"] + 0.20 * df_calc["S_index"]) * 100.0
+        # 📌 CÁLCULO PONDERADO FINAL DO MATCH
+        df_calc["Score_final"] = (
+            0.40 * df_calc["S_text"] +
+            0.35 * df_calc["peso_ga"] +
+            0.25 * df_calc["peso_area"]
+        ) * 100.0
 
         # 📌 CÁLCULO DA PROBABILIDADE PROXY DE ACEITAÇÃO (%)
         def calcular_prob_aceitacao(row):
@@ -817,30 +826,34 @@ class SciPubsDataEngine:
 
         df_calc["Prob_aceitacao"] = df_calc.apply(calcular_prob_aceitacao, axis=1)
 
-        # 📌 REGRAS 3 E 4: CASCATA DE SELEÇÃO POR TIER (TIER 1 -> TIER 2 -> TIER 3)
-        t1 = df_calc[df_calc["tier_num"] == 1]
-        t2 = df_calc[df_calc["tier_num"] == 2]
-        t3 = df_calc[df_calc["tier_num"] == 3]
+        # 📌 REGRA (c): PESQUISA RESTREITA EXCLUSIVAMENTE AO GRUPO PRINCIPAL (AMPLIA Apenas Se Faltar Resultados)
+        df_grupo_principal = df_calc[df_calc["tier_ga"] < 4].copy()
 
         if ordenacao_idx == 0:
-            t1 = t1.sort_values(by="Score_final", ascending=False)
-            t2 = t2.sort_values(by="Score_final", ascending=False)
-            t3 = t3.sort_values(by="Score_final", ascending=False)
+            df_grupo_principal = df_grupo_principal.sort_values(by="Score_final", ascending=False)
         elif ordenacao_idx == 1:
-            t1 = t1.sort_values(by="Prob_aceitacao", ascending=False)
-            t2 = t2.sort_values(by="Prob_aceitacao", ascending=False)
-            t3 = t3.sort_values(by="Prob_aceitacao", ascending=False)
+            df_grupo_principal = df_grupo_principal.sort_values(by="Prob_aceitacao", ascending=False)
         elif ordenacao_idx == 2:
-            t1 = t1.sort_values(by="titulo", ascending=True)
-            t2 = t2.sort_values(by="titulo", ascending=True)
-            t3 = t3.sort_values(by="titulo", ascending=True)
+            df_grupo_principal = df_grupo_principal.sort_values(by="titulo", ascending=True)
         elif ordenacao_idx == 3:
-            t1 = t1.sort_values(by="titulo", ascending=False)
-            t2 = t2.sort_values(by="titulo", ascending=False)
-            t3 = t3.sort_values(by="titulo", ascending=False)
+            df_grupo_principal = df_grupo_principal.sort_values(by="titulo", ascending=False)
 
-        df_sorted = pd.concat([t1, t2, t3])
-        return df_sorted.head(limite).to_dict(orient="records")
+        if len(df_grupo_principal) >= limite:
+            res_final = df_grupo_principal.head(limite)
+        else:
+            # Ampliação condicional somente se faltarem periódicos no grupo principal
+            df_outros = df_calc[df_calc["tier_ga"] == 4].copy()
+            if ordenacao_idx == 0:
+                df_outros = df_outros.sort_values(by="Score_final", ascending=False)
+            elif ordenacao_idx == 1:
+                df_outros = df_outros.sort_values(by="Prob_aceitacao", ascending=False)
+            elif ordenacao_idx == 2:
+                df_outros = df_outros.sort_values(by="titulo", ascending=True)
+            elif ordenacao_idx == 3:
+                df_outros = df_outros.sort_values(by="titulo", ascending=False)
+            res_final = pd.concat([df_grupo_principal, df_outros]).head(limite)
+
+        return res_final.to_dict(orient="records")
 
     def buscar_geral(self, termo="", grande_area="Todas", base_dados="Todas", quartil_jcr="Todos", quartil_sjr="Todos", ordenacao="titulo_asc", limite=1000):
         if self.df is None or self.df.empty:
@@ -1068,7 +1081,7 @@ def main(page: ft.Page):
         if df_export.empty and resultados_totais_atuais:
             df_export = pd.DataFrame(resultados_totais_atuais[:200])
 
-        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao", "afinidade_info", "tier_nome", "peso_afinidade", "tier_num"]
+        colunas_auxiliares = ["search_text", "S_text", "S_index", "Score_final", "jif_num", "sjr_num", "h_num", "Prob_aceitacao", "ga_info", "peso_ga", "tier_ga", "peso_area"]
         df_export = df_export.drop(columns=[c for c in colunas_auxiliares if c in df_export.columns], errors="ignore")
 
         fname = f"scipubs_export_{int(time.time())}.{'csv' if formato == 'csv' else 'xlsx'}"
