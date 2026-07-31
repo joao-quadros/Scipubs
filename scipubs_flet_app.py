@@ -61,42 +61,6 @@ def get_banner_src(idioma="English"):
     return get_image_src(fname)
 
 # ==========================================
-# 🔤 DETALHAMENTO EXPLÍCITO DAS VARIAÇÕES WEB OF SCIENCE
-# ==========================================
-def formatar_indexadores_wos(indexador_str):
-    if not indexador_str or str(indexador_str).strip() in ["-", "None", "nan", ""]:
-        return "-"
-    
-    idx_str = str(indexador_str).strip()
-    idx_lower = idx_str.lower()
-
-    wos_vars = []
-    if "scie" in idx_lower or "science citation index expanded" in idx_lower:
-        wos_vars.append("SCIE")
-    if "ssci" in idx_lower or "social sciences citation index" in idx_lower:
-        wos_vars.append("SSCI")
-    if "ahci" in idx_lower or "achi" in idx_lower or "arts & humanities" in idx_lower:
-        wos_vars.append("AHCI")
-    if "esci" in idx_lower or "emerging sources" in idx_lower:
-        wos_vars.append("ESCI")
-
-    if ("wos" in idx_lower or "web of science" in idx_lower) and not wos_vars:
-        wos_vars.append("Main Collection")
-
-    if wos_vars:
-        vars_join = ", ".join(wos_vars)
-        wos_tag = f"Web of Science ({vars_join})"
-        clean = re.sub(r'web of science\s*\(?\s*\)?', '', idx_str, flags=re.IGNORECASE)
-        clean = re.sub(r'\b(scie|ssci|ahci|esci)\b', '', clean, flags=re.IGNORECASE)
-        clean = re.sub(r'[\(\)\-\:\;]', ' ', clean)
-        parts = [p.strip() for p in clean.split(",") if p.strip()]
-        other_parts = [p for p in parts if p.lower() not in ["wos", "web of science", ""]]
-        res = [wos_tag] + other_parts
-        return ", ".join(dict.fromkeys(res))
-        
-    return idx_str
-
-# ==========================================
 # 🔤 CORREÇÃO ORTOGRÁFICA E BUSCA BOOLEANA MULTILÍNGUE
 # ==========================================
 REGRAS_ORTOGRAFIA = [
@@ -770,11 +734,11 @@ class SciPubsDataEngine:
         df_calc["S_index"] = df_calc["indexador"].apply(self.get_s_index)
         df_calc["Score_final"] = (0.80 * df_calc["S_text"] + 0.20 * df_calc["S_index"]) * 100
 
-        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (AGRUPADO: Web of Science)
+        # 📌 1. REFINAMENTO DE BUSCA POR BASE DE DADOS (AUTÊNTICO DO DADOS.CSV)
         if area_filtro and area_filtro not in ["Todas", "All"]:
             db_k = area_filtro.lower()
             if "web of science" in db_k or "wos" in db_k:
-                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("wos|web of science|scie|ssci|ahci|achi|esci", regex=True, na=False)]
+                df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("web of science|wos", regex=True, na=False)]
             elif "scopus" in db_k:
                 df_calc = df_calc[df_calc["indexador"].astype(str).str.lower().str.contains("scopus", na=False)]
             elif "scielo" in db_k:
@@ -839,7 +803,7 @@ class SciPubsDataEngine:
         if base_dados and base_dados not in ["Todas", "All"]:
             db_k = base_dados.lower()
             if "web of science" in db_k or "wos" in db_k:
-                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("wos|web of science|scie|ssci|ahci|achi|esci", regex=True, na=False)]
+                df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("web of science|wos", regex=True, na=False)]
             elif "scopus" in db_k:
                 df_filtered = df_filtered[df_filtered["indexador"].astype(str).str.lower().str.contains("scopus", na=False)]
             elif "scielo" in db_k:
@@ -1201,9 +1165,9 @@ def main(page: ft.Page):
             cat_item = item.get("categoria", "-")
             if not cat_item or cat_item in ["", "nan", "None"]: cat_item = t("multidisciplinar")
 
-            # 📌 INDEXADORES DETALHADOS COM INDICAÇÃO EXPLÍCITA DAS VARIAÇÕES WEB OF SCIENCE
-            indexadores_raw = item.get("indexador", t("nao_informado"))
-            indexadores = formatar_indexadores_wos(indexadores_raw)
+            # 📌 INDEXADORES 100% FIÉIS AO BANCO DADOS.CSV (SEM REESCRITA OU INVENÇÃO DE DADOS)
+            indexadores = item.get("indexador", t("nao_informado"))
+            if not indexadores or str(indexadores).strip() in ["", "nan", "None"]: indexadores = t("nao_informado")
 
             fator = item.get("jif", "-")
             q_jcr = item.get("quartil_jcr", "-")
