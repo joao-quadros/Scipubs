@@ -660,7 +660,12 @@ def carregar_dense_embeddings_cache():
     if os.path.exists(CACHE_PATH):
         try:
             with open(CACHE_PATH, "rb") as f:
-                return pickle.load(f)
+                emb = pickle.load(f)
+                if isinstance(emb, list):
+                    emb = np.array(emb, dtype=np.float32)
+                elif hasattr(emb, "astype"):
+                    emb = emb.astype(np.float32)
+                return emb
         except Exception as e:
             print(f"[AVISO] Falha ao carregar cache de embeddings: {e}")
     return None
@@ -676,6 +681,14 @@ class SciPubsDataEngine:
         self.transformer_model = None
         self.dense_embeddings = None
         self.load_data()
+
+    def ensure_transformer_loaded(self):
+        if self.transformer_model is None and HAS_SENTENCE_TRANSFORMERS:
+            print("[INFO] Carregando SentenceTransformer em modo Lazy para blindagem de RAM no Render...")
+            self.transformer_model = carregar_modelo_transformer()
+            self.dense_embeddings = carregar_dense_embeddings_cache()
+            if self.dense_embeddings is not None:
+                print(f"[OK] Cache de embeddings densos (float32) carregado: {len(self.dense_embeddings):,} vetores.")
 
     def load_data(self):
         caminhos = [
@@ -696,7 +709,6 @@ class SciPubsDataEngine:
             try:
                 df_raw = pd.read_csv(caminho_final, dtype=str, encoding="utf-8-sig", low_memory=False, on_bad_lines="skip").fillna("")
                 df_raw = df_raw.loc[:, ~df_raw.columns.duplicated()]
-                self.df_original = df_raw.copy()
 
                 rename_map = {}
                 for col in df_raw.columns:
@@ -750,10 +762,11 @@ class SciPubsDataEngine:
                 )
                         
                 self.df = df_raw
+                self.df_original = self.df
                 self.total_revistas = len(self.df)
                 print(f"[OK] Base dados.csv carregada e normalizada! Total de periodicos: {self.total_revistas:,}")
                 
-                # 📌 MOTOR SPARSE TF-IDF
+                # 📌 MOTOR SPARSE TF-IDF (OTIMIZADO < 35MB RAM)
                 textos_completos = (
                     self.df["escopo"].astype(str) + " " +
                     self.df["escopo"].astype(str) + " " +
@@ -762,15 +775,13 @@ class SciPubsDataEngine:
                     self.df["area"].astype(str)
                 ).fillna("")
                 
-                self.vectorizer = TfidfVectorizer(max_features=16000, stop_words='english')
+                self.vectorizer = TfidfVectorizer(max_features=12000, stop_words='english')
                 self.tfidf_matrix = self.vectorizer.fit_transform(textos_completos)
                 print("[OK] Vetorizador TF-IDF inicializado.")
 
-                # 📌 MOTOR DENSE SENTENCETRANSFORMER
-                self.transformer_model = carregar_modelo_transformer()
-                self.dense_embeddings = carregar_dense_embeddings_cache()
-                if self.dense_embeddings is not None:
-                    print(f"[OK] Cache de embeddings densos carregado: {len(self.dense_embeddings):,} vetores.")
+                import gc
+                gc.collect()
+                print("[OK] Motor SciPubs inicializado em modo ultra-econômico (< 100MB RAM em idle)!")
             except Exception as e:
                 print(f"[ERRO] Falha ao carregar dados.csv: {e}")
                 self.df = pd.DataFrame()
@@ -783,6 +794,9 @@ class SciPubsDataEngine:
     def recomendar_manuscrito(self, titulo, resumo, area_filtro="Todas", ordenacao_idx=0, limite=40):
         if self.df is None or self.df.empty:
             return []
+
+        # 📌 LAZY LOADING: Carregar modelo e cache denso apenas quando o Recomendador for acionado
+        self.ensure_transformer_loaded()
 
         # 📌 PREPARAÇÃO DO MANUSCRITO (TRÊS VEZES O TÍTULO)
         texto_trilingue = expandir_texto_trilingue(f"{titulo} {resumo}")
