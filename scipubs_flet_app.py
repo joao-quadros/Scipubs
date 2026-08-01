@@ -1440,59 +1440,60 @@ def main(page: ft.Page):
                     border=ft.Border.all(1, "#059669")
                 )
 
-            # 🎨 Formatação dos Cartões idêntica à imagem de referência do usuário (media__1785557464959.jpg)
-            qualis_label = f"Qualis {cat_item}" if cat_item != "-" else f"Qualis {area_item}"
-            qualis_badge = ft.Container(
-                content=ft.Text(qualis_label, color="#FFFFFF", size=11, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-                bgcolor="#DC2626",
-                padding=ft.Padding(8, 3, 8, 3),
-                border_radius=12
-            )
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
+            # 🎨 Título da revista em destaque (fonte maior 18 bold) + ISSN ao lado
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=13, font_family="Roboto")
 
-            top_tag_row = ft.Row([
-                ft.Row([chk_item, qualis_badge], spacing=6),
+            title_row = ft.Row([
+                ft.Row([chk_item, title_txt], spacing=8, expand=True),
                 issn_txt
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-            title_txt = ft.Container(
-                content=ft.Text(titulo_p, color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p),
-                tooltip=t("acesse_site")
-            )
-
-            area_row = ft.Row([
-                ft.Icon(ft.Icons.FOLDER, color="#EAB308", size=14),
-                ft.Text(f"Area: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
-            ], spacing=6)
-
-            h5_link_txt = ft.Container(
-                content=ft.Row([
-                    ft.Text("h5: ", color="#F59E0B", size=11, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-                    ft.Text(h5_url, color="#EAB308", size=11, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=1)
-                ], spacing=2),
-                expand=True,
-                on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p),
-                tooltip="Abrir H5-Index no Google Scholar"
-            )
-
-            jif_txt = ft.Text(f"Impacto JIF: {fator}", color="#94A3B8", size=12, font_family="Roboto")
-
-            btn_detalhes = ft.Container(
-                content=ft.Text("Ver Detalhes >", color="#3B82F6", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+            # 🎨 Botão para Acessar o Site Oficial da Revista
+            btn_site_oficial = ft.Button(
+                "🌐 Acessar Site Oficial da Revista",
+                style=ft.ButtonStyle(
+                    color="#38BDF8",
+                    bgcolor="#0F172A",
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    side=ft.BorderSide(1, "#1E2A42"),
+                    padding=ft.Padding(12, 6, 12, 6)
+                ),
                 on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            bottom_metrics_row = ft.Row([
-                h5_link_txt,
-                jif_txt,
-                btn_detalhes
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=12)
+            # 🎨 Grande Área e Área de Conhecimento
+            area_info_txt = ft.Text(f"Grande Área: {g_area}   |   Área de Conhecimento: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
+
+            # 🎨 Métricas de Impacto em VERMELHO e tamanho MAIOR (size 15 BOLD) na mesma linha
+            metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
+            metrics_txt = ft.Text(metrics_str, color=ACCENT_RED, size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
+
+            # 🎨 Botão "Acessar Índice H5" (mantido em formato de botão)
+            btn_h5 = ft.Button(
+                "Acessar Índice H5",
+                icon=ft.Icons.TRACK_CHANGES,
+                style=ft.ButtonStyle(
+                    color=GOLD_YELLOW,
+                    bgcolor="#0F172A",
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    side=ft.BorderSide(1, GOLD_YELLOW),
+                    padding=ft.Padding(12, 6, 12, 6)
+                ),
+                on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
+            )
+
+            metrics_row = ft.Row([
+                metrics_txt,
+                btn_h5
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             card_controls = [
-                top_tag_row,
-                title_txt,
-                area_row
+                title_row,
+                btn_site_oficial,
+                area_info_txt,
+                ft.Container(height=2),
+                metrics_row
             ]
 
             if badge_score or badge_prob:
@@ -1503,17 +1504,12 @@ def main(page: ft.Page):
                     ], spacing=6)
                 )
 
-            card_controls.extend([
-                ft.Container(height=2),
-                bottom_metrics_row
-            ])
-
             card = ft.Container(
                 bgcolor="#0B132B",
-                border_radius=10,
+                border_radius=12,
                 padding=14,
                 border=ft.Border.all(1, "#1E293B"),
-                content=ft.Column(card_controls, spacing=6)
+                content=ft.Column(card_controls, spacing=8)
             )
             lista_resultados.controls.append(card)
 
