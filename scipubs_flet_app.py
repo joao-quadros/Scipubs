@@ -101,8 +101,17 @@ def get_image_src(nome_arquivo):
         return nome_arquivo
     return "logo.png"
 
-def get_banner_src(idioma="English"):
-    return get_image_src("logo_capa.png")
+def get_banner_src(idioma="English", is_mobile=False):
+    if is_mobile:
+        return get_image_src("logo_capa.png")
+    
+    if idioma == "English":
+        fname = "banner_en.png"
+    elif idioma == "Español":
+        fname = "banner_es.png"
+    else:
+        fname = "banner_pt.png"
+    return get_image_src(fname)
 
 REGRAS_ORTOGRAFIA = [
     (r'\bEducacao\b', 'Educação'),
@@ -2323,13 +2332,28 @@ def main(page: ft.Page):
             else:
                 form_container.content = ft.Row([left_col, right_col], spacing=24, vertical_alignment=ft.CrossAxisAlignment.START)
 
+        hero_banner_img.src = get_banner_src(idioma_atual, is_mobile=is_mobile)
+
         if is_mobile:
+            hero_banner_img.fit = "contain"
+            hero_banner_img.aspect_ratio = None
+            hero_card.border = ft.Border.all(1, BORDER_DARK)
+            hero_card.padding = 4
             btn_doar.style.bgcolor = "#059669"
             btn_doar.style.color = "#FFFFFF"
             btn_inscrever.style.bgcolor = "#2563EB"
             btn_inscrever.style.color = "#FFFFFF"
             action_buttons_row.controls = [btn_doar, btn_inscrever]
         else:
+            hero_banner_img.fit = "fill"
+            hero_banner_img.aspect_ratio = 1024 / 323
+            hero_card.border = ft.Border(
+                left=ft.BorderSide(6, ACCENT_RED),
+                top=ft.BorderSide(1, BORDER_DARK),
+                right=ft.BorderSide(1, BORDER_DARK),
+                bottom=ft.BorderSide(1, BORDER_DARK)
+            )
+            hero_card.padding = 0
             btn_doar.style.bgcolor = ACCENT_YELLOW
             btn_doar.style.color = "#000000"
             btn_inscrever.style.bgcolor = ACCENT_RED
