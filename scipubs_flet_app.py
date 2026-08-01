@@ -1355,55 +1355,82 @@ def main(page: ft.Page):
                     border=ft.Border.all(1, "#059669")
                 )
 
-            title_spans = [
-                ft.TextSpan(f"{titulo_p} ", style=ft.TextStyle(font_family="Roboto", size=22, weight=ft.FontWeight.BOLD, color="#FFFFFF")),
-                ft.TextSpan(f"(ISSN: {issn})", style=ft.TextStyle(font_family="Roboto", size=22, weight=ft.FontWeight.NORMAL, color="#FFFFFF"))
-            ]
+            # 🎨 Card Header Box (Dark Inner Box with Title, Link Subtitle, External Icon [↗])
+            btn_external_link = ft.IconButton(
+                icon=ft.Icons.OPEN_IN_NEW,
+                icon_color="#FFFFFF",
+                icon_size=20,
+                tooltip=t("acesse_site"),
+                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
+            )
 
-            bases_spans = [
-                ft.TextSpan(f"{t('bases_lbl')}: ", style=ft.TextStyle(font_family="Roboto", size=16, weight=ft.FontWeight.NORMAL, color="#FFFFFF")),
-                ft.TextSpan(str(indexadores), style=ft.TextStyle(font_family="Roboto", size=16, weight=ft.FontWeight.BOLD, color=ACCENT_RED))
-            ]
+            link_sub = ft.Container(
+                content=ft.Row([
+                    ft.Icon(ft.Icons.LANGUAGE, size=14, color="#38BDF8"),
+                    ft.Text("Official Journal Website", color="#38BDF8", size=13, weight=ft.FontWeight.W_600, font_family="Roboto")
+                ], spacing=6),
+                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
+            )
 
-            card = ft.Container(
-                bgcolor=CARD_BG,
-                border_radius=14,
-                padding=18,
-                border=ft.Border.all(1, BORDER_DARK),
+            card_top_box = ft.Container(
+                bgcolor="#0F172A",
+                border_radius=10,
+                padding=ft.Padding(12, 10, 12, 10),
                 content=ft.Column([
                     ft.Row([
-                        ft.Row([chk_item, ft.Text(spans=title_spans, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)], expand=True, spacing=8),
-                        ft.Row([
-                            badge_score if badge_score else ft.Container(),
-                            badge_prob if badge_prob else ft.Container(),
-                            ft.Button(
-                                t("acesse_site"),
-                                icon=ft.Icons.OPEN_IN_NEW,
-                                style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_BLUE, shape=ft.RoundedRectangleBorder(radius=8)),
-                                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
-                            )
-                        ], spacing=8)
+                        ft.Row([chk_item, ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)], expand=True, spacing=8),
+                        btn_external_link
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                    link_sub
+                ], spacing=4)
+            )
 
-                    ft.Text(f"{t('grande_area_lbl')}: {g_area}", font_family="Roboto", size=12, weight=ft.FontWeight.NORMAL, color="#FFFFFF"),
-                    ft.Text(f"{t('area_lbl')}: {area_item}", font_family="Roboto", size=12, weight=ft.FontWeight.NORMAL, color="#FFFFFF"),
-                    ft.Text(f"{t('cat_lbl')}: {cat_item}", font_family="Roboto", size=12, weight=ft.FontWeight.NORMAL, color="#FFFFFF"),
-                    ft.Text(spans=bases_spans),
+            # 🎨 Metrics Row with Access H5-Index button exactly as in image
+            btn_h5 = ft.Button(
+                "Access H5-Index",
+                icon=ft.Icons.TRACK_CHANGES,
+                style=ft.ButtonStyle(
+                    color=GOLD_YELLOW,
+                    bgcolor="#0F172A",
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    side=ft.BorderSide(1, GOLD_YELLOW),
+                    padding=ft.Padding(10, 6, 10, 6)
+                ),
+                on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
+            )
 
-                    ft.Divider(color=BORDER_DARK, height=12),
+            metrics_str = f"JCR: {fator} ({q_jcr}) | SJR: {val_sjr} | H: {h_idx}"
+            metrics_txt = ft.Text(metrics_str, color=GOLD_YELLOW, size=13, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
+            card_controls = [
+                card_top_box,
+                ft.Container(height=2),
+                ft.Text(f"{g_area}", font_family="Roboto", size=13, weight=ft.FontWeight.NORMAL, color="#94A3B8"),
+                ft.Text(f"Indexadores: {indexadores}", font_family="Roboto", size=13, weight=ft.FontWeight.NORMAL, color="#94A3B8")
+            ]
+
+            if badge_score or badge_prob:
+                card_controls.append(
                     ft.Row([
-                        ft.Text(f"JIF: {fator} ({q_jcr})", font_family="Roboto", color=GOLD_YELLOW, size=14, weight=ft.FontWeight.BOLD),
-                        ft.Text(f"SJR: {val_sjr} ({q_sjr})", font_family="Roboto", color=GOLD_YELLOW, size=14, weight=ft.FontWeight.BOLD),
-                        ft.Text(f"{t('h_lbl')}: {h_idx}", font_family="Roboto", color=GOLD_YELLOW, size=14, weight=ft.FontWeight.BOLD),
-                        ft.Button(
-                            t("ver_h5"),
-                            icon=ft.Icons.TRACK_CHANGES,
-                            style=ft.ButtonStyle(color=GOLD_YELLOW, bgcolor=INPUT_BG, shape=ft.RoundedRectangleBorder(radius=8), side=ft.BorderSide(1, GOLD_YELLOW)),
-                            on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
-                        )
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
-                ], spacing=6)
+                        badge_score if badge_score else ft.Container(),
+                        badge_prob if badge_prob else ft.Container()
+                    ], spacing=6)
+                )
+
+            card_controls.extend([
+                ft.Container(height=4),
+                ft.Row([
+                    metrics_txt,
+                    btn_h5
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            ])
+
+            card = ft.Container(
+                bgcolor="#0B132C",
+                border_radius=14,
+                padding=14,
+                border=ft.Border.all(1, "#1E293B"),
+                content=ft.Column(card_controls, spacing=6)
             )
             lista_resultados.controls.append(card)
 
@@ -1875,22 +1902,16 @@ def main(page: ft.Page):
     banner_init_src = get_banner_src("English")
     hero_banner_img = ft.Image(
         src=banner_init_src,
-        fit="fill",
-        aspect_ratio=1024 / 323
+        fit="contain",
+        width=1024
     )
 
     hero_card = ft.Container(
         bgcolor="#040A1A",
         border_radius=14,
-        padding=0,
+        padding=4,
         alignment=ft.Alignment(0, 0),
-        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-        border=ft.Border(
-            left=ft.BorderSide(6, ACCENT_RED),
-            top=ft.BorderSide(1, BORDER_DARK),
-            right=ft.BorderSide(1, BORDER_DARK),
-            bottom=ft.BorderSide(1, BORDER_DARK)
-        ),
+        border=ft.Border.all(1, BORDER_DARK),
         content=hero_banner_img
     )
 
@@ -2343,23 +2364,21 @@ def main(page: ft.Page):
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
     )
 
-    # 📱 4. BOTTOM DOCK MOBILE (4 TOUCH TABS INTERATIVAS)
+    # 📱 4. BOTTOM DOCK MOBILE (3 TOUCH TABS INTERATIVAS SEM REPETIÇÕES)
     btn_dock_busca = ft.IconButton(icon=ft.Icons.SEARCH, icon_color=ACCENT_BLUE, icon_size=24, tooltip="Buscador", on_click=lambda e: (trigger_haptic(), alternar_aba("buscador")))
     btn_dock_rec = ft.IconButton(icon=ft.Icons.AUTO_AWESOME, icon_color=ACCENT_GREEN, icon_size=24, tooltip="Recomendador IA", on_click=lambda e: (trigger_haptic(), alternar_aba("recomendador")))
     btn_dock_pwa = ft.IconButton(icon=ft.Icons.MOBILE_FRIENDLY, icon_color="#38BDF8", icon_size=24, tooltip="Instalar App", on_click=lambda e: (trigger_haptic(), abrir_modal_pwa(e)))
-    btn_dock_doar = ft.IconButton(icon=ft.Icons.COFFEE, icon_color=ACCENT_YELLOW, icon_size=24, tooltip="Apoiar", on_click=lambda e: (trigger_haptic(), abrir_modal_doacao(e)))
 
     mobile_bottom_dock = ft.Container(
         height=62,
         bgcolor="#0F172A",
-        padding=ft.Padding(8, 4, 8, 4),
+        padding=ft.Padding(16, 4, 16, 4),
         border=ft.Border(top=ft.BorderSide(1, "#1E293B")),
         visible=False,
         content=ft.Row([
             ft.Column([btn_dock_busca, ft.Text("Buscar", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
             ft.Column([btn_dock_rec, ft.Text("IA Match", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
             ft.Column([btn_dock_pwa, ft.Text("PWA App", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
-            ft.Column([btn_dock_doar, ft.Text("Apoiar", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
         ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
     )
 
