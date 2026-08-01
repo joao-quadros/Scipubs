@@ -1440,58 +1440,59 @@ def main(page: ft.Page):
                     border=ft.Border.all(1, "#059669")
                 )
 
-            # 🎨 Card Header Box (Dark Inner Box with Title, Link Subtitle, External Icon [↗])
-            btn_external_link = ft.IconButton(
-                icon=ft.Icons.OPEN_IN_NEW,
-                icon_color="#FFFFFF",
-                icon_size=20,
-                tooltip=t("acesse_site"),
-                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
+            # 🎨 Formatação dos Cartões idêntica à imagem de referência do usuário (media__1785557464959.jpg)
+            qualis_label = f"Qualis {cat_item}" if cat_item != "-" else f"Qualis {area_item}"
+            qualis_badge = ft.Container(
+                content=ft.Text(qualis_label, color="#FFFFFF", size=11, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                bgcolor="#DC2626",
+                padding=ft.Padding(8, 3, 8, 3),
+                border_radius=12
+            )
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
+
+            top_tag_row = ft.Row([
+                ft.Row([chk_item, qualis_badge], spacing=6),
+                issn_txt
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+
+            title_txt = ft.Container(
+                content=ft.Text(titulo_p, color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p),
+                tooltip=t("acesse_site")
             )
 
-            link_sub = ft.Container(
+            area_row = ft.Row([
+                ft.Icon(ft.Icons.FOLDER, color="#EAB308", size=14),
+                ft.Text(f"Area: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
+            ], spacing=6)
+
+            h5_link_txt = ft.Container(
                 content=ft.Row([
-                    ft.Icon(ft.Icons.LANGUAGE, size=14, color="#38BDF8"),
-                    ft.Text("Official Journal Website", color="#38BDF8", size=13, weight=ft.FontWeight.W_600, font_family="Roboto")
-                ], spacing=6),
+                    ft.Text("h5: ", color="#F59E0B", size=11, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                    ft.Text(h5_url, color="#EAB308", size=11, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=1)
+                ], spacing=2),
+                expand=True,
+                on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p),
+                tooltip="Abrir H5-Index no Google Scholar"
+            )
+
+            jif_txt = ft.Text(f"Impacto JIF: {fator}", color="#94A3B8", size=12, font_family="Roboto")
+
+            btn_detalhes = ft.Container(
+                content=ft.Text("Ver Detalhes >", color="#3B82F6", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto"),
                 on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            card_top_box = ft.Container(
-                bgcolor="#0F172A",
-                border_radius=10,
-                padding=ft.Padding(12, 10, 12, 10),
-                content=ft.Column([
-                    ft.Row([
-                        ft.Row([chk_item, ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)], expand=True, spacing=8),
-                        btn_external_link
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER),
-                    link_sub
-                ], spacing=4)
-            )
-
-            # 🎨 Metrics Row with Access H5-Index button exactly as in image
-            btn_h5 = ft.Button(
-                "Access H5-Index",
-                icon=ft.Icons.TRACK_CHANGES,
-                style=ft.ButtonStyle(
-                    color=GOLD_YELLOW,
-                    bgcolor="#0F172A",
-                    shape=ft.RoundedRectangleBorder(radius=8),
-                    side=ft.BorderSide(1, GOLD_YELLOW),
-                    padding=ft.Padding(10, 6, 10, 6)
-                ),
-                on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
-            )
-
-            metrics_str = f"JCR: {fator} ({q_jcr}) | SJR: {val_sjr} | H: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color=GOLD_YELLOW, size=13, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            bottom_metrics_row = ft.Row([
+                h5_link_txt,
+                jif_txt,
+                btn_detalhes
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=12)
 
             card_controls = [
-                card_top_box,
-                ft.Container(height=2),
-                ft.Text(f"{g_area}", font_family="Roboto", size=13, weight=ft.FontWeight.NORMAL, color="#94A3B8"),
-                ft.Text(f"Indexadores: {indexadores}", font_family="Roboto", size=13, weight=ft.FontWeight.NORMAL, color="#94A3B8")
+                top_tag_row,
+                title_txt,
+                area_row
             ]
 
             if badge_score or badge_prob:
@@ -1503,16 +1504,13 @@ def main(page: ft.Page):
                 )
 
             card_controls.extend([
-                ft.Container(height=4),
-                ft.Row([
-                    metrics_txt,
-                    btn_h5
-                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+                ft.Container(height=2),
+                bottom_metrics_row
             ])
 
             card = ft.Container(
-                bgcolor="#0B132C",
-                border_radius=14,
+                bgcolor="#0B132B",
+                border_radius=10,
                 padding=14,
                 border=ft.Border.all(1, "#1E293B"),
                 content=ft.Column(card_controls, spacing=6)
