@@ -2030,12 +2030,25 @@ def main(page: ft.Page):
                 on_click=executar_pesquisa
             )
 
-            form_container.content = ft.Column([
-                ft.Text(t("cat_tit"), size=22, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
-                ft.Row([search_field, search_btn], spacing=12),
-                ft.Row([g_area_select, db_select, jcr_select], spacing=12),
-                ft.Row([sjr_select, ordem_select, per_page_select], spacing=12)
-            ], spacing=12)
+            if is_mobile:
+                form_container.content = ft.Column([
+                    ft.Text(t("cat_tit"), size=20, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
+                    search_field,
+                    search_btn,
+                    g_area_select,
+                    db_select,
+                    jcr_select,
+                    sjr_select,
+                    ordem_select,
+                    per_page_select
+                ], spacing=10)
+            else:
+                form_container.content = ft.Column([
+                    ft.Text(t("cat_tit"), size=22, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
+                    ft.Row([search_field, search_btn], spacing=12),
+                    ft.Row([g_area_select, db_select, jcr_select], spacing=12),
+                    ft.Row([sjr_select, ordem_select, per_page_select], spacing=12)
+                ], spacing=12)
 
         else:
             RIGHT_COL_WIDTH = 380
@@ -2200,9 +2213,93 @@ def main(page: ft.Page):
             else:
                 form_container.content = ft.Row([left_col, right_col], spacing=24, vertical_alignment=ft.CrossAxisAlignment.START)
 
+        sidebar_container.visible = not is_mobile
+        mobile_top_bar.visible = is_mobile
+        mobile_bottom_dock.visible = is_mobile
+
         page.update()
 
-    page.on_resize = render_responsive_layout
+    # 📱 1. SENSORES TÁTEIS HÁPTICOS (HAPTIC TOUCH FEEDBACK)
+    def trigger_haptic():
+        try:
+            page.run_js("if(navigator && navigator.vibrate) navigator.vibrate(15);")
+        except Exception:
+            pass
+
+    # 📱 2. MENU RETRÁTIL DRAWER PARA MOBILE
+    drawer_visible = [False]
+
+    def fechar_drawer(e=None):
+        trigger_haptic()
+        drawer_visible[0] = False
+        mobile_drawer_popup.visible = False
+        mobile_drawer_overlay.visible = False
+        page.update()
+
+    def abrir_drawer(e=None):
+        trigger_haptic()
+        drawer_visible[0] = True
+        mobile_drawer_popup.visible = True
+        mobile_drawer_overlay.visible = True
+        page.update()
+
+    mobile_drawer_overlay = ft.Container(
+        bgcolor="#000000",
+        opacity=0.6,
+        expand=True,
+        visible=False,
+        on_click=fechar_drawer
+    )
+
+    mobile_drawer_popup = ft.Container(
+        width=300,
+        bgcolor=SIDEBAR_BG,
+        visible=False,
+        padding=16,
+        border=ft.Border(right=ft.BorderSide(1, "#E2E8F0")),
+        content=ft.Column([
+            ft.Row([
+                ft.Text("Menu Navegação", color="#1E3A8A", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+                ft.IconButton(icon=ft.Icons.CLOSE, icon_color="#1E3A8A", on_click=fechar_drawer)
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Divider(color="#CBD5E1", height=10),
+            ft.Container(content=sidebar_container.content, expand=True)
+        ], spacing=10)
+    )
+
+    # 📱 3. TOP BAR MOBILE (HAMBÚRGUER + LOGO + APP PWA)
+    mobile_top_bar = ft.Container(
+        height=60,
+        bgcolor="#0F172A",
+        padding=ft.Padding(12, 6, 12, 6),
+        border=ft.Border(bottom=ft.BorderSide(1, "#1E293B")),
+        visible=False,
+        content=ft.Row([
+            ft.IconButton(icon=ft.Icons.MENU, icon_color="#FFFFFF", icon_size=26, on_click=abrir_drawer, tooltip="Menu Retrátil"),
+            ft.Container(content=sidebar_logo_ctrl, expand=True, alignment=ft.Alignment(0, 0)),
+            ft.IconButton(icon=ft.Icons.PHONE_ANDROID, icon_color="#38BDF8", icon_size=24, on_click=abrir_modal_pwa, tooltip="Instalar PWA")
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+    )
+
+    # 📱 4. BOTTOM DOCK MOBILE (4 TOUCH TABS INTERATIVAS)
+    btn_dock_busca = ft.IconButton(icon=ft.Icons.SEARCH, icon_color=ACCENT_BLUE, icon_size=24, tooltip="Buscador", on_click=lambda e: (trigger_haptic(), alternar_aba("buscador")))
+    btn_dock_rec = ft.IconButton(icon=ft.Icons.AUTO_AWESOME, icon_color=ACCENT_GREEN, icon_size=24, tooltip="Recomendador IA", on_click=lambda e: (trigger_haptic(), alternar_aba("recomendador")))
+    btn_dock_pwa = ft.IconButton(icon=ft.Icons.MOBILE_FRIENDLY, icon_color="#38BDF8", icon_size=24, tooltip="Instalar App", on_click=lambda e: (trigger_haptic(), abrir_modal_pwa(e)))
+    btn_dock_doar = ft.IconButton(icon=ft.Icons.COFFEE, icon_color=ACCENT_YELLOW, icon_size=24, tooltip="Apoiar", on_click=lambda e: (trigger_haptic(), abrir_modal_doacao(e)))
+
+    mobile_bottom_dock = ft.Container(
+        height=62,
+        bgcolor="#0F172A",
+        padding=ft.Padding(8, 4, 8, 4),
+        border=ft.Border(top=ft.BorderSide(1, "#1E293B")),
+        visible=False,
+        content=ft.Row([
+            ft.Column([btn_dock_busca, ft.Text("Buscar", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
+            ft.Column([btn_dock_rec, ft.Text("IA Match", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
+            ft.Column([btn_dock_pwa, ft.Text("PWA App", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
+            ft.Column([btn_dock_doar, ft.Text("Apoiar", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
+        ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
+    )
 
     top_results_bar = ft.Row([
         lbl_info_paginacao,
@@ -2217,7 +2314,7 @@ def main(page: ft.Page):
     main_content_area = ft.Container(
         expand=True,
         bgcolor=MAIN_BG,
-        padding=24,
+        padding=16,
         content=ft.Column([
             hero_card,
             sobre_expander,
@@ -2227,12 +2324,19 @@ def main(page: ft.Page):
             ft.Container(content=lista_resultados, expand=True),
             ft.Divider(color=BORDER_DARK, height=20),
             bottom_export_row
-        ], spacing=16, scroll=ft.ScrollMode.AUTO)
+        ], spacing=14, scroll=ft.ScrollMode.AUTO)
     )
 
-    global_layout = ft.Row([
-        sidebar_container,
-        main_content_area
+    body_stack = ft.Stack([
+        ft.Row([sidebar_container, main_content_area], expand=True, spacing=0),
+        mobile_drawer_overlay,
+        mobile_drawer_popup
+    ], expand=True)
+
+    global_layout = ft.Column([
+        mobile_top_bar,
+        body_stack,
+        mobile_bottom_dock
     ], expand=True, spacing=0)
 
     page.add(global_layout)
