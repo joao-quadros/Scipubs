@@ -73,13 +73,7 @@ def get_image_src(nome_arquivo):
     return "logo.png"
 
 def get_banner_src(idioma="English"):
-    if idioma == "English":
-        fname = "banner_en.png"
-    elif idioma == "Español":
-        fname = "banner_es.png"
-    else:
-        fname = "banner_pt.png"
-    return get_image_src(fname)
+    return get_image_src("logo_capa.png")
 
 REGRAS_ORTOGRAFIA = [
     (r'\bEducacao\b', 'Educação'),
@@ -2031,17 +2025,26 @@ def main(page: ft.Page):
             )
 
             if is_mobile:
+                filters_card = ft.Container(
+                    bgcolor="#0F172A",
+                    border_radius=12,
+                    padding=14,
+                    border=ft.Border.all(1, "#1E293B"),
+                    content=ft.Column([
+                        ft.Row([
+                            ft.Icon(ft.Icons.TUNE, size=18, color=GOLD_YELLOW),
+                            ft.Text("Filters & Sorting", size=15, weight=ft.FontWeight.BOLD, color=GOLD_YELLOW, font_family="Roboto")
+                        ], spacing=8),
+                        ft.Row([g_area_select, db_select], spacing=8),
+                        ft.Row([jcr_select, sjr_select], spacing=8),
+                        ordem_select
+                    ], spacing=10)
+                )
+
                 form_container.content = ft.Column([
-                    ft.Text(t("cat_tit"), size=20, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
                     search_field,
-                    search_btn,
-                    g_area_select,
-                    db_select,
-                    jcr_select,
-                    sjr_select,
-                    ordem_select,
-                    per_page_select
-                ], spacing=10)
+                    filters_card
+                ], spacing=12)
             else:
                 form_container.content = ft.Column([
                     ft.Text(t("cat_tit"), size=22, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
@@ -2213,6 +2216,19 @@ def main(page: ft.Page):
             else:
                 form_container.content = ft.Row([left_col, right_col], spacing=24, vertical_alignment=ft.CrossAxisAlignment.START)
 
+        if is_mobile:
+            btn_doar.style.bgcolor = "#059669"
+            btn_doar.style.color = "#FFFFFF"
+            btn_inscrever.style.bgcolor = "#2563EB"
+            btn_inscrever.style.color = "#FFFFFF"
+            action_buttons_row.controls = [btn_doar, btn_inscrever]
+        else:
+            btn_doar.style.bgcolor = ACCENT_YELLOW
+            btn_doar.style.color = "#000000"
+            btn_inscrever.style.bgcolor = ACCENT_RED
+            btn_inscrever.style.color = "#FFFFFF"
+            action_buttons_row.controls = [btn_busca_tab, btn_rec_tab, btn_pwa, btn_doar, btn_inscrever]
+
         sidebar_container.visible = not is_mobile
         mobile_top_bar.visible = is_mobile
         mobile_bottom_dock.visible = is_mobile
@@ -2267,17 +2283,63 @@ def main(page: ft.Page):
         ], spacing=10)
     )
 
-    # 📱 3. TOP BAR MOBILE (HAMBÚRGUER + LOGO + APP PWA)
+    # 📱 3. TOP BAR MOBILE (HAMBÚRGUER BRANCO + LOGO + PÍLULAS DE IDIOMA EN|ES|PT)
+    def criar_lang_pills_bar():
+        def set_lang(lang_str):
+            trigger_haptic()
+            mudar_idioma(lang_str)
+
+        is_en = idioma_atual == "English"
+        is_es = idioma_atual == "Español"
+        is_pt = idioma_atual == "Português"
+
+        pill_en = ft.Container(
+            content=ft.Text("EN", size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF" if is_en else "#94A3B8"),
+            bgcolor=ACCENT_RED if is_en else "transparent",
+            padding=ft.Padding(7, 3, 7, 3),
+            border_radius=4,
+            on_click=lambda e: set_lang("English")
+        )
+        pill_es = ft.Container(
+            content=ft.Text("ES", size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF" if is_es else "#94A3B8"),
+            bgcolor=ACCENT_RED if is_es else "transparent",
+            padding=ft.Padding(7, 3, 7, 3),
+            border_radius=4,
+            on_click=lambda e: set_lang("Español")
+        )
+        pill_pt = ft.Container(
+            content=ft.Text("PT", size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF" if is_pt else "#94A3B8"),
+            bgcolor=ACCENT_RED if is_pt else "transparent",
+            padding=ft.Padding(7, 3, 7, 3),
+            border_radius=4,
+            on_click=lambda e: set_lang("Português")
+        )
+
+        return ft.Container(
+            content=ft.Row([pill_en, pill_es, pill_pt], spacing=2),
+            bgcolor="#1E293B",
+            padding=2,
+            border_radius=6,
+            border=ft.Border.all(1, "#334155")
+        )
+
+    btn_hamb_white = ft.Container(
+        content=ft.Icon(ft.Icons.MENU, color="#000000", size=22),
+        bgcolor="#FFFFFF",
+        padding=8,
+        border_radius=8,
+        on_click=abrir_drawer
+    )
+
     mobile_top_bar = ft.Container(
-        height=60,
-        bgcolor="#0F172A",
-        padding=ft.Padding(12, 6, 12, 6),
+        height=62,
+        bgcolor="#080D1A",
+        padding=ft.Padding(14, 8, 14, 8),
         border=ft.Border(bottom=ft.BorderSide(1, "#1E293B")),
         visible=False,
         content=ft.Row([
-            ft.IconButton(icon=ft.Icons.MENU, icon_color="#FFFFFF", icon_size=26, on_click=abrir_drawer, tooltip="Menu Retrátil"),
-            ft.Container(content=sidebar_logo_ctrl, expand=True, alignment=ft.Alignment(0, 0)),
-            ft.IconButton(icon=ft.Icons.PHONE_ANDROID, icon_color="#38BDF8", icon_size=24, on_click=abrir_modal_pwa, tooltip="Instalar PWA")
+            btn_hamb_white,
+            criar_lang_pills_bar()
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
     )
 
