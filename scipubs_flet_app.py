@@ -2538,6 +2538,19 @@ def main(page: ft.Page):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
-    ft.app(main, assets_dir=ICONS_DIR, host=host, port=port, view=ft.AppView.WEB_BROWSER)
+    
+    try:
+        import flet.fastapi as flet_fastapi
+        import uvicorn
+        from starlette.middleware.gzip import GZipMiddleware
+        
+        fastapi_app = flet_fastapi.app(main, assets_dir=ICONS_DIR)
+        fastapi_app.add_middleware(GZipMiddleware, minimum_size=500)
+        
+        print(f"[TURBO PWA] SciPubs Servidor rodando com Compressao GZip Ativa na porta {port}!")
+        uvicorn.run(fastapi_app, host=host, port=port, log_level="warning")
+    except Exception as err:
+        print(f"[FALLBACK] Iniciando ft.app padrao: {err}")
+        ft.app(main, assets_dir=ICONS_DIR, host=host, port=port, view=ft.AppView.WEB_BROWSER)
 
-# DEPLOY_VER = 2026_07_31_v3
+# DEPLOY_VER = 2026_08_01_turbo_v1
