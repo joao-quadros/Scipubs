@@ -31,23 +31,25 @@ logging.getLogger("flet_web").setLevel(logging.WARNING)
 logging.getLogger("uvicorn").setLevel(logging.WARNING)
 
 # ==========================================
-# 🎨 PALETA DE CORES EXATA DO SCIPUBS
+# 🎨 PALETA DE CORES EXATA DO SCIPUBS (JETPACK COMPOSE / KOTLIN)
 # ==========================================
-SIDEBAR_BG = "#F8F6F0"       # Fundo claro da barra lateral (Beige)
-MAIN_BG = "#080D1A"          # Fundo escuro da área principal (Deep Navy/Black)
-CARD_BG = "#0F172A"          # Cartões escuros principais
-INPUT_BG = "#1E293B"         # Fundo de campos de texto
-HERO_BLUE = "#040A1A"        # Fundo do Banner Principal (Deep Navy)
-ACCENT_RED = "#FF3B30"       # Vermelho oficial SciPubs
-CORAL_RED = "#FF3B30"
-ACCENT_YELLOW = "#FFCC00"    # Amarelo oficial SciPubs
+SIDEBAR_BG = "#04081C"       # Fundo escuro da barra lateral (MainActivity.kt)
+SIDEBAR_BTN_BG = "#F2F0EF"   # Fundo claro dos botões no menu (MainActivity.kt)
+SIDEBAR_BTN_TEXT = "#0F1E3D" # Texto escuro dos botões (MainActivity.kt)
+MAIN_BG = "#040A18"          # Fundo escuro da área principal (DarkBg)
+CARD_BG = "#0B132B"          # Cartões escuros (DarkCard)
+INPUT_BG = "#131D30"         # Fundo de campos de texto (DarkInputBg)
+HERO_BLUE = "#040A18"        # Fundo do Banner Principal
+ACCENT_RED = "#DC2626"       # Vermelho oficial SciPubs (CoralRed)
+CORAL_RED = "#DC2626"
+ACCENT_YELLOW = "#FFCC00"    # Amarelo oficial SciPubs (GoldYellow)
 GOLD_YELLOW = "#FFCC00"
-ACCENT_GREEN = "#059669"     # Verde Recomendador
+ACCENT_GREEN = "#059669"     # Verde Recomendador (EmeraldGreen)
 EMERALD_GREEN = "#059669"
-ACCENT_BLUE = "#2563EB"      # Azul Royal Buscador
+ACCENT_BLUE = "#2563EB"      # Azul Royal Buscador (RoyalBlue)
 ROYAL_BLUE = "#2563EB"
 TEXT_DARK = "#0F172A"        # Texto para fundos claros
-TEXT_MUTED = "#94A3B8"       # Texto secundário
+TEXT_MUTED = "#94A3B8"       # Texto secundário (TextMuted)
 BORDER_DARK = "#1E293B"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -63,6 +65,34 @@ if not os.path.exists(CACHE_PATH):
 
 ICONS_DIR = os.path.join(BASE_DIR, "icons")
 os.makedirs(ICONS_DIR, exist_ok=True)
+
+# 🟢 GERENCIADOR DE INSCRITOS VIP (COLETA E ARMAZENAMENTO PERSISTENTE EM CSV)
+def salvar_inscrito_csv(nome, email):
+    try:
+        fpath = os.path.join(BASE_DIR, "subscribers.csv")
+        data_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        linha = f'"{data_str}","{nome}","{email}"\n'
+        with open(fpath, "a", encoding="utf-8") as f:
+            f.write(linha)
+        print(f"[OK] Inscrito salvo em subscribers.csv: {email}")
+        return True
+    except Exception as e:
+        print(f"[ERRO] Falha ao salvar inscrito: {e}")
+        return False
+
+# 🟢 GERENCIADOR DO CONTADOR DE VISITAS PERSISTENTE (BASE INICIAL 14.820 ACESSOS)
+BASE_VISIT_COUNT = 14820
+
+def increment_and_get_visit_count(page):
+    try:
+        c = page.client_storage.get("total_visit_count")
+        if c is None or not isinstance(c, int):
+            c = BASE_VISIT_COUNT
+        c += 1
+        page.client_storage.set("total_visit_count", c)
+        return c
+    except Exception:
+        return BASE_VISIT_COUNT + 1
 
 def get_image_src(nome_arquivo):
     if not nome_arquivo:
@@ -1037,6 +1067,26 @@ def main(page: ft.Page):
         txt_nome = ft.TextField(label=t("nome"), bgcolor=INPUT_BG, color="#FFFFFF", border_radius=8, hint_style=ft.TextStyle(color=TEXT_MUTED, size=13, font_family="Roboto"))
         txt_email = ft.TextField(label=t("email"), bgcolor=INPUT_BG, color="#FFFFFF", border_radius=8, hint_style=ft.TextStyle(color=TEXT_MUTED, size=13, font_family="Roboto"))
 
+    def abrir_modal_inscricao(e=None):
+        atualizar_destaque_botoes("inscrever")
+        txt_nome = ft.TextField(
+            label=t("nome"),
+            bgcolor=INPUT_BG,
+            border_color=BORDER_DARK,
+            color="#FFFFFF",
+            border_radius=8,
+            hint_style=ft.TextStyle(color=TEXT_MUTED)
+        )
+        txt_email = ft.TextField(
+            label=t("email"),
+            bgcolor=INPUT_BG,
+            border_color=BORDER_DARK,
+            color="#FFFFFF",
+            border_radius=8,
+            hint_style=ft.TextStyle(color=TEXT_MUTED)
+        )
+        lbl_msg = ft.Text("", size=12, color=ACCENT_RED)
+
         def fechar_dialog(e=None):
             dialog.open = False
             try:
@@ -1045,25 +1095,45 @@ def main(page: ft.Page):
                 pass
             page.update()
 
+        def submit_sub(ev):
+            n = txt_nome.value.strip() if txt_nome.value else ""
+            m = txt_email.value.strip() if txt_email.value else ""
+            if not n or not m or "@" not in m:
+                lbl_msg.value = "Por favor, preencha o nome completo e um e-mail válido."
+                page.update()
+                return
+            salvar_inscrito_csv(n, m)
+            dialog.content = ft.Container(
+                bgcolor="#059669",
+                border_radius=8,
+                padding=14,
+                content=ft.Text("✅ Inscrição realizada com sucesso! Bem-vindo(a) à Comunidade VIP.", color="#FFFFFF", size=13, weight=ft.FontWeight.BOLD)
+            )
+            dialog.actions = [
+                ft.Button("Fechar", style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED), on_click=fechar_dialog)
+            ]
+            page.update()
+
         dialog = ft.AlertDialog(
-            bgcolor=CARD_BG,
+            bgcolor="#0F1E3D",
             shape=ft.RoundedRectangleBorder(radius=16),
-            title=ft.Text(t("sub_modal_tit"), color="#FFFFFF", size=20, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+            title=ft.Text("Junte-se à nossa Comunidade VIP! 🚀", color=GOLD_YELLOW, size=18, weight=ft.FontWeight.BOLD, font_family="Roboto"),
             content=ft.Container(
                 width=450,
                 content=ft.Column([
-                    ft.Text(t("sub_modal_desc"), color=TEXT_MUTED, size=14, font_family="Roboto"),
-                    ft.Container(height=8),
+                    ft.Text(t("sub_modal_desc"), color=TEXT_MUTED, size=13, font_family="Roboto"),
+                    ft.Container(height=4),
                     txt_nome,
-                    txt_email
-                ], spacing=12, tight=True)
+                    txt_email,
+                    lbl_msg
+                ], spacing=10, tight=True)
             ),
             actions=[
-                ft.Button(t("fechar"), style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#334155"), on_click=fechar_dialog),
+                ft.TextButton("Cancelar", on_click=fechar_dialog),
                 ft.Button(
-                    t("inscrever"),
-                    style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, shape=ft.RoundedRectangleBorder(radius=8), text_style=ft.TextStyle(weight=ft.FontWeight.BOLD, font_family="Roboto")),
-                    on_click=fechar_dialog
+                    "Confirmar Inscrição",
+                    style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ROYAL_BLUE, shape=ft.RoundedRectangleBorder(radius=8), text_style=ft.TextStyle(weight=ft.FontWeight.BOLD, font_family="Roboto")),
+                    on_click=submit_sub
                 )
             ]
         )
@@ -1762,40 +1832,17 @@ def main(page: ft.Page):
     logo_src = get_image_src("logo_en.png")
     sidebar_logo_ctrl = ft.Image(src=logo_src, width=200, fit="contain") if logo_src else ft.Text("SCIPUBS", size=24, weight=ft.FontWeight.BOLD, color=TEXT_DARK, font_family="Roboto")
 
-    def criar_btn_link(texto_key, url, icon_filename=None, default_icon=ft.Icons.LANGUAGE, ref_ctrl=None, is_pessoal=False):
-        txt_display = t(texto_key) if texto_key in DIC_TRANSLATE["English"] else texto_key
-        text_ctrl = ft.Text(txt_display, ref=ref_ctrl, size=14, weight=ft.FontWeight.W_600 if is_pessoal else ft.FontWeight.W_500, color="#004B87", font_family="Roboto")
-
-        icon_src = get_image_src(icon_filename) if icon_filename else None
-        icon_widget = None
-
-        if is_pessoal:
-            icon_widget = ft.Icon(ft.Icons.PERSON, size=18, color="#004B87")
-            content_row = ft.Row([
-                icon_widget,
-                text_ctrl
-            ], spacing=10, alignment=ft.MainAxisAlignment.START)
-        else:
-            if icon_src:
-                icon_widget = ft.Image(
-                    src=icon_src,
-                    width=20,
-                    height=20,
-                    fit="contain",
-                    border_radius=2,
-                    error_content=ft.Icon(default_icon, size=18, color="#004B87")
-                )
-            else:
-                icon_widget = ft.Icon(default_icon, size=18, color="#004B87")
-
-            content_row = ft.Row([icon_widget, text_ctrl], spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+    def criar_btn_link(label_text, url, icon_filename=None, default_icon=ft.Icons.LANGUAGE, ref_ctrl=None, is_pessoal=False):
+        txt_display = t(label_text) if label_text in DIC_TRANSLATE["English"] else label_text
+        text_ctrl = ft.Text(txt_display, ref=ref_ctrl, size=12, weight=ft.FontWeight.W_600 if is_pessoal else ft.FontWeight.NORMAL, color=SIDEBAR_BTN_TEXT, font_family="Roboto")
+        icon_ctrl = ft.Icon(ft.Icons.OPEN_IN_NEW, size=13, color=SIDEBAR_BTN_TEXT)
 
         c = ft.Container(
-            content=content_row,
-            padding=ft.Padding(10, 8, 10, 8),
-            bgcolor="#FFFFFF",
-            border_radius=6,
-            border=ft.Border.all(1, "#004B87"),
+            content=ft.Row([text_ctrl, icon_ctrl], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+            padding=ft.Padding(12, 9, 12, 9),
+            bgcolor=SIDEBAR_BTN_BG,
+            border_radius=8,
+            border=ft.Border.all(1, "#1E2A42"),
             width=240,
             on_click=lambda e: abrir_link(page, url),
             ink=True
@@ -1803,27 +1850,51 @@ def main(page: ft.Page):
 
         def on_hover(e):
             if e.data == "true":
-                c.bgcolor = ACCENT_RED
-                c.border = ft.Border.all(1, ACCENT_RED)
+                c.bgcolor = CORAL_RED
+                c.border = ft.Border.all(1, CORAL_RED)
                 text_ctrl.color = "#FFFFFF"
-                if icon_widget and isinstance(icon_widget, ft.Icon):
-                    icon_widget.color = "#FFFFFF"
+                icon_ctrl.color = "#FFFFFF"
             else:
-                c.bgcolor = "#FFFFFF"
-                c.border = ft.Border.all(1, "#004B87")
-                text_ctrl.color = "#004B87"
-                if icon_widget and isinstance(icon_widget, ft.Icon):
-                    icon_widget.color = "#004B87"
+                c.bgcolor = SIDEBAR_BTN_BG
+                c.border = ft.Border.all(1, "#1E2A42")
+                text_ctrl.color = SIDEBAR_BTN_TEXT
+                icon_ctrl.color = SIDEBAR_BTN_TEXT
             page.update()
 
         c.on_hover = on_hover
         return c
 
+    def mostrar_toast_admin_visitas(e=None):
+        count_val = increment_and_get_visit_count(page)
+        snack = ft.SnackBar(
+            content=ft.Text(
+                f"🔐 [ADMINISTRADOR]\nVisitas ao Portal: {count_val:,} acessos contínuos".replace(",", "."),
+                color="#FFFFFF",
+                weight=ft.FontWeight.BOLD,
+                size=13
+            ),
+            bgcolor="#0F1E3D"
+        )
+        page.overlay.append(snack)
+        snack.open = True
+        page.update()
+
+    lbl_metadata_tit = ft.Text(t("metadataTitle"), color=GOLD_YELLOW, size=10, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    lbl_system_status = ft.Text(t("systemStatus"), color=TEXT_MUTED, size=10, font_family="Roboto")
+    lbl_base_version = ft.Text(t("baseVersion"), color=TEXT_MUTED, size=10, font_family="Roboto")
+    lbl_cnpq_std = ft.Text(t("cnpqStandard"), color=TEXT_MUTED, size=10, font_family="Roboto")
+
+    lbl_copyright_tit_box = ft.Container(
+        content=ft.Text(t("copyrightOwner"), color="#FFFFFF", size=10, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+        on_click=mostrar_toast_admin_visitas,
+        tooltip="🔒 Clique para estatísticas de administrador (VisitCounterManager)"
+    )
+
     sidebar_container = ft.Container(
         width=280,
         bgcolor=SIDEBAR_BG,
         padding=16,
-        border=ft.Border(right=ft.BorderSide(1, "#E2E8F0")),
+        border=ft.Border(right=ft.BorderSide(1, "#1E2A42")),
         content=ft.Column([
             ft.Row([
                 ft.Container(),
@@ -1834,7 +1905,7 @@ def main(page: ft.Page):
             
             ft.Row([
                 ft.Icon(ft.Icons.LANGUAGE, size=16, color="#2563EB"),
-                ft.Text("Language / Idioma:", size=13, color="#1E3A8A", weight=ft.FontWeight.W_600, font_family="Roboto")
+                ft.Text("Language / Idioma:", size=13, color="#FFFFFF", weight=ft.FontWeight.W_600, font_family="Roboto")
             ], spacing=6),
             
             ft.Dropdown(
@@ -1847,8 +1918,8 @@ def main(page: ft.Page):
                 width=240,
                 fill_color=SIDEBAR_BG,
                 bgcolor=CARD_BG,
-                color="#000000",
-                border_color="#CBD5E1",
+                color="#FFFFFF",
+                border_color="#1E2A42",
                 border_radius=8,
                 text_size=14,
                 on_select=lambda e: mudar_idioma(e.control.value)
@@ -1858,56 +1929,55 @@ def main(page: ft.Page):
             btn_fale,
             ft.Container(height=6),
             nav_tit_ctrl,
-            ft.Divider(color="#CBD5E1", height=15),
+            ft.Divider(color="#1E2A42", height=15),
 
             lbl_indexadores,
-            criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com", "wos.png", ft.Icons.PUBLIC),
-            criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic", "scopus.png", ft.Icons.SEARCH),
-            criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/", "pubmed.png", ft.Icons.LOCAL_HOSPITAL),
-            criar_btn_link("Scielo BR", "https://www.scielo.br/", "scielo.png", ft.Icons.MENU_BOOK),
-            criar_btn_link("Educ@", "http://educa.fcc.org.br/cgi-bin/wxis.exe/iah/?IsisScript=iah/iah.xis&base=title&fmt=iso.pft&lang=p", "educa.jpg", ft.Icons.SCHOOL),
-            criar_btn_link("JSTOR", "https://www.jstor.org/", "jstor.svg", ft.Icons.BOOKMARK),
-            criar_btn_link("Latindex", "https://www.latindex.org/latindex/", "latindex.png", ft.Icons.LANGUAGE),
+            criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com"),
+            criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic"),
+            criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/"),
+            criar_btn_link("SciELO", "https://www.scielo.br/"),
+            criar_btn_link("Educ@", "http://educa.fcc.org.br/"),
+            criar_btn_link("JSTOR", "https://www.jstor.org/"),
+            criar_btn_link("Latindex", "https://www.latindex.org/latindex/"),
 
-            ft.Divider(color="#CBD5E1", height=15),
+            ft.Divider(color="#1E2A42", height=15),
             lbl_repositorios,
-            criar_btn_link("ERIC", "https://eric.ed.gov/", "eric.png", ft.Icons.FOLDER_SPECIAL),
-            criar_btn_link("BASE", "https://api.base-search.net/", "base.png", ft.Icons.STORAGE),
-            criar_btn_link("DOAJ", "https://doaj.org/", "doaj.png", ft.Icons.OPEN_IN_BROWSER),
-            criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", "capes_cat.png", ft.Icons.ACCOUNT_BALANCE, ref_ctrl=btn_capes_cat),
+            criar_btn_link("ERIC", "https://eric.ed.gov/"),
+            criar_btn_link("BASE", "https://api.base-search.net/"),
+            criar_btn_link("DOAJ", "https://doaj.org/"),
+            criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", ref_ctrl=btn_capes_cat),
 
-            ft.Divider(color="#CBD5E1", height=15),
+            ft.Divider(color="#1E2A42", height=15),
             lbl_ia,
-            criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai", "scopus_ai.png", ft.Icons.AUTO_AWESOME),
-            criar_btn_link("LeapSpace", "https://researcher.elsevier.com/", "leapspace.jpg", ft.Icons.EXPLORE),
-            criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/", "researchrabbit.jpg", ft.Icons.PSYCHOLOGY),
-            criar_btn_link("Perplexity", "https://www.perplexity.ai/", "perplexity.jpg", ft.Icons.LIGHTBULB),
-            criar_btn_link("ConnectedPapers", "https://www.connectedpapers.com/", "connectedpapers.jpg", ft.Icons.HUB),
-            criar_btn_link("Consensus", "https://consensus.app/", "consensus.png", ft.Icons.CHECK_CIRCLE_OUTLINE),
-            criar_btn_link("SciSpace", "https://scispace.com/", "scispace.png", ft.Icons.SATELLITE_ALT),
-            criar_btn_link("Elicit", "https://elicit.com/", "elicit.png", ft.Icons.FILTER_ALT),
-            criar_btn_link("Logically", "https://logically.app/", "logically.png", ft.Icons.ANALYTICS),
-            criar_btn_link("PubMed.AI", "https://www.pubmed.ai/home", "pubmed_ai.png", ft.Icons.MEDICATION),
+            criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai"),
+            criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/"),
+            criar_btn_link("Perplexity", "https://www.perplexity.ai/"),
+            criar_btn_link("ConnectedPapers", "https://www.connectedpapers.com/"),
+            criar_btn_link("Consensus", "https://consensus.app/"),
+            criar_btn_link("SciSpace", "https://scispace.com/"),
+            criar_btn_link("Elicit", "https://elicit.com/"),
 
-            ft.Divider(color="#CBD5E1", height=15),
+            ft.Divider(color="#1E2A42", height=15),
             lbl_gov,
-            criar_btn_link("CNPq", "https://cnpq.br/", "cnpq.png", ft.Icons.ASSURED_WORKLOAD),
-            criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br", "capes.png", ft.Icons.ACCOUNT_BALANCE),
-            criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", "lattes.png", ft.Icons.ARTICLE, ref_ctrl=btn_lattes),
-            criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", "periodicos_capes.png", ft.Icons.LIBRARY_BOOKS, ref_ctrl=btn_periodicos_capes),
+            criar_btn_link("CNPq", "https://cnpq.br/"),
+            criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br"),
+            criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", ref_ctrl=btn_lattes),
+            criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", ref_ctrl=btn_periodicos_capes),
 
-            ft.Divider(color="#CBD5E1", height=15),
+            ft.Divider(color="#1E2A42", height=15),
             lbl_inst,
-            criar_btn_link("UFOP", "https://www.ufop.br", "ufop.png", ft.Icons.SCHOOL),
-            criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br", "ppge.png", ft.Icons.CAST_FOR_EDUCATION),
-            criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", "musica_ufop.png", ft.Icons.MUSIC_NOTE, ref_ctrl=btn_musica_ufop),
+            criar_btn_link("UFOP", "https://www.ufop.br"),
+            criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br"),
+            criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", ref_ctrl=btn_musica_ufop),
             criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", is_pessoal=True, ref_ctrl=btn_pessoal_txt),
 
-            ft.Divider(color="#CBD5E1", height=20),
-            btn_win,
-
-            ft.Divider(color="#CBD5E1", height=15),
-            lbl_copyright_tit,
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_metadata_tit,
+            lbl_system_status,
+            lbl_base_version,
+            lbl_cnpq_std,
+            ft.Container(height=4),
+            lbl_copyright_tit_box,
             lbl_copyright_desc
 
         ], spacing=8, scroll=ft.ScrollMode.AUTO)
