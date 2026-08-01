@@ -1002,13 +1002,12 @@ def abrir_link(page: ft.Page, url: str, termo_fallback: str = ""):
 
     if u_final:
         try:
-            webbrowser.open(u_final, new=2)
-        except Exception:
-            pass
-        try:
             page.launch_url(u_final, web_window_name="_blank")
         except Exception:
-            pass
+            try:
+                webbrowser.open(u_final, new=2)
+            except Exception:
+                pass
 
 
 def main(page: ft.Page):
@@ -1068,12 +1067,6 @@ def main(page: ft.Page):
         btn_doar.style.side = ft.BorderSide(3, "#FFFFFF") if botao_selecionado == "doar" else None
         btn_inscrever.style.side = ft.BorderSide(3, "#FFFFFF") if botao_selecionado == "inscrever" else None
         page.update()
-
-    def abrir_modal_inscricao(e=None):
-        atualizar_destaque_botoes("inscrever")
-
-        txt_nome = ft.TextField(label=t("nome"), bgcolor=INPUT_BG, color="#FFFFFF", border_radius=8, hint_style=ft.TextStyle(color=TEXT_MUTED, size=13, font_family="Roboto"))
-        txt_email = ft.TextField(label=t("email"), bgcolor=INPUT_BG, color="#FFFFFF", border_radius=8, hint_style=ft.TextStyle(color=TEXT_MUTED, size=13, font_family="Roboto"))
 
     def abrir_modal_inscricao(e=None):
         atualizar_destaque_botoes("inscrever")
