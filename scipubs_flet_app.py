@@ -1568,6 +1568,11 @@ def main(page: ft.Page):
             resultados_totais_atuais = engine.recomendar_manuscrito(titulo=tit, resumo=res, area_filtro=db_sel, ordenacao_idx=ordem_rec_idx, limite=limite_sel)
 
         renderizar_pagina()
+        try:
+            import gc
+            gc.collect()
+        except Exception:
+            pass
 
     def alternar_aba(nova_aba):
         nonlocal aba_atual
