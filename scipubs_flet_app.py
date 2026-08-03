@@ -445,10 +445,10 @@ DIC_TRANSLATE = {
         "acesse_site": "Acesse o site",
         "ver_h5": "Ver Índice-H5",
         "fechar": "Fechar",
-        "sub_modal_tit": "Join our VIP Community! 🚀",
-        "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
-        "nome": "Full Name:",
-        "email": "Email:",
+        "sub_modal_tit": "Junte-se à nossa Comunidade VIP! 🚀",
+        "sub_modal_desc": "Deixe seu e-mail para receber dicas de publicação e novidades da plataforma. Sem spam, prometemos.",
+        "nome": "Nome Completo:",
+        "email": "E-mail:",
         "doacao_modal_tit": "Apoie o SciPubs!",
         "doacao_modal_desc": (
             "A sua doação voluntária é fundamental para mantermos os nossos servidores ativos e continuarmos "
@@ -988,6 +988,8 @@ class SciPubsDataEngine:
 
 
 def abrir_link(page: ft.Page, url: str, termo_fallback: str = ""):
+    if not page:
+        return
     u_final = None
     if url and isinstance(url, str):
         u = url.strip()
@@ -1001,13 +1003,15 @@ def abrir_link(page: ft.Page, url: str, termo_fallback: str = ""):
         u_final = f"https://www.google.com/search?q={q}"
 
     if u_final:
+        print(f"[ACTION] Abrindo link externo: {u_final}")
         try:
             page.launch_url(u_final, web_window_name="_blank")
-        except Exception:
+        except Exception as ex1:
+            print(f"[AVISO] launch_url falhou: {ex1}")
             try:
                 webbrowser.open(u_final, new=2)
-            except Exception:
-                pass
+            except Exception as ex2:
+                print(f"[AVISO] webbrowser.open falhou: {ex2}")
 
 
 def main(page: ft.Page):
