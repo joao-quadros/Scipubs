@@ -1492,8 +1492,8 @@ def main(page: ft.Page):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Título da revista em branco puro (#FFFFFF, Bold, 15px) com ícone de link externo (External Link)
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=3 if is_screen_small else 2)
+            # 🎨 Título da revista em branco puro (#FFFFFF, Bold, 15px, exatamente 2 linhas) com ícone de link externo (External Link)
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
             btn_external_link = ft.IconButton(
                 icon=ft.Icons.OPEN_IN_NEW,
                 icon_color="#94A3B8",
@@ -1514,10 +1514,9 @@ def main(page: ft.Page):
                     issn_txt
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-            # 🎨 Botão secundário com Ícone de Globo Terrestre (Nativo + Multilíngue)
+            # 🎨 Botão secundário para Site Oficial (Nativo + Multilíngue - sem ícone)
             btn_site_oficial = ft.Button(
                 t("acesse_site"),
-                icon=ft.Icons.LANGUAGE,
                 url=target_site_url,
                 style=ft.ButtonStyle(
                     color="#38BDF8",
@@ -1539,10 +1538,9 @@ def main(page: ft.Page):
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
             metrics_txt = ft.Text(metrics_str, color="#E11D48", size=13 if is_screen_small else 14, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Access H5-Index" Dourado/Amarelo Ouro (#F59E0B com fundo #2E2208)
+            # 🎨 Botão "Access H5-Index" Dourado/Amarelo Ouro (#F59E0B com fundo #2E2208 - sem ícone)
             btn_h5 = ft.Button(
                 t("ver_h5"),
-                icon=ft.Icons.TRACK_CHANGES,
                 url=h5_url,
                 style=ft.ButtonStyle(
                     color="#F59E0B",
@@ -1709,10 +1707,7 @@ def main(page: ft.Page):
     )
 
     btn_doar = ft.Button(
-        content=ft.Row([
-            ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=18),
-            ft.Text(t("doacoes"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
+        t("doacoes"),
         url="https://buymeacoffee.com/scipubs",
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
@@ -1720,10 +1715,7 @@ def main(page: ft.Page):
     )
 
     btn_inscrever = ft.Button(
-        content=ft.Row([
-            ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=18),
-            ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
+        t("inscrever"),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_inscricao
@@ -1739,7 +1731,7 @@ def main(page: ft.Page):
 
     sobre_tit_ctrl = ft.Text(t("sobre_tit"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=26, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=21, weight=ft.FontWeight.BOLD, font_family="Roboto")
     txt_sub = ft.Text(t("sobre_sub"), color="#FFFFFF", size=12, weight=ft.FontWeight.NORMAL, font_family="Roboto")
     txt_what = ft.Text(t("sobre_what"), color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
@@ -2266,7 +2258,6 @@ def main(page: ft.Page):
 
             search_btn = ft.Button(
                 t("pesquisar"),
-                icon=ft.Icons.ARROW_FORWARD,
                 style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(24, 16, 24, 16), shape=ft.RoundedRectangleBorder(radius=12)),
                 on_click=executar_pesquisa
             )
@@ -2583,44 +2574,44 @@ def main(page: ft.Page):
             ft.Divider(color="#CBD5E1", height=15),
 
             lbl_indexadores,
-            criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com"),
-            criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic"),
-            criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/"),
-            criar_btn_link("SciELO", "https://www.scielo.br/"),
-            criar_btn_link("Educ@", "http://educa.fcc.org.br/"),
-            criar_btn_link("JSTOR", "https://www.jstor.org/"),
-            criar_btn_link("Latindex", "https://www.latindex.org/latindex/"),
+            criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com", "wos.png", ft.Icons.PUBLIC),
+            criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic", "scopus.png", ft.Icons.SEARCH),
+            criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/", "pubmed.png", ft.Icons.LOCAL_HOSPITAL),
+            criar_btn_link("SciELO", "https://www.scielo.br/", "scielo.png", ft.Icons.MENU_BOOK),
+            criar_btn_link("Educ@", "http://educa.fcc.org.br/", "educa.jpg", ft.Icons.SCHOOL),
+            criar_btn_link("JSTOR", "https://www.jstor.org/", "jstor.svg", ft.Icons.BOOKMARK),
+            criar_btn_link("Latindex", "https://www.latindex.org/latindex/", "latindex.png", ft.Icons.LANGUAGE),
 
             ft.Divider(color="#CBD5E1", height=15),
             lbl_repositorios,
-            criar_btn_link("ERIC", "https://eric.ed.gov/"),
-            criar_btn_link("BASE", "https://api.base-search.net/"),
-            criar_btn_link("DOAJ", "https://doaj.org/"),
-            criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", ref_ctrl=btn_capes_cat),
+            criar_btn_link("ERIC", "https://eric.ed.gov/", "eric.png", ft.Icons.FOLDER_SPECIAL),
+            criar_btn_link("BASE", "https://api.base-search.net/", "base.png", ft.Icons.STORAGE),
+            criar_btn_link("DOAJ", "https://doaj.org/", "doaj.png", ft.Icons.OPEN_IN_BROWSER),
+            criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", "capes_cat.png", ft.Icons.ACCOUNT_BALANCE, ref_ctrl=btn_capes_cat),
 
             ft.Divider(color="#CBD5E1", height=15),
             lbl_ia,
-            criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai"),
-            criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/"),
-            criar_btn_link("Perplexity", "https://www.perplexity.ai/"),
-            criar_btn_link("ConnectedPapers", "https://www.connectedpapers.com/"),
-            criar_btn_link("Consensus", "https://consensus.app/"),
-            criar_btn_link("SciSpace", "https://scispace.com/"),
-            criar_btn_link("Elicit", "https://elicit.com/"),
+            criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai", "scopus_ai.png", ft.Icons.AUTO_AWESOME),
+            criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/", "researchrabbit.jpg", ft.Icons.PSYCHOLOGY),
+            criar_btn_link("Perplexity", "https://www.perplexity.ai/", "perplexity.jpg", ft.Icons.LIGHTBULB),
+            criar_btn_link("ConnectedPapers", "https://www.connectedpapers.com/", "connectedpapers.jpg", ft.Icons.HUB),
+            criar_btn_link("Consensus", "https://consensus.app/", "consensus.png", ft.Icons.CHECK_CIRCLE_OUTLINE),
+            criar_btn_link("SciSpace", "https://scispace.com/", "scispace.png", ft.Icons.SATELLITE_ALT),
+            criar_btn_link("Elicit", "https://elicit.com/", "elicit.png", ft.Icons.FILTER_ALT),
 
             ft.Divider(color="#CBD5E1", height=15),
             lbl_gov,
-            criar_btn_link("CNPq", "https://cnpq.br/"),
-            criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br"),
-            criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", ref_ctrl=btn_lattes),
-            criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", ref_ctrl=btn_periodicos_capes),
+            criar_btn_link("CNPq", "https://cnpq.br/", "cnpq.png", ft.Icons.SCIENCE),
+            criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br", "capes.png", ft.Icons.SCHOOL),
+            criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", "lattes.png", ft.Icons.BADGE, ref_ctrl=btn_lattes),
+            criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", "periodicos_capes.png", ft.Icons.AUTO_STORIES, ref_ctrl=btn_periodicos_capes),
 
             ft.Divider(color="#CBD5E1", height=15),
             lbl_inst,
-            criar_btn_link("UFOP", "https://www.ufop.br"),
-            criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br"),
-            criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", ref_ctrl=btn_musica_ufop),
-            criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", is_pessoal=True, ref_ctrl=btn_pessoal_txt),
+            criar_btn_link("UFOP", "https://www.ufop.br", "ufop.png", ft.Icons.ACCOUNT_BALANCE),
+            criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br", "ppge.jpg", ft.Icons.MENU_BOOK),
+            criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", "musica_ufop.png", ft.Icons.MUSIC_NOTE, ref_ctrl=btn_musica_ufop),
+            criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", "professor.png", ft.Icons.PERSON, is_pessoal=True, ref_ctrl=btn_pessoal_txt),
 
             ft.Divider(color="#CBD5E1", height=15),
             copyright_box_white
