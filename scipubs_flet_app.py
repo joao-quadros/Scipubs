@@ -272,7 +272,7 @@ DIC_TRANSLATE = {
         "musica_ufop_lbl": "Music-UFOP",
         "copyright_tit": "Copyright & Ownership:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nFederal University of Ouro Preto\nMinas Gerais, Brazil.\nAll rights reserved.",
-        "busca_cat": "🔎 Journal Finder",
+        "busca_cat": "Journal Finder",
         "busca_ia": "Smart Recommender (AI)",
         "fale_conosco": "Contact Us",
         "doacoes": "☕ Donate",
@@ -328,7 +328,7 @@ DIC_TRANSLATE = {
         "database_ia_lbl": "Database (IA)",
         "num_recs_lbl": "Number of desired recommendations (max. 40)",
         "acesse_site": "🌐 Visit Official Journal Website",
-        "ver_h5": "Access H5-Index",
+        "ver_h5": "H5-Index",
         "fechar": "Close",
         "sub_modal_tit": "Join our VIP Community! 🚀",
         "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
@@ -1107,7 +1107,7 @@ def main(page: ft.Page, force_mobile: bool = False):
     lbl_info_paginacao = ft.Text("", color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
     btn_pag_ant = ft.Ref[ft.Button]()
     btn_pag_prox = ft.Ref[ft.Button]()
-    row_paginacao_botoes = ft.Row(spacing=6)
+    row_paginacao_botoes = ft.Row(spacing=6, scroll=ft.ScrollMode.AUTO)
 
     lista_resultados = ft.Column(spacing=14, scroll=ft.ScrollMode.AUTO, expand=True)
 
@@ -1499,28 +1499,48 @@ def main(page: ft.Page, force_mobile: bool = False):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Título da revista em destaque com ISSN abaixo
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
+            # 🎨 Checkbox reduzido e alinhado à esquerda
+            chk_item = ft.Checkbox(
+                value=(item_id in revistas_selecionadas),
+                fill_color=ACCENT_RED,
+                scale=0.85,
+                on_change=lambda e, i_id=item_id: on_check_changed(e, i_id)
+            )
 
-            title_row = ft.Column([
-                ft.Row([chk_item, title_txt], spacing=6),
-                issn_txt
-            ], spacing=2)
+            # 🎨 Título do periódico com quebra de linha natural
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True)
 
-            # 🎨 Botão secundário para Site Oficial (Nativo + Multilíngue - sem ícones)
+            # 🎨 Botão "Visit Official Journal Website" com fonte do mesmo tamanho do ISSN (12px)
             btn_site_oficial = ft.Button(
                 t("acesse_site"),
                 url=target_site_url,
                 style=ft.ButtonStyle(
                     color="#38BDF8",
                     bgcolor="#111827",
-                    shape=ft.RoundedRectangleBorder(radius=12),
+                    shape=ft.RoundedRectangleBorder(radius=10),
                     side=ft.BorderSide(1, "#1E293B"),
-                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
+                    padding=ft.Padding(8, 4, 8, 4),
+                    text_style=ft.TextStyle(size=12, font_family="Roboto")
                 ),
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
+
+            # 🎨 Caixa azul-escuro com borda brilhante englobando Título + Botão de Website (Clicável para redirecionamento)
+            journal_title_box = ft.Container(
+                content=ft.Column([
+                    ft.Row([chk_item, title_txt], spacing=4, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                    btn_site_oficial
+                ], spacing=6),
+                bgcolor="#0F172A",
+                border=ft.Border.all(1, "#38BDF8"),
+                border_radius=12,
+                padding=10,
+                on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p),
+                ink=True
+            )
+
+            # 🎨 ISSN posicionado abaixo da caixa do Website do periódico
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
             # 🎨 Grande Área e Área de Conhecimento (Labels #94A3B8, 12px)
             if is_screen_small:
@@ -1528,21 +1548,21 @@ def main(page: ft.Page, force_mobile: bool = False):
             else:
                 area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto (JIF, SJR, H-Index) em VERMELHO VIBRANTE (#E11D48)
+            # 🎨 Métricas de Impacto em AMARELO (#F59E0B)
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color="#E11D48", size=11 if is_screen_small else 12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            metrics_txt = ft.Text(metrics_str, color="#F59E0B", size=11 if is_screen_small else 12, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Access H5-Index" Dourado (#F59E0B com fundo #2E2208)
+            # 🎨 Botão "H5-Index" Dourado (#F59E0B) com altura reduzida
             btn_h5 = ft.Button(
                 t("ver_h5"),
                 url=h5_url,
                 style=ft.ButtonStyle(
                     color="#F59E0B",
                     bgcolor="#2E2208",
-                    shape=ft.RoundedRectangleBorder(radius=12),
+                    shape=ft.RoundedRectangleBorder(radius=8),
                     side=ft.BorderSide(1, "#F59E0B"),
-                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6),
-                    text_style=ft.TextStyle(size=10 if is_screen_small else 11, font_family="Roboto")
+                    padding=ft.Padding(8, 2, 8, 2),
+                    text_style=ft.TextStyle(size=10, font_family="Roboto")
                 ),
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
@@ -1554,8 +1574,8 @@ def main(page: ft.Page, force_mobile: bool = False):
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             card_controls = [
-                title_row,
-                btn_site_oficial,
+                journal_title_box,
+                issn_txt,
                 area_info_txt,
                 ft.Container(height=2),
                 metrics_row
@@ -1697,7 +1717,10 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_doar = ft.Button(
-        t("doacoes"),
+        content=ft.Row([
+            ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=18),
+            ft.Text(t("doacoes"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
         url="https://buymeacoffee.com/scipubs",
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
@@ -1705,7 +1728,10 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_inscrever = ft.Button(
-        t("inscrever"),
+        content=ft.Row([
+            ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=18),
+            ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_inscricao
@@ -2114,7 +2140,6 @@ def main(page: ft.Page, force_mobile: bool = False):
 
         tab_busca_item = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.Icons.SEARCH, color=tab_busca_color, size=16),
                 ft.Text(t("busca_cat"), color=tab_busca_color, size=11, weight=ft.FontWeight.BOLD, font_family="Roboto")
             ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
             padding=ft.Padding(0, 8, 0, 8),
