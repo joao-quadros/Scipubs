@@ -1493,14 +1493,14 @@ def main(page: ft.Page, force_mobile: bool = False):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Título da revista com ISSN ao lado (sem ícone de link externo)
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2, expand=True)
+            # 🎨 Título da revista em destaque com ISSN abaixo
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
             issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
-            title_row = ft.Row([
-                ft.Row([chk_item, title_txt], spacing=6, expand=True),
+            title_row = ft.Column([
+                ft.Row([chk_item, title_txt], spacing=6),
                 issn_txt
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            ], spacing=2)
 
             # 🎨 Botão secundário para Site Oficial (Nativo + Multilíngue - sem ícones)
             btn_site_oficial = ft.Button(
@@ -1522,11 +1522,11 @@ def main(page: ft.Page, force_mobile: bool = False):
             else:
                 area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em VERMELHO VIBRANTE (#E11D48) reduzidas em 2 pts (size 11/12)
+            # 🎨 Métricas de Impacto (JIF, SJR, H-Index) em VERMELHO VIBRANTE (#E11D48)
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
             metrics_txt = ft.Text(metrics_str, color="#E11D48", size=11 if is_screen_small else 12, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Access H5-Index" Dourado (#F59E0B com fundo #2E2208 - sem ícone, fonte reduzida em 2 pts)
+            # 🎨 Botão "Access H5-Index" Dourado (#F59E0B com fundo #2E2208)
             btn_h5 = ft.Button(
                 t("ver_h5"),
                 url=h5_url,
@@ -1541,16 +1541,11 @@ def main(page: ft.Page, force_mobile: bool = False):
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            if is_screen_small:
-                metrics_row = ft.Column([
-                    metrics_txt,
-                    btn_h5
-                ], spacing=6, horizontal_alignment=ft.CrossAxisAlignment.START)
-            else:
-                metrics_row = ft.Row([
-                    metrics_txt,
-                    btn_h5
-                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            # Todas as métricas + botão H5 organizados em uma ÚNICA LINHA
+            metrics_row = ft.Row([
+                metrics_txt,
+                btn_h5
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             card_controls = [
                 title_row,
@@ -2522,14 +2517,12 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_fale_compact = ft.Container(
-        content=ft.Row([
-            ft.Icon(ft.Icons.EMAIL, color="#FFFFFF", size=14),
-            btn_fale_txt
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+        content=ft.Row([btn_fale_txt], alignment=ft.MainAxisAlignment.CENTER),
         url="mailto:support@scipubs.com",
         bgcolor=ACCENT_RED,
-        padding=ft.Padding(8, 6, 12, 6),
+        padding=ft.Padding(10, 8, 10, 8),
         border_radius=8,
+        expand=True,
         on_click=lambda e: abrir_link(page, "mailto:support@scipubs.com"),
         ink=True
     )
@@ -2537,21 +2530,15 @@ def main(page: ft.Page, force_mobile: bool = False):
     header_drawer_row = ft.Row([
         btn_fale_compact,
         btn_recolher_drawer
-    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+    ], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=8)
 
-    # Informações de Copyright em BRANCO (#FFFFFF) dentro de container escuro
-    lbl_copyright_tit_white = ft.Text(t("copyright_tit"), color="#FFFFFF", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    lbl_copyright_desc_white = ft.Text(t("copyright_desc"), color="#FFFFFF", size=11, font_family="Roboto")
-    copyright_box_white = ft.Container(
-        bgcolor="#040A18",
-        padding=10,
-        border_radius=8,
-        border=ft.Border.all(1, "#1E293B"),
-        content=ft.Column([
-            lbl_copyright_tit_white,
-            lbl_copyright_desc_white
-        ], spacing=4)
-    )
+    # Informações de Copyright em PRETO (#000000) diretamente sobre o fundo do menu lateral (#F8F6F0), fora de balão
+    lbl_copyright_tit_black = ft.Text(t("copyright_tit"), color="#000000", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    lbl_copyright_desc_black = ft.Text(t("copyright_desc"), color="#000000", size=11, font_family="Roboto")
+    copyright_box_plain = ft.Column([
+        lbl_copyright_tit_black,
+        lbl_copyright_desc_black
+    ], spacing=4)
 
     mobile_drawer_popup = ft.Container(
         width=300,
@@ -2605,7 +2592,7 @@ def main(page: ft.Page, force_mobile: bool = False):
             criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", "professor.png", ft.Icons.PERSON, is_pessoal=True, ref_ctrl=btn_pessoal_txt),
 
             ft.Divider(color="#CBD5E1", height=15),
-            copyright_box_white
+            copyright_box_plain
         ], spacing=8, scroll=ft.ScrollMode.AUTO)
     )
 
