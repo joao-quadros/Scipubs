@@ -33,24 +33,22 @@ logging.getLogger("uvicorn").setLevel(logging.WARNING)
 # ==========================================
 # 🎨 PALETA DE CORES EXATA DO SCIPUBS (DESKTOP FINALIZADO + PWA MOBILE)
 # ==========================================
-SIDEBAR_BG = "#F8F6F0"          # Fundo claro oficial da barra lateral Desktop (Beige)
-SIDEBAR_MOBILE_BG = "#F8F6F0"   # Fundo claro da barra lateral (Beige do Desktop)
-MAIN_BG = "#040A18"             # DeepNavyBackground (Google Studio AI)
-CARD_BG = "#0B132B"             # DarkCardContainer (Google Studio AI)
-INPUT_BG = "#131D38"            # DarkCardContainerElevated (Google Studio AI)
-HERO_BLUE = "#040A18"           # Fundo do Banner Principal
-ACCENT_RED = "#DC2626"          # CoralRedAccent (Google Studio AI)
-CORAL_RED = "#DC2626"
-ACCENT_YELLOW = "#FFCC00"       # GoldMetrics (Google Studio AI)
+SIDEBAR_BG = "#F8F6F0"       # Fundo claro oficial da barra lateral Desktop (Beige)
+SIDEBAR_MOBILE_BG = "#F8F6F0" # Fundo claro oficial da barra lateral (Beige)
+MAIN_BG = "#080D1A"          # Fundo escuro da área principal
+CARD_BG = "#0B132B"          # Cartões escuros
+INPUT_BG = "#131D30"         # Fundo de campos de texto
+HERO_BLUE = "#040A18"        # Fundo do Banner Principal
+ACCENT_RED = "#FF3B30"       # Vermelho oficial SciPubs
+CORAL_RED = "#FF3B30"
+ACCENT_YELLOW = "#FFCC00"    # Amarelo oficial SciPubs
 GOLD_YELLOW = "#FFCC00"
-ACCENT_GREEN = "#059669"        # Verde Recomendador
+ACCENT_GREEN = "#059669"     # Verde Recomendador
 EMERALD_GREEN = "#059669"
-ACCENT_BLUE = "#2563EB"         # Azul Royal Buscador
+ACCENT_BLUE = "#2563EB"      # Azul Royal Buscador
 ROYAL_BLUE = "#2563EB"
-TEAL_ACCENT = "#06B6D4"         # TealAccent (Google Studio AI)
-TEXT_DARK = "#0F172A"           # Texto para fundos claros
-TEXT_MUTED = "#94A3B8"          # MutedText (Google Studio AI)
-LIGHT_TEXT = "#F8FAFC"          # LightText (Google Studio AI)
+TEXT_DARK = "#0F172A"        # Texto para fundos claros
+TEXT_MUTED = "#94A3B8"       # Texto secundário
 BORDER_DARK = "#1E293B"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
