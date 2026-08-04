@@ -1376,7 +1376,7 @@ def main(page: ft.Page):
         if not is_pesquisa_realizada:
             lbl_info_paginacao.value = f"Displaying journals: {total_items}"
         else:
-            lbl_info_paginacao.value = f"Page {pagina_atual} of {total_paginas} ({total_items} records found)"
+            lbl_info_paginacao.value = f"Page {pagina_atual} of {total_paginas}"
 
         row_paginacao_botoes.controls.clear()
         
@@ -1488,7 +1488,9 @@ def main(page: ft.Page):
 
             is_screen_small = page.width < 600
 
-            is_screen_small = page.width < 600
+            target_site_url = site_url.strip() if site_url and str(site_url).strip() not in ["-", "None", "nan", ""] else f"https://www.google.com/search?q={urllib.parse.quote(titulo_p)}"
+            if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
+                target_site_url = "https://" + target_site_url
 
             # 🎨 Título da revista em branco puro (#FFFFFF, Bold, 15px) com ícone de link externo (External Link)
             title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=3 if is_screen_small else 2)
@@ -1511,10 +1513,6 @@ def main(page: ft.Page):
                     ft.Row([chk_item, title_txt, btn_external_link], spacing=6, expand=True),
                     issn_txt
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
-
-            target_site_url = site_url.strip() if site_url and str(site_url).strip() not in ["-", "None", "nan", ""] else f"https://www.google.com/search?q={urllib.parse.quote(titulo_p)}"
-            if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
-                target_site_url = "https://" + target_site_url
 
             # 🎨 Botão secundário com Ícone de Globo Terrestre (Nativo + Multilíngue)
             btn_site_oficial = ft.Button(
