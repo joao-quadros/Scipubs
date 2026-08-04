@@ -1039,8 +1039,34 @@ def main(page: ft.Page):
     
     pagina_atual = 1
     itens_por_pagina = 20
-    resultados_totais_atuais = []
+    is_pesquisa_realizada = False
+    resultados_totais_atuais = engine.buscar_geral(limite=34000)
     revistas_selecionadas = set()
+
+    def iniciar_busca_voz(e=None):
+        try:
+            page.run_js("""
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.interimResults = false;
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const inputs = document.querySelectorAll('input');
+                    if (inputs.length > 0) {
+                        inputs[0].value = transcript;
+                        inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
+                        inputs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+                    }
+                };
+                recognition.start();
+            } else {
+                alert('A busca por voz não é suportada neste navegador.');
+            }
+            """)
+        except Exception:
+            pass
 
     def t(key):
         return DIC_TRANSLATE.get(idioma_atual, DIC_TRANSLATE["English"]).get(key, key)
@@ -1345,11 +1371,10 @@ def main(page: ft.Page):
         pagina_items = resultados_totais_atuais[idx_inicio:idx_fim]
 
         fmt_str = t("pagina_fmt")
-        lbl_info_paginacao.value = fmt_str.format(
-            atual=pagina_atual,
-            total=total_paginas,
-            total_itens=f"{total_items:,}".replace(",", ".")
-        )
+        if not is_pesquisa_realizada:
+            lbl_info_paginacao.value = f"Displaying journals: {total_items}"
+        else:
+            lbl_info_paginacao.value = f"Page {pagina_atual} of {total_paginas} ({total_items} records found)"
 
         row_paginacao_botoes.controls.clear()
         
@@ -1568,7 +1593,8 @@ def main(page: ft.Page):
         page.update()
 
     def executar_pesquisa(e=None):
-        nonlocal resultados_totais_atuais, pagina_atual, itens_por_pagina
+        nonlocal resultados_totais_atuais, pagina_atual, itens_por_pagina, is_pesquisa_realizada
+        is_pesquisa_realizada = True
 
         if per_page_dropdown.current and per_page_dropdown.current.value:
             try:
@@ -1695,7 +1721,7 @@ def main(page: ft.Page):
 
     btn_inscrever = ft.Button(
         content=ft.Row([
-            ft.Icon(ft.Icons.FLAG, color="#FFFFFF", size=18),
+            ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=18),
             ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
@@ -2104,10 +2130,10 @@ def main(page: ft.Page):
 
         tab_busca_item = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.Icons.SEARCH, color=tab_busca_color, size=18),
-                ft.Text(t("busca_cat"), color=tab_busca_color, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+                ft.Icon(ft.Icons.SEARCH, color=tab_busca_color, size=16),
+                ft.Text(t("busca_cat"), color=tab_busca_color, size=11, weight=ft.FontWeight.BOLD, font_family="Roboto")
             ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
-            padding=ft.Padding(0, 10, 0, 10),
+            padding=ft.Padding(0, 8, 0, 8),
             border=ft.Border(bottom=ft.BorderSide(3, "#E11D48")) if is_busca_active else None,
             expand=True,
             on_click=lambda e: alternar_aba("buscador")
@@ -2115,10 +2141,10 @@ def main(page: ft.Page):
 
         tab_rec_item = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.Icons.AUTO_AWESOME, color=tab_rec_color, size=18),
-                ft.Text(t("busca_ia"), color=tab_rec_color, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+                ft.Icon(ft.Icons.AUTO_AWESOME, color=tab_rec_color, size=16),
+                ft.Text(t("busca_ia"), color=tab_rec_color, size=11, weight=ft.FontWeight.BOLD, font_family="Roboto")
             ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
-            padding=ft.Padding(0, 10, 0, 10),
+            padding=ft.Padding(0, 8, 0, 8),
             border=ft.Border(bottom=ft.BorderSide(3, "#E11D48")) if is_rec_active else None,
             expand=True,
             on_click=lambda e: alternar_aba("recomendador")
@@ -2131,14 +2157,18 @@ def main(page: ft.Page):
         )
 
         if aba_atual == "buscador":
+            btn_search_trigger = ft.IconButton(icon=ft.Icons.SEARCH, icon_color="#38BDF8", icon_size=18, tooltip="Pesquisar", on_click=executar_pesquisa)
+            btn_mic_trigger = ft.IconButton(icon=ft.Icons.MIC, icon_color="#E11D48", icon_size=18, tooltip="Busca por voz", on_click=iniciar_busca_voz)
+
             search_field = ft.TextField(
                 ref=termo_busca,
                 hint_text=t("placeholder_busca"),
                 prefix_icon=ft.Icons.SEARCH,
+                suffix=ft.Row([btn_mic_trigger, btn_search_trigger], spacing=0),
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
-                hint_style=ft.TextStyle(color="#94A3B8", size=13, font_family="Roboto"),
+                hint_style=ft.TextStyle(color="#94A3B8", size=12, font_family="Roboto"),
                 border_radius=12,
                 on_submit=executar_pesquisa,
                 expand=True
@@ -2149,6 +2179,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(a) for a in curr_areas],
                 value=curr_areas[0],
                 label=t("grande_area_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2162,6 +2194,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(db) for db in BASES_DADOS_OPCOES],
                 value=BASES_DADOS_OPCOES[0],
                 label=t("bases_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2175,6 +2209,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(q) for q in quartil_options],
                 value=quartil_options[0],
                 label=t("quartil_jcr_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2188,6 +2224,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(q) for q in quartil_options],
                 value=quartil_options[0],
                 label=t("quartil_sjr_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2201,6 +2239,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(o) for o in ordem_options],
                 value=ordem_options[0],
                 label=t("ordenar_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2214,6 +2254,8 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(pp) for pp in per_page_options],
                 value=str(itens_por_pagina),
                 label=t("itens_pag_lbl"),
+                label_style=ft.TextStyle(size=10, color="#94A3B8"),
+                text_size=11,
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
@@ -2233,17 +2275,17 @@ def main(page: ft.Page):
                 filters_card = ft.Container(
                     bgcolor="#111827",
                     border_radius=16,
-                    padding=16,
+                    padding=14,
                     border=ft.Border.all(1, "#1E293B"),
                     content=ft.Column([
                         ft.Row([
-                            ft.Icon(ft.Icons.GRID_VIEW, size=18, color="#F59E0B"),
-                            ft.Text("Filters & Sorting", size=15, weight=ft.FontWeight.BOLD, color="#F59E0B", font_family="Roboto")
+                            ft.Icon(ft.Icons.GRID_VIEW, size=16, color="#F59E0B"),
+                            ft.Text("Filters & Sorting", size=12, weight=ft.FontWeight.BOLD, color="#F59E0B", font_family="Roboto")
                         ], spacing=8),
-                        ft.Row([g_area_select, db_select], spacing=10),
-                        ft.Row([jcr_select, sjr_select], spacing=10),
+                        ft.Row([g_area_select, db_select], spacing=8),
+                        ft.Row([jcr_select, sjr_select], spacing=8),
                         ordem_select
-                    ], spacing=10)
+                    ], spacing=8)
                 )
 
                 form_container.content = ft.Column([
