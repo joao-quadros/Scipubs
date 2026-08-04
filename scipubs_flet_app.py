@@ -275,8 +275,8 @@ DIC_TRANSLATE = {
         "busca_cat": "Journal Finder",
         "busca_ia": "Smart Recommender (AI)",
         "fale_conosco": "Contact Us",
-        "doacoes": "☕ Donate",
-        "inscrever": "✉️ Subscribe",
+        "doacoes": "Donate",
+        "inscrever": "Subscribe",
         "baixar_win": "💻 Download Windows Version",
         "sobre_tit": "💡 About SciPubs & How to Use",
         "sobre_head": "Welcome to SciPubs: The Researcher's Portal!",
@@ -328,7 +328,7 @@ DIC_TRANSLATE = {
         "database_ia_lbl": "Database (IA)",
         "num_recs_lbl": "Number of desired recommendations (max. 40)",
         "acesse_site": "🌐 Visit Official Journal Website",
-        "ver_h5": "Open H5-Index",
+        "ver_h5": "H5-Index",
         "fechar": "Close",
         "sub_modal_tit": "Join our VIP Community! 🚀",
         "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
@@ -1721,10 +1721,7 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_doar = ft.Button(
-        content=ft.Row([
-            ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=18),
-            ft.Text(t("doacoes"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+        t("doacoes"),
         url="https://buymeacoffee.com/scipubs",
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
@@ -1732,10 +1729,7 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_inscrever = ft.Button(
-        content=ft.Row([
-            ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=18),
-            ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+        t("inscrever"),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_inscricao
@@ -2734,10 +2728,10 @@ def main(page: ft.Page, force_mobile: bool = False):
         ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
     )
 
-    top_results_bar = ft.Row([
+    bottom_results_bar = ft.Column([
         lbl_info_paginacao,
-        row_paginacao_botoes
-    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+        ft.Container(content=row_paginacao_botoes, width=None)
+    ], spacing=8, horizontal_alignment=ft.CrossAxisAlignment.START)
 
     bottom_export_row = ft.Row([
         btn_export_csv,
@@ -2753,8 +2747,8 @@ def main(page: ft.Page, force_mobile: bool = False):
             sobre_expander,
             action_buttons_row,
             form_container,
-            top_results_bar,
             ft.Container(content=lista_resultados, expand=True),
+            bottom_results_bar,
             ft.Divider(color=BORDER_DARK, height=20),
             bottom_export_row
         ], spacing=14, scroll=ft.ScrollMode.AUTO)
