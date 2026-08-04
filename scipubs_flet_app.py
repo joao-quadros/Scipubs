@@ -1032,6 +1032,7 @@ def get_global_engine():
 def main(page: ft.Page, force_mobile: bool = False):
     engine = get_global_engine()
 
+    is_initial_load = True
     aba_atual = "buscador"
     botao_selecionado = "buscador"
     idioma_atual = "English"
@@ -1042,6 +1043,11 @@ def main(page: ft.Page, force_mobile: bool = False):
     is_pesquisa_realizada = False
     resultados_totais_atuais = engine.buscar_geral(limite=34000)
     revistas_selecionadas = set()
+
+    def on_dropdown_change(e=None):
+        if is_initial_load:
+            return
+        executar_pesquisa(e)
 
     def iniciar_busca_voz(e=None):
         lang_code = "en-US" if idioma_atual == "English" else ("es-ES" if idioma_atual == "Español" else "pt-BR")
@@ -2163,7 +2169,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_color="#1E293B",
                 color="#FFFFFF",
                 border_radius=12,
-                on_select=executar_pesquisa,
+                on_select=on_dropdown_change,
                 expand=True
             )
 
@@ -2178,7 +2184,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_color="#1E293B",
                 color="#FFFFFF",
                 border_radius=12,
-                on_select=executar_pesquisa,
+                on_select=on_dropdown_change,
                 expand=True
             )
 
@@ -2193,7 +2199,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_color="#1E293B",
                 color="#FFFFFF",
                 border_radius=12,
-                on_select=executar_pesquisa,
+                on_select=on_dropdown_change,
                 expand=True
             )
 
@@ -2208,7 +2214,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_color="#1E293B",
                 color="#FFFFFF",
                 border_radius=12,
-                on_select=executar_pesquisa,
+                on_select=on_dropdown_change,
                 expand=True
             )
 
@@ -2223,7 +2229,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_color="#1E293B",
                 color="#FFFFFF",
                 border_radius=12,
-                on_select=executar_pesquisa,
+                on_select=on_dropdown_change,
                 expand=True
             )
 
@@ -2239,7 +2245,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 color="#FFFFFF",
                 border_radius=12,
                 width=150,
-                on_select=executar_pesquisa
+                on_select=on_dropdown_change
             )
 
             search_btn = ft.Button(
@@ -2379,7 +2385,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_radius=10,
                 width=RIGHT_COL_WIDTH,
                 text_size=12,
-                on_select=executar_pesquisa
+                on_select=on_dropdown_change
             )
 
             rec_ordem_opts = t("ordem_opts")
@@ -2393,7 +2399,7 @@ def main(page: ft.Page, force_mobile: bool = False):
                 border_radius=10,
                 width=RIGHT_COL_WIDTH,
                 text_size=12,
-                on_select=executar_pesquisa
+                on_select=on_dropdown_change
             )
 
             def on_slider_change(e):
@@ -2738,7 +2744,8 @@ def main(page: ft.Page, force_mobile: bool = False):
     page.add(global_layout)
 
     render_responsive_layout()
-    executar_pesquisa()
+    renderizar_pagina()
+    is_initial_load = False
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
