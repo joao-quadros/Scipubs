@@ -1378,6 +1378,8 @@ def main(page: ft.Page):
         else:
             lbl_info_paginacao.value = f"Page {pagina_atual} of {total_paginas}"
 
+        lbl_info_paginacao.size = 11
+
         row_paginacao_botoes.controls.clear()
         
         def ir_pagina(p):
@@ -1387,17 +1389,15 @@ def main(page: ft.Page):
 
         btn_ant = ft.Button(
             t("pag_anterior"),
-            icon=ft.Icons.ARROW_BACK,
             disabled=(pagina_atual == 1),
-            style=ft.ButtonStyle(color="#FFFFFF", bgcolor=INPUT_BG if pagina_atual > 1 else "#1E293B"),
+            style=ft.ButtonStyle(color="#FFFFFF", bgcolor=INPUT_BG if pagina_atual > 1 else "#1E293B", text_style=ft.TextStyle(size=10, font_family="Roboto")),
             on_click=lambda e: ir_pagina(pagina_atual - 1)
         )
 
         btn_prox = ft.Button(
             t("pag_proxima"),
-            icon=ft.Icons.ARROW_FORWARD,
             disabled=(pagina_atual == total_paginas),
-            style=ft.ButtonStyle(color="#FFFFFF", bgcolor=INPUT_BG if pagina_atual < total_paginas else "#1E293B"),
+            style=ft.ButtonStyle(color="#FFFFFF", bgcolor=INPUT_BG if pagina_atual < total_paginas else "#1E293B", text_style=ft.TextStyle(size=10, font_family="Roboto")),
             on_click=lambda e: ir_pagina(pagina_atual + 1)
         )
 
@@ -1415,7 +1415,8 @@ def main(page: ft.Page):
                 style=ft.ButtonStyle(
                     color="#FFFFFF" if is_active else TEXT_MUTED,
                     bgcolor=ACCENT_RED if is_active else INPUT_BG,
-                    shape=ft.RoundedRectangleBorder(radius=6)
+                    shape=ft.RoundedRectangleBorder(radius=6),
+                    text_style=ft.TextStyle(size=10, font_family="Roboto")
                 ),
                 on_click=lambda e, num=p_num: ir_pagina(num)
             )
@@ -1492,29 +1493,16 @@ def main(page: ft.Page):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Título da revista em branco puro (#FFFFFF, Bold, 15px, exatamente 2 linhas) com ícone de link externo (External Link)
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
-            btn_external_link = ft.IconButton(
-                icon=ft.Icons.OPEN_IN_NEW,
-                icon_color="#94A3B8",
-                icon_size=18,
-                url=target_site_url,
-                tooltip=t("acesse_site")
-            )
+            # 🎨 Título da revista com ISSN ao lado (sem ícone de link externo)
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2, expand=True)
             issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
-            if is_screen_small:
-                title_row = ft.Column([
-                    ft.Row([chk_item, title_txt, btn_external_link], spacing=6, expand=True),
-                    issn_txt
-                ], spacing=4)
-            else:
-                title_row = ft.Row([
-                    ft.Row([chk_item, title_txt, btn_external_link], spacing=6, expand=True),
-                    issn_txt
-                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            title_row = ft.Row([
+                ft.Row([chk_item, title_txt], spacing=6, expand=True),
+                issn_txt
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-            # 🎨 Botão secundário para Site Oficial (Nativo + Multilíngue - sem ícone)
+            # 🎨 Botão secundário para Site Oficial (Nativo + Multilíngue - sem ícones)
             btn_site_oficial = ft.Button(
                 t("acesse_site"),
                 url=target_site_url,
@@ -1534,11 +1522,11 @@ def main(page: ft.Page):
             else:
                 area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em VERMELHO VIBRANTE (#E11D48)
+            # 🎨 Métricas de Impacto em VERMELHO VIBRANTE (#E11D48) reduzidas em 2 pts (size 11/12)
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color="#E11D48", size=13 if is_screen_small else 14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            metrics_txt = ft.Text(metrics_str, color="#E11D48", size=11 if is_screen_small else 12, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Access H5-Index" Dourado/Amarelo Ouro (#F59E0B com fundo #2E2208 - sem ícone)
+            # 🎨 Botão "Access H5-Index" Dourado (#F59E0B com fundo #2E2208 - sem ícone, fonte reduzida em 2 pts)
             btn_h5 = ft.Button(
                 t("ver_h5"),
                 url=h5_url,
@@ -1547,7 +1535,8 @@ def main(page: ft.Page):
                     bgcolor="#2E2208",
                     shape=ft.RoundedRectangleBorder(radius=12),
                     side=ft.BorderSide(1, "#F59E0B"),
-                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
+                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6),
+                    text_style=ft.TextStyle(size=10 if is_screen_small else 11, font_family="Roboto")
                 ),
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
@@ -2485,7 +2474,7 @@ def main(page: ft.Page):
 
         sidebar_container.visible = not is_mobile
         mobile_top_bar.visible = is_mobile
-        mobile_bottom_dock.visible = is_mobile
+        mobile_bottom_dock.visible = False
 
         page.update()
 
