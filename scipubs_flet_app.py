@@ -1044,27 +1044,29 @@ def main(page: ft.Page):
     revistas_selecionadas = set()
 
     def iniciar_busca_voz(e=None):
+        lang_code = "en-US" if idioma_atual == "English" else ("es-ES" if idioma_atual == "Español" else "pt-BR")
         try:
-            page.run_js("""
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            js_code = f"""
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {{
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
-                recognition.lang = 'pt-BR';
+                recognition.lang = '{lang_code}';
                 recognition.interimResults = false;
-                recognition.onresult = function(event) {
+                recognition.onresult = function(event) {{
                     const transcript = event.results[0][0].transcript;
                     const inputs = document.querySelectorAll('input');
-                    if (inputs.length > 0) {
+                    if (inputs.length > 0) {{
                         inputs[0].value = transcript;
-                        inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
-                        inputs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
-                    }
-                };
+                        inputs[0].dispatchEvent(new Event('input', {{ bubbles: true }}));
+                        inputs[0].dispatchEvent(new KeyboardEvent('keydown', {{ key: 'Enter', keyCode: 13, bubbles: true }}));
+                    }}
+                }};
                 recognition.start();
-            } else {
+            }} else {{
                 alert('A busca por voz não é suportada neste navegador.');
-            }
-            """)
+            }}
+            """
+            page.run_js(js_code)
         except Exception:
             pass
 
