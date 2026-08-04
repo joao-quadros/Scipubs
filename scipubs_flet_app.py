@@ -1558,7 +1558,7 @@ def main(page: ft.Page):
                 metrics_row = ft.Column([
                     metrics_txt,
                     btn_h5
-                ], spacing=6, cross_axis_alignment=ft.CrossAxisAlignment.START)
+                ], spacing=6, horizontal_alignment=ft.CrossAxisAlignment.START)
             else:
                 metrics_row = ft.Row([
                     metrics_txt,
