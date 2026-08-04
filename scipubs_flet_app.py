@@ -2482,12 +2482,7 @@ def main(page: ft.Page):
             criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", is_pessoal=True, ref_ctrl=btn_pessoal_txt),
 
             ft.Divider(color="#1E2A42", height=15),
-            lbl_metadata_tit,
-            lbl_system_status,
-            lbl_base_version,
-            lbl_cnpq_std,
-            ft.Container(height=4),
-            lbl_copyright_tit_box,
+            lbl_copyright_tit,
             lbl_copyright_desc
         ], spacing=8, scroll=ft.ScrollMode.AUTO)
     )
