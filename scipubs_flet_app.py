@@ -33,23 +33,26 @@ logging.getLogger("uvicorn").setLevel(logging.WARNING)
 # ==========================================
 # 🎨 PALETA DE CORES EXATA DO SCIPUBS (DESKTOP FINALIZADO + PWA MOBILE)
 # ==========================================
-SIDEBAR_BG = "#F8F6F0"       # Fundo claro oficial da barra lateral Desktop (Beige)
-SIDEBAR_MOBILE_BG = "#F8F6F0" # Fundo claro oficial da barra lateral (Beige)
-MAIN_BG = "#080D1A"          # Fundo escuro da área principal
-CARD_BG = "#0B132B"          # Cartões escuros
-INPUT_BG = "#131D30"         # Fundo de campos de texto
-HERO_BLUE = "#040A18"        # Fundo do Banner Principal
-ACCENT_RED = "#FF3B30"       # Vermelho oficial SciPubs
-CORAL_RED = "#FF3B30"
-ACCENT_YELLOW = "#FFCC00"    # Amarelo oficial SciPubs
-GOLD_YELLOW = "#FFCC00"
-ACCENT_GREEN = "#059669"     # Verde Recomendador
-EMERALD_GREEN = "#059669"
-ACCENT_BLUE = "#2563EB"      # Azul Royal Buscador
-ROYAL_BLUE = "#2563EB"
-TEXT_DARK = "#0F172A"        # Texto para fundos claros
-TEXT_MUTED = "#94A3B8"       # Texto secundário
-BORDER_DARK = "#1E293B"
+SIDEBAR_BG = "#F8F6F0"          # Fundo claro oficial da barra lateral Desktop (Beige)
+SIDEBAR_MOBILE_BG = "#F8F6F0"   # Fundo claro oficial da barra lateral Mobile (Beige)
+MAIN_BG = "#0A0E17"             # Fundo Principal da Página
+CARD_BG = "#111827"             # Fundo de Cards / Containers / Dropdowns
+INPUT_BG = "#111827"            # Fundo de Inputs
+HERO_BLUE = "#0A0E17"           # Fundo do Banner Principal
+ACCENT_RED = "#E11D48"          # Cor de Destaque / Active Highlight (Vermelho vibrante)
+CORAL_RED = "#E11D48"
+ACCENT_YELLOW = "#F59E0B"       # Amarelo Ouro Badges/H5
+GOLD_YELLOW = "#F59E0B"
+H5_BG = "#2E2208"               # Fundo H5-Index escuro semi-transparente
+BTN_DONATE_GREEN = "#10B981"    # Botão Donate (Verde Esmeralda)
+BTN_SUBSCRIBE_BLUE = "#3B82F6"  # Botão Subscribe (Azul Royal)
+ACCENT_GREEN = "#10B981"
+ACCENT_BLUE = "#3B82F6"
+ROYAL_BLUE = "#3B82F6"
+TEXT_DARK = "#0F172A"           # Texto para fundos claros
+TEXT_MUTED = "#94A3B8"          # Texto Secundário (Labels e Subtítulos)
+LIGHT_TEXT = "#FFFFFF"          # Texto Primário (Títulos/Nomes)
+BORDER_DARK = "#1E293B"         # Bordas de Inputs e Containers
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 STREAMLIT_DIR = os.path.join(BASE_DIR, "scipubs_project", "streamlit_app", "buscador-periodicos-main")
@@ -1458,18 +1461,27 @@ def main(page: ft.Page):
 
             is_screen_small = page.width < 600
 
-            # 🎨 Título da revista em destaque (fonte maior 18 bold) + ISSN ao lado
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=16 if is_screen_small else 18, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=3 if is_screen_small else 2)
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12 if is_screen_small else 13, font_family="Roboto")
+            is_screen_small = page.width < 600
+
+            # 🎨 Título da revista em branco puro (#FFFFFF, Bold, 15px) com ícone de link externo (External Link)
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=3 if is_screen_small else 2)
+            btn_external_link = ft.IconButton(
+                icon=ft.Icons.OPEN_IN_NEW,
+                icon_color="#94A3B8",
+                icon_size=18,
+                url=target_site_url,
+                tooltip=t("acesse_site")
+            )
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
             if is_screen_small:
                 title_row = ft.Column([
-                    ft.Row([chk_item, title_txt], spacing=8, expand=True),
+                    ft.Row([chk_item, title_txt, btn_external_link], spacing=6, expand=True),
                     issn_txt
                 ], spacing=4)
             else:
                 title_row = ft.Row([
-                    ft.Row([chk_item, title_txt], spacing=8, expand=True),
+                    ft.Row([chk_item, title_txt, btn_external_link], spacing=6, expand=True),
                     issn_txt
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
@@ -1477,40 +1489,41 @@ def main(page: ft.Page):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Botão para Acessar o Site Oficial da Revista (Nativo + Multilíngue)
+            # 🎨 Botão secundário com Ícone de Globo Terrestre (Nativo + Multilíngue)
             btn_site_oficial = ft.Button(
                 t("acesse_site"),
+                icon=ft.Icons.LANGUAGE,
                 url=target_site_url,
                 style=ft.ButtonStyle(
                     color="#38BDF8",
-                    bgcolor="#0F172A",
-                    shape=ft.RoundedRectangleBorder(radius=8),
-                    side=ft.BorderSide(1, "#1E2A42"),
+                    bgcolor="#111827",
+                    shape=ft.RoundedRectangleBorder(radius=12),
+                    side=ft.BorderSide(1, "#1E293B"),
                     padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
                 ),
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Grande Área e Área de Conhecimento (Traduzidos Dinamicamente com quebra de linha em telas pequenas)
+            # 🎨 Grande Área e Área de Conhecimento (Labels #94A3B8, 12px)
             if is_screen_small:
                 area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}\n{t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
             else:
-                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
+                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em VERMELHO e tamanho MAIOR (size 15 BOLD)
+            # 🎨 Métricas de Impacto em VERMELHO VIBRANTE (#E11D48)
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color=ACCENT_RED, size=13 if is_screen_small else 15, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            metrics_txt = ft.Text(metrics_str, color="#E11D48", size=13 if is_screen_small else 14, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Acessar Índice H5" (Nativo + Multilíngue)
+            # 🎨 Botão "Access H5-Index" Dourado/Amarelo Ouro (#F59E0B com fundo #2E2208)
             btn_h5 = ft.Button(
                 t("ver_h5"),
                 icon=ft.Icons.TRACK_CHANGES,
                 url=h5_url,
                 style=ft.ButtonStyle(
-                    color=GOLD_YELLOW,
-                    bgcolor="#0F172A",
-                    shape=ft.RoundedRectangleBorder(radius=8),
-                    side=ft.BorderSide(1, GOLD_YELLOW),
+                    color="#F59E0B",
+                    bgcolor="#2E2208",
+                    shape=ft.RoundedRectangleBorder(radius=12),
+                    side=ft.BorderSide(1, "#F59E0B"),
                     padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
                 ),
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
@@ -1544,8 +1557,8 @@ def main(page: ft.Page):
                 )
 
             card = ft.Container(
-                bgcolor="#0B132B",
-                border_radius=12,
+                bgcolor="#111827",
+                border_radius=16,
                 padding=14,
                 border=ft.Border.all(1, "#1E293B"),
                 content=ft.Column(card_controls, spacing=8)
@@ -1670,21 +1683,27 @@ def main(page: ft.Page):
     )
 
     btn_doar = ft.Button(
-        content=ft.Row([btn_doar_txt], alignment=ft.MainAxisAlignment.CENTER),
+        content=ft.Row([
+            ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=18),
+            ft.Text(t("doacoes"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
         url="https://buymeacoffee.com/scipubs",
-        style=ft.ButtonStyle(color="#000000", bgcolor=ACCENT_YELLOW, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
+        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_doacao
     )
 
     btn_inscrever = ft.Button(
-        content=ft.Row([btn_inscrever_txt], alignment=ft.MainAxisAlignment.CENTER),
-        style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
+        content=ft.Row([
+            ft.Icon(ft.Icons.FLAG, color="#FFFFFF", size=18),
+            ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
+        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_inscricao
     )
 
-    action_buttons_row = ft.Row([btn_busca_tab, btn_rec_tab, btn_doar, btn_inscrever], spacing=8)
+    action_buttons_row = ft.Row([btn_doar, btn_inscrever], spacing=12)
 
     def toggle_sobre(e):
         nonlocal sobre_expandido
@@ -2076,16 +2095,51 @@ def main(page: ft.Page):
         ordem_options = t("ordem_opts")
         per_page_options = ["10", "20", "50", "200"]
 
+        # 🎨 Sistema de Navegação por Abas (Search Journal vs AI Recommender) com indicador vermelho #E11D48
+        is_busca_active = aba_atual == "buscador"
+        is_rec_active = aba_atual == "recomendador"
+
+        tab_busca_color = "#E11D48" if is_busca_active else "#64748B"
+        tab_rec_color = "#E11D48" if is_rec_active else "#64748B"
+
+        tab_busca_item = ft.Container(
+            content=ft.Row([
+                ft.Icon(ft.Icons.SEARCH, color=tab_busca_color, size=18),
+                ft.Text(t("busca_cat"), color=tab_busca_color, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+            padding=ft.Padding(0, 10, 0, 10),
+            border=ft.Border(bottom=ft.BorderSide(3, "#E11D48")) if is_busca_active else None,
+            expand=True,
+            on_click=lambda e: alternar_aba("buscador")
+        )
+
+        tab_rec_item = ft.Container(
+            content=ft.Row([
+                ft.Icon(ft.Icons.AUTO_AWESOME, color=tab_rec_color, size=18),
+                ft.Text(t("busca_ia"), color=tab_rec_color, size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+            padding=ft.Padding(0, 10, 0, 10),
+            border=ft.Border(bottom=ft.BorderSide(3, "#E11D48")) if is_rec_active else None,
+            expand=True,
+            on_click=lambda e: alternar_aba("recomendador")
+        )
+
+        tab_nav_bar = ft.Container(
+            content=ft.Row([tab_busca_item, tab_rec_item], spacing=0),
+            border=ft.Border(bottom=ft.BorderSide(1, "#1E293B")),
+            margin=ft.Margin(0, 4, 0, 8)
+        )
+
         if aba_atual == "buscador":
             search_field = ft.TextField(
                 ref=termo_busca,
                 hint_text=t("placeholder_busca"),
                 prefix_icon=ft.Icons.SEARCH,
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                hint_style=ft.TextStyle(color=TEXT_MUTED, size=13, font_family="Roboto"),
-                border_radius=10,
+                hint_style=ft.TextStyle(color="#94A3B8", size=13, font_family="Roboto"),
+                border_radius=12,
                 on_submit=executar_pesquisa,
                 expand=True
             )
@@ -2095,10 +2149,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(a) for a in curr_areas],
                 value=curr_areas[0],
                 label=t("grande_area_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 on_select=executar_pesquisa,
                 expand=True
             )
@@ -2108,10 +2162,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(db) for db in BASES_DADOS_OPCOES],
                 value=BASES_DADOS_OPCOES[0],
                 label=t("bases_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 on_select=executar_pesquisa,
                 expand=True
             )
@@ -2121,10 +2175,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(q) for q in quartil_options],
                 value=quartil_options[0],
                 label=t("quartil_jcr_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 on_select=executar_pesquisa,
                 expand=True
             )
@@ -2134,10 +2188,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(q) for q in quartil_options],
                 value=quartil_options[0],
                 label=t("quartil_sjr_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 on_select=executar_pesquisa,
                 expand=True
             )
@@ -2147,10 +2201,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(o) for o in ordem_options],
                 value=ordem_options[0],
                 label=t("ordenar_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 on_select=executar_pesquisa,
                 expand=True
             )
@@ -2160,10 +2214,10 @@ def main(page: ft.Page):
                 options=[ft.dropdown.Option(pp) for pp in per_page_options],
                 value=str(itens_por_pagina),
                 label=t("itens_pag_lbl"),
-                bgcolor=INPUT_BG,
-                border_color=BORDER_DARK,
+                bgcolor="#111827",
+                border_color="#1E293B",
                 color="#FFFFFF",
-                border_radius=10,
+                border_radius=12,
                 width=150,
                 on_select=executar_pesquisa
             )
@@ -2171,28 +2225,29 @@ def main(page: ft.Page):
             search_btn = ft.Button(
                 t("pesquisar"),
                 icon=ft.Icons.ARROW_FORWARD,
-                style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_BLUE, padding=ft.Padding(24, 16, 24, 16), shape=ft.RoundedRectangleBorder(radius=10)),
+                style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(24, 16, 24, 16), shape=ft.RoundedRectangleBorder(radius=12)),
                 on_click=executar_pesquisa
             )
 
             if is_mobile:
                 filters_card = ft.Container(
-                    bgcolor="#0F172A",
-                    border_radius=12,
-                    padding=14,
+                    bgcolor="#111827",
+                    border_radius=16,
+                    padding=16,
                     border=ft.Border.all(1, "#1E293B"),
                     content=ft.Column([
                         ft.Row([
-                            ft.Icon(ft.Icons.TUNE, size=18, color=GOLD_YELLOW),
-                            ft.Text("Filters & Sorting", size=15, weight=ft.FontWeight.BOLD, color=GOLD_YELLOW, font_family="Roboto")
+                            ft.Icon(ft.Icons.GRID_VIEW, size=18, color="#F59E0B"),
+                            ft.Text("Filters & Sorting", size=15, weight=ft.FontWeight.BOLD, color="#F59E0B", font_family="Roboto")
                         ], spacing=8),
-                        ft.Row([g_area_select, db_select], spacing=8),
-                        ft.Row([jcr_select, sjr_select], spacing=8),
+                        ft.Row([g_area_select, db_select], spacing=10),
+                        ft.Row([jcr_select, sjr_select], spacing=10),
                         ordem_select
                     ], spacing=10)
                 )
 
                 form_container.content = ft.Column([
+                    tab_nav_bar,
                     search_field,
                     filters_card
                 ], spacing=12)
