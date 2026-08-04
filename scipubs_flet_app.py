@@ -2535,9 +2535,16 @@ def main(page: ft.Page):
         on_click=abrir_drawer
     )
 
-    # Detecta se é um dispositivo Android via User-Agent
-    user_agent_str = str(page.user_agent).lower() if page.user_agent else ""
-    is_android_device = "android" in user_agent_str
+    # Detecta se é um dispositivo Android via User-Agent de forma segura sem exceções
+    user_agent_str = ""
+    try:
+        user_agent_str = str(getattr(page, "client_user_agent", getattr(page, "user_agent", ""))).lower()
+    except Exception:
+        user_agent_str = ""
+
+    is_android_device = ("android" in user_agent_str) or ("mobile" in user_agent_str) or (user_agent_str == "")
+    if "iphone" in user_agent_str or "ipad" in user_agent_str or "macintosh" in user_agent_str:
+        is_android_device = False
 
     btn_apk_android = ft.Button(
         "🤖 Baixar APK Android (Modo Offline)",
