@@ -1655,7 +1655,7 @@ def main(page: ft.Page):
         on_click=abrir_modal_inscricao
     )
 
-    action_buttons_row = ft.Row([btn_busca_tab, btn_rec_tab, btn_pwa, btn_doar, btn_inscrever], spacing=8)
+    action_buttons_row = ft.Row([btn_busca_tab, btn_rec_tab, btn_doar, btn_inscrever], spacing=8)
 
     def toggle_sobre(e):
         nonlocal sobre_expandido
@@ -2404,23 +2404,83 @@ def main(page: ft.Page):
         on_click=fechar_drawer
     )
 
-    mobile_drawer_popup = ft.Container(
-        width=300,
-        bgcolor=SIDEBAR_BG,
-        visible=False,
-        padding=16,
-        border=ft.Border(right=ft.BorderSide(1, "#E2E8F0")),
-        content=ft.Column([
-            ft.Row([
-                ft.Text("Menu Navegação", color="#1E3A8A", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-                ft.IconButton(icon=ft.Icons.CLOSE, icon_color="#1E3A8A", on_click=fechar_drawer)
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Divider(color="#CBD5E1", height=10),
-            ft.Container(content=sidebar_container.content, expand=True)
-        ], spacing=10)
+    # 📱 Botão de Recolher "<<" na cor azul escuro (#04081C)
+    btn_recolher_drawer = ft.IconButton(
+        icon=ft.Icons.KEYBOARD_DOUBLE_ARROW_LEFT,
+        icon_color="#FFFFFF",
+        bgcolor="#04081C",
+        on_click=fechar_drawer,
+        tooltip="Recolher Menu"
     )
 
-    # 📱 3. TOP BAR MOBILE (HAMBÚRGUER BRANCO + LOGO + PÍLULAS DE IDIOMA EN|ES|PT)
+    mobile_drawer_popup = ft.Container(
+        width=300,
+        bgcolor=SIDEBAR_MOBILE_BG,
+        visible=False,
+        padding=16,
+        border=ft.Border(right=ft.BorderSide(1, "#1E293B")),
+        content=ft.Column([
+            ft.Row([
+                ft.Container(),
+                btn_recolher_drawer
+            ], alignment=ft.MainAxisAlignment.END),
+            ft.Container(height=4),
+            btn_fale,
+            ft.Container(height=6),
+            ft.Divider(color="#1E2A42", height=15),
+
+            lbl_indexadores,
+            criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com"),
+            criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic"),
+            criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/"),
+            criar_btn_link("SciELO", "https://www.scielo.br/"),
+            criar_btn_link("Educ@", "http://educa.fcc.org.br/"),
+            criar_btn_link("JSTOR", "https://www.jstor.org/"),
+            criar_btn_link("Latindex", "https://www.latindex.org/latindex/"),
+
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_repositorios,
+            criar_btn_link("ERIC", "https://eric.ed.gov/"),
+            criar_btn_link("BASE", "https://api.base-search.net/"),
+            criar_btn_link("DOAJ", "https://doaj.org/"),
+            criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", ref_ctrl=btn_capes_cat),
+
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_ia,
+            criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai"),
+            criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/"),
+            criar_btn_link("Perplexity", "https://www.perplexity.ai/"),
+            criar_btn_link("ConnectedPapers", "https://www.connectedpapers.com/"),
+            criar_btn_link("Consensus", "https://consensus.app/"),
+            criar_btn_link("SciSpace", "https://scispace.com/"),
+            criar_btn_link("Elicit", "https://elicit.com/"),
+
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_gov,
+            criar_btn_link("CNPq", "https://cnpq.br/"),
+            criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br"),
+            criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", ref_ctrl=btn_lattes),
+            criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", ref_ctrl=btn_periodicos_capes),
+
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_inst,
+            criar_btn_link("UFOP", "https://www.ufop.br"),
+            criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br"),
+            criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", ref_ctrl=btn_musica_ufop),
+            criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", is_pessoal=True, ref_ctrl=btn_pessoal_txt),
+
+            ft.Divider(color="#1E2A42", height=15),
+            lbl_metadata_tit,
+            lbl_system_status,
+            lbl_base_version,
+            lbl_cnpq_std,
+            ft.Container(height=4),
+            lbl_copyright_tit_box,
+            lbl_copyright_desc
+        ], spacing=8, scroll=ft.ScrollMode.AUTO)
+    )
+
+    # 📱 3. TOP BAR MOBILE (HAMBÚRGUER BRANCO + BOTÃO APK ANDROID APENAS PARA DISPOSITIVOS ANDROID + PÍLULAS DE IDIOMA EN|ES|PT)
     def criar_lang_pills_bar():
         def set_lang(lang_str):
             trigger_haptic()
@@ -2468,6 +2528,24 @@ def main(page: ft.Page):
         on_click=abrir_drawer
     )
 
+    # Detecta se é um dispositivo Android via User-Agent
+    user_agent_str = str(page.user_agent).lower() if page.user_agent else ""
+    is_android_device = "android" in user_agent_str
+
+    btn_apk_android = ft.Button(
+        "🤖 Baixar APK Android (Modo Offline)",
+        icon=ft.Icons.ANDROID,
+        url="https://drive.google.com/file/d/19r_aUpqzMS_6mfpfX5R-xV_mVCSgg1NI/view?usp=sharing",
+        style=ft.ButtonStyle(
+            color="#FFFFFF",
+            bgcolor="#059669",
+            shape=ft.RoundedRectangleBorder(radius=8),
+            padding=ft.Padding(8, 4, 8, 4),
+            text_style=ft.TextStyle(size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+        ),
+        visible=is_android_device
+    )
+
     mobile_top_bar = ft.Container(
         height=62,
         bgcolor="#080D1A",
@@ -2475,7 +2553,7 @@ def main(page: ft.Page):
         border=ft.Border(bottom=ft.BorderSide(1, "#1E293B")),
         visible=False,
         content=ft.Row([
-            btn_hamb_white,
+            ft.Row([btn_hamb_white, btn_apk_android], spacing=8),
             criar_lang_pills_bar()
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
     )
