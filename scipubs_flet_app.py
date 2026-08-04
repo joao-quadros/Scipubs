@@ -1029,7 +1029,7 @@ def get_global_engine():
     return _GLOBAL_ENGINE
 
 
-def main(page: ft.Page):
+def main(page: ft.Page, force_mobile: bool = False):
     engine = get_global_engine()
 
     aba_atual = "buscador"
@@ -2096,7 +2096,9 @@ def main(page: ft.Page):
         return ft.Column([header, body], spacing=4)
 
     def render_responsive_layout(e=None):
-        is_mobile = page.width < 900
+        user_agent_str = str(getattr(page, "client_user_agent", getattr(page, "user_agent", ""))).lower()
+        is_mobile_ua = any(kw in user_agent_str for kw in ["mobile", "android", "iphone", "ipad", "ipod"])
+        is_mobile = force_mobile or is_mobile_ua or (page.width is not None and page.width < 900)
         curr_areas = t("areas")
         quartil_options = [t("todos"), "Q1", "Q2", "Q3", "Q4"]
         ordem_options = t("ordem_opts")

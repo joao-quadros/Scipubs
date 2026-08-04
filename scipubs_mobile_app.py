@@ -19,8 +19,8 @@ def main_mobile(page: scipubs_flet_app.ft.Page):
     page.theme_mode = scipubs_flet_app.ft.ThemeMode.DARK
     page.bgcolor = scipubs_flet_app.MAIN_BG
     
-    # Executa o aplicativo Flet
-    scipubs_flet_app.main(page)
+    # Executa o aplicativo Flet forçando a interface mobile
+    scipubs_flet_app.main(page, force_mobile=True)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
