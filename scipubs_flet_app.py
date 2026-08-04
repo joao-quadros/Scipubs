@@ -33,22 +33,24 @@ logging.getLogger("uvicorn").setLevel(logging.WARNING)
 # ==========================================
 # 🎨 PALETA DE CORES EXATA DO SCIPUBS (DESKTOP FINALIZADO + PWA MOBILE)
 # ==========================================
-SIDEBAR_BG = "#F8F6F0"       # Fundo claro oficial da barra lateral Desktop (Beige)
-SIDEBAR_MOBILE_BG = "#04081C" # Fundo escuro do Drawer Mobile
-MAIN_BG = "#080D1A"          # Fundo escuro da área principal
-CARD_BG = "#0B132B"          # Cartões escuros
-INPUT_BG = "#131D30"         # Fundo de campos de texto
-HERO_BLUE = "#040A18"        # Fundo do Banner Principal
-ACCENT_RED = "#FF3B30"       # Vermelho oficial SciPubs
-CORAL_RED = "#FF3B30"
-ACCENT_YELLOW = "#FFCC00"    # Amarelo oficial SciPubs
+SIDEBAR_BG = "#F8F6F0"          # Fundo claro oficial da barra lateral Desktop (Beige)
+SIDEBAR_MOBILE_BG = "#F8F6F0"   # Fundo claro da barra lateral (Beige do Desktop)
+MAIN_BG = "#040A18"             # DeepNavyBackground (Google Studio AI)
+CARD_BG = "#0B132B"             # DarkCardContainer (Google Studio AI)
+INPUT_BG = "#131D38"            # DarkCardContainerElevated (Google Studio AI)
+HERO_BLUE = "#040A18"           # Fundo do Banner Principal
+ACCENT_RED = "#DC2626"          # CoralRedAccent (Google Studio AI)
+CORAL_RED = "#DC2626"
+ACCENT_YELLOW = "#FFCC00"       # GoldMetrics (Google Studio AI)
 GOLD_YELLOW = "#FFCC00"
-ACCENT_GREEN = "#059669"     # Verde Recomendador
+ACCENT_GREEN = "#059669"        # Verde Recomendador
 EMERALD_GREEN = "#059669"
-ACCENT_BLUE = "#2563EB"      # Azul Royal Buscador
+ACCENT_BLUE = "#2563EB"         # Azul Royal Buscador
 ROYAL_BLUE = "#2563EB"
-TEXT_DARK = "#0F172A"        # Texto para fundos claros
-TEXT_MUTED = "#94A3B8"       # Texto secundário
+TEAL_ACCENT = "#06B6D4"         # TealAccent (Google Studio AI)
+TEXT_DARK = "#0F172A"           # Texto para fundos claros
+TEXT_MUTED = "#94A3B8"          # MutedText (Google Studio AI)
+LIGHT_TEXT = "#F8FAFC"          # LightText (Google Studio AI)
 BORDER_DARK = "#1E293B"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -1456,14 +1458,22 @@ def main(page: ft.Page):
                     border=ft.Border.all(1, "#059669")
                 )
 
-            # 🎨 Título da revista em destaque (fonte maior 18 bold) + ISSN ao lado
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=13, font_family="Roboto")
+            is_screen_small = page.width < 600
 
-            title_row = ft.Row([
-                ft.Row([chk_item, title_txt], spacing=8, expand=True),
-                issn_txt
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            # 🎨 Título da revista em destaque (fonte maior 18 bold) + ISSN ao lado
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=16 if is_screen_small else 18, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS, max_lines=3 if is_screen_small else 2)
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12 if is_screen_small else 13, font_family="Roboto")
+
+            if is_screen_small:
+                title_row = ft.Column([
+                    ft.Row([chk_item, title_txt], spacing=8, expand=True),
+                    issn_txt
+                ], spacing=4)
+            else:
+                title_row = ft.Row([
+                    ft.Row([chk_item, title_txt], spacing=8, expand=True),
+                    issn_txt
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             target_site_url = site_url.strip() if site_url and str(site_url).strip() not in ["-", "None", "nan", ""] else f"https://www.google.com/search?q={urllib.parse.quote(titulo_p)}"
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
@@ -1478,17 +1488,20 @@ def main(page: ft.Page):
                     bgcolor="#0F172A",
                     shape=ft.RoundedRectangleBorder(radius=8),
                     side=ft.BorderSide(1, "#1E2A42"),
-                    padding=ft.Padding(12, 6, 12, 6)
+                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
                 ),
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Grande Área e Área de Conhecimento (Traduzidos Dinamicamente)
-            area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
+            # 🎨 Grande Área e Área de Conhecimento (Traduzidos Dinamicamente com quebra de linha em telas pequenas)
+            if is_screen_small:
+                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}\n{t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
+            else:
+                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em VERMELHO e tamanho MAIOR (size 15 BOLD) na mesma linha
+            # 🎨 Métricas de Impacto em VERMELHO e tamanho MAIOR (size 15 BOLD)
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color=ACCENT_RED, size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            metrics_txt = ft.Text(metrics_str, color=ACCENT_RED, size=13 if is_screen_small else 15, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
             # 🎨 Botão "Acessar Índice H5" (Nativo + Multilíngue)
             btn_h5 = ft.Button(
@@ -1500,15 +1513,21 @@ def main(page: ft.Page):
                     bgcolor="#0F172A",
                     shape=ft.RoundedRectangleBorder(radius=8),
                     side=ft.BorderSide(1, GOLD_YELLOW),
-                    padding=ft.Padding(12, 6, 12, 6)
+                    padding=ft.Padding(10, 6, 10, 6) if is_screen_small else ft.Padding(12, 6, 12, 6)
                 ),
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            metrics_row = ft.Row([
-                metrics_txt,
-                btn_h5
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+            if is_screen_small:
+                metrics_row = ft.Column([
+                    metrics_txt,
+                    btn_h5
+                ], spacing=6, cross_axis_alignment=ft.CrossAxisAlignment.START)
+            else:
+                metrics_row = ft.Row([
+                    metrics_txt,
+                    btn_h5
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             card_controls = [
                 title_row,
@@ -1675,15 +1694,15 @@ def main(page: ft.Page):
         sobre_content.visible = sobre_expandido
         page.update()
 
-    sobre_tit_ctrl = ft.Text(t("sobre_tit"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    sobre_tit_ctrl = ft.Text(t("sobre_tit"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=22, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    txt_sub = ft.Text(t("sobre_sub"), color="#FFFFFF", size=14, weight=ft.FontWeight.NORMAL, font_family="Roboto")
-    txt_what = ft.Text(t("sobre_what"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=26, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    txt_sub = ft.Text(t("sobre_sub"), color="#FFFFFF", size=12, weight=ft.FontWeight.NORMAL, font_family="Roboto")
+    txt_what = ft.Text(t("sobre_what"), color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
     def make_code_badge(text):
         return ft.Container(
-            content=ft.Text(text, color="#4ADE80", size=12, font_family="Consolas, monospace", weight=ft.FontWeight.BOLD),
+            content=ft.Text(text, color="#4ADE80", size=11, font_family="Consolas, monospace", weight=ft.FontWeight.BOLD),
             bgcolor="#152C22",
             padding=ft.Padding(5, 2, 5, 2),
             border_radius=4,
@@ -1692,25 +1711,25 @@ def main(page: ft.Page):
 
     def build_item1_row():
         return ft.Row([
-            ft.Text(t("item1_title"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-            ft.Text(t("item1_desc1"), color="#FFFFFF", size=14, font_family="Roboto"),
+            ft.Text(t("item1_title"), color="#FFFFFF", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+            ft.Text(t("item1_desc1"), color="#FFFFFF", size=12, font_family="Roboto"),
             make_code_badge('"music education"'),
-            ft.Text(t("item1_desc2"), color="#FFFFFF", size=14, font_family="Roboto"),
+            ft.Text(t("item1_desc2"), color="#FFFFFF", size=12, font_family="Roboto"),
             make_code_badge("AND"),
-            ft.Text(" , ", color="#FFFFFF", size=14, font_family="Roboto"),
+            ft.Text(" , ", color="#FFFFFF", size=12, font_family="Roboto"),
             make_code_badge("OR"),
-            ft.Text(" , ", color="#FFFFFF", size=14, font_family="Roboto"),
+            ft.Text(" , ", color="#FFFFFF", size=12, font_family="Roboto"),
             make_code_badge("NOT"),
-            ft.Text(t("item1_desc3"), color="#FFFFFF", size=14, font_family="Roboto"),
+            ft.Text(t("item1_desc3"), color="#FFFFFF", size=12, font_family="Roboto"),
             make_code_badge("music AND education NOT medicine"),
-            ft.Text(t("item1_desc4"), color="#FFFFFF", size=14, font_family="Roboto")
+            ft.Text(t("item1_desc4"), color="#FFFFFF", size=12, font_family="Roboto")
         ], wrap=True, spacing=2)
 
     def format_simple_item(title_key, desc_key):
         return ft.Text(spans=[
             ft.TextSpan(t(title_key), style=ft.TextStyle(font_family="Roboto", weight=ft.FontWeight.BOLD, color="#FFFFFF")),
             ft.TextSpan(t(desc_key), style=ft.TextStyle(font_family="Roboto", weight=ft.FontWeight.NORMAL, color="#FFFFFF"))
-        ], size=14)
+        ], size=12)
 
     item1_container = ft.Container(content=build_item1_row())
     item2_ctrl = format_simple_item("item2_title", "item2_desc")
@@ -2425,21 +2444,48 @@ def main(page: ft.Page):
         tooltip="Recolher Menu"
     )
 
+    btn_fale_compact = ft.Container(
+        content=ft.Row([
+            ft.Icon(ft.Icons.EMAIL, color="#FFFFFF", size=14),
+            btn_fale_txt
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+        url="mailto:support@scipubs.com",
+        bgcolor=ACCENT_RED,
+        padding=ft.Padding(8, 6, 12, 6),
+        border_radius=8,
+        on_click=lambda e: abrir_link(page, "mailto:support@scipubs.com"),
+        ink=True
+    )
+
+    header_drawer_row = ft.Row([
+        btn_fale_compact,
+        btn_recolher_drawer
+    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+
+    # Informações de Copyright em BRANCO (#FFFFFF) dentro de container escuro
+    lbl_copyright_tit_white = ft.Text(t("copyright_tit"), color="#FFFFFF", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    lbl_copyright_desc_white = ft.Text(t("copyright_desc"), color="#FFFFFF", size=11, font_family="Roboto")
+    copyright_box_white = ft.Container(
+        bgcolor="#040A18",
+        padding=10,
+        border_radius=8,
+        border=ft.Border.all(1, "#1E293B"),
+        content=ft.Column([
+            lbl_copyright_tit_white,
+            lbl_copyright_desc_white
+        ], spacing=4)
+    )
+
     mobile_drawer_popup = ft.Container(
         width=300,
-        bgcolor=SIDEBAR_MOBILE_BG,
+        bgcolor="#F8F6F0",
         visible=False,
-        padding=16,
-        border=ft.Border(right=ft.BorderSide(1, "#1E293B")),
+        padding=14,
+        border=ft.Border(right=ft.BorderSide(1, "#CBD5E1")),
         content=ft.Column([
-            ft.Row([
-                ft.Container(),
-                btn_recolher_drawer
-            ], alignment=ft.MainAxisAlignment.END),
+            header_drawer_row,
             ft.Container(height=4),
-            btn_fale,
-            ft.Container(height=6),
-            ft.Divider(color="#1E2A42", height=15),
+            ft.Divider(color="#CBD5E1", height=15),
 
             lbl_indexadores,
             criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com"),
@@ -2450,14 +2496,14 @@ def main(page: ft.Page):
             criar_btn_link("JSTOR", "https://www.jstor.org/"),
             criar_btn_link("Latindex", "https://www.latindex.org/latindex/"),
 
-            ft.Divider(color="#1E2A42", height=15),
+            ft.Divider(color="#CBD5E1", height=15),
             lbl_repositorios,
             criar_btn_link("ERIC", "https://eric.ed.gov/"),
             criar_btn_link("BASE", "https://api.base-search.net/"),
             criar_btn_link("DOAJ", "https://doaj.org/"),
             criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", ref_ctrl=btn_capes_cat),
 
-            ft.Divider(color="#1E2A42", height=15),
+            ft.Divider(color="#CBD5E1", height=15),
             lbl_ia,
             criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai"),
             criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/"),
@@ -2467,23 +2513,22 @@ def main(page: ft.Page):
             criar_btn_link("SciSpace", "https://scispace.com/"),
             criar_btn_link("Elicit", "https://elicit.com/"),
 
-            ft.Divider(color="#1E2A42", height=15),
+            ft.Divider(color="#CBD5E1", height=15),
             lbl_gov,
             criar_btn_link("CNPq", "https://cnpq.br/"),
             criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br"),
             criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", ref_ctrl=btn_lattes),
             criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", ref_ctrl=btn_periodicos_capes),
 
-            ft.Divider(color="#1E2A42", height=15),
+            ft.Divider(color="#CBD5E1", height=15),
             lbl_inst,
             criar_btn_link("UFOP", "https://www.ufop.br"),
             criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br"),
             criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", ref_ctrl=btn_musica_ufop),
             criar_btn_link("pessoal_lbl", "https://professor.ufop.br/joaoquadros", is_pessoal=True, ref_ctrl=btn_pessoal_txt),
 
-            ft.Divider(color="#1E2A42", height=15),
-            lbl_copyright_tit,
-            lbl_copyright_desc
+            ft.Divider(color="#CBD5E1", height=15),
+            copyright_box_white
         ], spacing=8, scroll=ft.ScrollMode.AUTO)
     )
 
@@ -2547,7 +2592,7 @@ def main(page: ft.Page):
         is_android_device = False
 
     btn_apk_android = ft.Button(
-        "🤖 Baixar APK Android (Modo Offline)",
+        "🤖 Baixar app",
         icon=ft.Icons.ANDROID,
         url="https://drive.google.com/file/d/19r_aUpqzMS_6mfpfX5R-xV_mVCSgg1NI/view?usp=sharing",
         style=ft.ButtonStyle(
@@ -2572,10 +2617,9 @@ def main(page: ft.Page):
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
     )
 
-    # 📱 4. BOTTOM DOCK MOBILE (3 TOUCH TABS INTERATIVAS SEM REPETIÇÕES)
+    # 📱 4. BOTTOM DOCK MOBILE (2 TOUCH TABS INTERATIVAS: BUSCADOR E IA MATCH)
     btn_dock_busca = ft.IconButton(icon=ft.Icons.SEARCH, icon_color=ACCENT_BLUE, icon_size=24, tooltip="Buscador", on_click=lambda e: (trigger_haptic(), alternar_aba("buscador")))
     btn_dock_rec = ft.IconButton(icon=ft.Icons.AUTO_AWESOME, icon_color=ACCENT_GREEN, icon_size=24, tooltip="Recomendador IA", on_click=lambda e: (trigger_haptic(), alternar_aba("recomendador")))
-    btn_dock_pwa = ft.IconButton(icon=ft.Icons.MOBILE_FRIENDLY, icon_color="#38BDF8", icon_size=24, tooltip="Instalar App", on_click=lambda e: (trigger_haptic(), abrir_modal_pwa(e)))
 
     mobile_bottom_dock = ft.Container(
         height=62,
@@ -2585,8 +2629,7 @@ def main(page: ft.Page):
         visible=False,
         content=ft.Row([
             ft.Column([btn_dock_busca, ft.Text("Buscar", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
-            ft.Column([btn_dock_rec, ft.Text("IA Match", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
-            ft.Column([btn_dock_pwa, ft.Text("PWA App", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
+            ft.Column([btn_dock_rec, ft.Text("IA Match", size=10, color="#FFFFFF", font_family="Roboto")], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0)
         ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
     )
 
