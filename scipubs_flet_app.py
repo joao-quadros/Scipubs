@@ -328,7 +328,7 @@ DIC_TRANSLATE = {
         "database_ia_lbl": "Database (IA)",
         "num_recs_lbl": "Number of desired recommendations (max. 40)",
         "acesse_site": "🌐 Visit Official Journal Website",
-        "ver_h5": "H5-Index",
+        "ver_h5": "Open H5-Index",
         "fechar": "Close",
         "sub_modal_tit": "Join our VIP Community! 🚀",
         "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
@@ -1049,6 +1049,20 @@ def main(page: ft.Page, force_mobile: bool = False):
             return
         executar_pesquisa(e)
 
+    search_timer = [None]
+    def on_search_change(e=None):
+        if is_initial_load:
+            return
+        def do_search():
+            executar_pesquisa()
+        if search_timer[0]:
+            try:
+                search_timer[0].cancel()
+            except Exception:
+                pass
+        search_timer[0] = threading.Timer(0.35, do_search)
+        search_timer[0].start()
+
     def iniciar_busca_voz(e=None):
         lang_code = "en-US" if idioma_atual == "English" else ("es-ES" if idioma_atual == "Español" else "pt-BR")
         try:
@@ -1499,16 +1513,9 @@ def main(page: ft.Page, force_mobile: bool = False):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Checkbox reduzido e alinhado à esquerda
-            chk_item = ft.Checkbox(
-                value=(item_id in revistas_selecionadas),
-                fill_color=ACCENT_RED,
-                scale=0.85,
-                on_change=lambda e, i_id=item_id: on_check_changed(e, i_id)
-            )
-
-            # 🎨 Título do periódico com quebra de linha natural
-            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True)
+            # 🎨 Título do periódico com fonte reduzida para 14px e quebra de linha natural
+            title_txt = ft.Text(titulo_p, color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True)
+            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
             # 🎨 Botão "Visit Official Journal Website" com fonte do mesmo tamanho do ISSN (12px)
             btn_site_oficial = ft.Button(
@@ -1525,22 +1532,20 @@ def main(page: ft.Page, force_mobile: bool = False):
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Caixa azul-escuro com borda brilhante englobando Título + Botão de Website (Clicável para redirecionamento)
+            # 🎨 Container azul-escuro (#161F33) com contorno na cor da fonte do ISSN (#94A3B8) englobando Título, ISSN e Botão Website
             journal_title_box = ft.Container(
                 content=ft.Column([
                     ft.Row([chk_item, title_txt], spacing=4, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                    issn_txt,
                     btn_site_oficial
-                ], spacing=6),
-                bgcolor="#0F172A",
-                border=ft.Border.all(1, "#38BDF8"),
-                border_radius=12,
-                padding=10,
+                ], spacing=4),
+                bgcolor="#161F33",
+                border=ft.Border.all(1, "#94A3B8"),
+                border_radius=10,
+                padding=8,
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p),
                 ink=True
             )
-
-            # 🎨 ISSN posicionado abaixo da caixa do Website do periódico
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
             # 🎨 Grande Área e Área de Conhecimento (Labels #94A3B8, 12px)
             if is_screen_small:
@@ -1575,7 +1580,6 @@ def main(page: ft.Page, force_mobile: bool = False):
 
             card_controls = [
                 journal_title_box,
-                issn_txt,
                 area_info_txt,
                 ft.Container(height=2),
                 metrics_row
@@ -2173,12 +2177,15 @@ def main(page: ft.Page, force_mobile: bool = False):
                 ref=termo_busca,
                 hint_text=t("placeholder_busca"),
                 prefix_icon=ft.Icons.SEARCH,
-                suffix=ft.Row([btn_mic_trigger, btn_search_trigger], spacing=0),
+                suffix=ft.Row([btn_mic_trigger], spacing=0, tight=True),
                 bgcolor="#111827",
                 border_color="#1E293B",
                 color="#FFFFFF",
+                height=42,
+                content_padding=ft.Padding(10, 6, 10, 6),
                 hint_style=ft.TextStyle(color="#94A3B8", size=12, font_family="Roboto"),
                 border_radius=12,
+                on_change=on_search_change,
                 on_submit=executar_pesquisa,
                 expand=True
             )
@@ -2687,8 +2694,7 @@ def main(page: ft.Page, force_mobile: bool = False):
         is_android_device = False
 
     btn_apk_android = ft.Button(
-        "🤖 Baixar app",
-        icon=ft.Icons.ANDROID,
+        "Baixar app",
         url="https://drive.google.com/file/d/19r_aUpqzMS_6mfpfX5R-xV_mVCSgg1NI/view?usp=sharing",
         style=ft.ButtonStyle(
             color="#FFFFFF",
