@@ -324,8 +324,8 @@ DIC_TRANSLATE = {
         "refine_targets": "Refine Search by Database",
         "database_ia_lbl": "Database (IA)",
         "num_recs_lbl": "Number of desired recommendations (max. 40)",
-        "acesse_site": "Visit Website",
-        "ver_h5": "View h5-Index",
+        "acesse_site": "🌐 Visit Official Journal Website",
+        "ver_h5": "Access H5-Index",
         "fechar": "Close",
         "sub_modal_tit": "Join our VIP Community! 🚀",
         "sub_modal_desc": "Leave your email to receive publication tips and platform updates. No spam, we promise.",
@@ -442,8 +442,8 @@ DIC_TRANSLATE = {
         "refine_targets": "Refinar Pesquisa por Base de Dados",
         "database_ia_lbl": "Base de dados (IA)",
         "num_recs_lbl": "Quantidade de recomendações desejadas (máx. 40)",
-        "acesse_site": "Acesse o site",
-        "ver_h5": "Ver Índice-H5",
+        "acesse_site": "🌐 Acessar Site Oficial da Revista",
+        "ver_h5": "Acessar Índice H5",
         "fechar": "Fechar",
         "sub_modal_tit": "Junte-se à nossa Comunidade VIP! 🚀",
         "sub_modal_desc": "Deixe seu e-mail para receber dicas de publicação e novidades da plataforma. Sem spam, prometemos.",
@@ -560,8 +560,8 @@ DIC_TRANSLATE = {
         "refine_targets": "Refinar Búsqueda por Base de Datos",
         "database_ia_lbl": "Bases de datos (IA)",
         "num_recs_lbl": "Cantidad de recomendaciones deseadas (máx. 40)",
-        "acesse_site": "Visitar sitio",
-        "ver_h5": "Ver Índice-H5",
+        "acesse_site": "🌐 Visitar Sitio Oficial de la Revista",
+        "ver_h5": "Acceder al Índice H5",
         "fechar": "Cerrar",
         "sub_modal_tit": "¡Únete a nuestra Comunidad VIP! 🚀",
         "sub_modal_desc": "Deje su correo electrónico para recibir consejos de publicación y actualizaciones. Prometemos: cero spam.",
@@ -1453,9 +1453,14 @@ def main(page: ft.Page):
                 issn_txt
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-            # 🎨 Botão para Acessar o Site Oficial da Revista
+            target_site_url = site_url.strip() if site_url and str(site_url).strip() not in ["-", "None", "nan", ""] else f"https://www.google.com/search?q={urllib.parse.quote(titulo_p)}"
+            if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
+                target_site_url = "https://" + target_site_url
+
+            # 🎨 Botão para Acessar o Site Oficial da Revista (Nativo + Multilíngue)
             btn_site_oficial = ft.Button(
-                "🌐 Acessar Site Oficial da Revista",
+                t("acesse_site"),
+                url=target_site_url,
                 style=ft.ButtonStyle(
                     color="#38BDF8",
                     bgcolor="#0F172A",
@@ -1463,20 +1468,21 @@ def main(page: ft.Page):
                     side=ft.BorderSide(1, "#1E2A42"),
                     padding=ft.Padding(12, 6, 12, 6)
                 ),
-                on_click=lambda e, u=site_url, t_p=titulo_p: abrir_link(page, u, t_p)
+                on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Grande Área e Área de Conhecimento
-            area_info_txt = ft.Text(f"Grande Área: {g_area}   |   Área de Conhecimento: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
+            # 🎨 Grande Área e Área de Conhecimento (Traduzidos Dinamicamente)
+            area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=13, font_family="Roboto")
 
             # 🎨 Métricas de Impacto em VERMELHO e tamanho MAIOR (size 15 BOLD) na mesma linha
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
             metrics_txt = ft.Text(metrics_str, color=ACCENT_RED, size=15, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-            # 🎨 Botão "Acessar Índice H5" (mantido em formato de botão)
+            # 🎨 Botão "Acessar Índice H5" (Nativo + Multilíngue)
             btn_h5 = ft.Button(
-                "Acessar Índice H5",
+                t("ver_h5"),
                 icon=ft.Icons.TRACK_CHANGES,
+                url=h5_url,
                 style=ft.ButtonStyle(
                     color=GOLD_YELLOW,
                     bgcolor="#0F172A",
@@ -1636,6 +1642,7 @@ def main(page: ft.Page):
 
     btn_doar = ft.Button(
         content=ft.Row([btn_doar_txt], alignment=ft.MainAxisAlignment.CENTER),
+        url="https://buymeacoffee.com/scipubs",
         style=ft.ButtonStyle(color="#000000", bgcolor=ACCENT_YELLOW, padding=ft.Padding(16, 14, 16, 14), shape=ft.RoundedRectangleBorder(radius=10)),
         expand=True,
         on_click=abrir_modal_doacao
@@ -1747,6 +1754,7 @@ def main(page: ft.Page):
             ft.Icon(ft.Icons.EMAIL, color="#FFFFFF", size=18),
             btn_fale_txt
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
+        url="mailto:support@scipubs.com",
         bgcolor=ACCENT_RED,
         padding=ft.Padding(12, 12, 12, 12),
         border_radius=8,
@@ -1757,6 +1765,7 @@ def main(page: ft.Page):
 
     btn_win = ft.Button(
         t("baixar_win"),
+        url="https://drive.google.com/",
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor=ACCENT_RED, shape=ft.RoundedRectangleBorder(radius=8), text_style=ft.TextStyle(size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")),
         width=240,
         on_click=lambda e: abrir_link(page, "https://drive.google.com/")
@@ -1866,6 +1875,7 @@ def main(page: ft.Page):
 
         c = ft.Container(
             content=content_row,
+            url=url,
             padding=ft.Padding(10, 8, 10, 8),
             bgcolor="#FFFFFF",
             border_radius=6,
