@@ -2443,9 +2443,9 @@ def main(page: ft.Page, force_mobile: bool = False):
             ], width=RIGHT_COL_WIDTH if not is_mobile else None, spacing=8)
 
             if is_mobile:
-                form_container.content = ft.Column([left_col, right_col], spacing=20)
+                form_container.content = ft.Column([tab_nav_bar, left_col, right_col], spacing=16)
             else:
-                form_container.content = ft.Row([left_col, right_col], spacing=24, vertical_alignment=ft.CrossAxisAlignment.START)
+                form_container.content = ft.Column([tab_nav_bar, ft.Row([left_col, right_col], spacing=24, vertical_alignment=ft.CrossAxisAlignment.START)], spacing=16)
 
         hero_banner_img.src = get_banner_src(idioma_atual, is_mobile=is_mobile)
 
