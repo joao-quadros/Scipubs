@@ -1014,8 +1014,20 @@ def abrir_link(page: ft.Page, url: str, termo_fallback: str = ""):
                 print(f"[AVISO] webbrowser.open falhou: {ex2}")
 
 
+_GLOBAL_ENGINE = None
+
+def get_global_engine():
+    global _GLOBAL_ENGINE
+    if _GLOBAL_ENGINE is None:
+        print("[INIT] Inicializando instância compartilhada Global do SciPubsDataEngine em RAM (< 80MB)...")
+        _GLOBAL_ENGINE = SciPubsDataEngine()
+        import gc
+        gc.collect()
+    return _GLOBAL_ENGINE
+
+
 def main(page: ft.Page):
-    engine = SciPubsDataEngine()
+    engine = get_global_engine()
 
     aba_atual = "buscador"
     botao_selecionado = "buscador"
