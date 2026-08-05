@@ -1513,9 +1513,25 @@ def main(page: ft.Page, force_mobile: bool = False):
             if not target_site_url.startswith("http://") and not target_site_url.startswith("https://") and not target_site_url.startswith("mailto:"):
                 target_site_url = "https://" + target_site_url
 
-            # 🎨 Título do periódico com fonte reduzida para 14px e quebra de linha natural
+            # 🎨 Checkbox do lado direito, com altura obedecendo o texto de 14px e borda da cor do ISSN (#94A3B8)
+            chk_item = ft.Checkbox(
+                value=(item_id in revistas_selecionadas),
+                fill_color="#161F33",
+                check_color="#FFFFFF",
+                border_side=ft.BorderSide(1, "#94A3B8"),
+                scale=0.8,
+                on_change=lambda e, i_id=item_id: on_check_changed(e, i_id)
+            )
+
+            # 🎨 Título do periódico com fonte reduzida para 14px
             title_txt = ft.Text(titulo_p, color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True)
             issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
+
+            # Linha superior do título com o Checkbox na extrema direita
+            title_row = ft.Row([
+                title_txt,
+                chk_item
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
             # 🎨 Botão "Visit Official Journal Website" com fonte do mesmo tamanho do ISSN (12px)
             btn_site_oficial = ft.Button(
@@ -1532,15 +1548,15 @@ def main(page: ft.Page, force_mobile: bool = False):
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Container azul-escuro (#161F33) com contorno na cor da fonte do ISSN (#94A3B8) englobando Título, ISSN e Botão Website
+            # 🎨 Container azul-escuro (#161F33) com borda TRANSPARENTE englobando Título, ISSN e Botão Website
             journal_title_box = ft.Container(
                 content=ft.Column([
-                    ft.Row([chk_item, title_txt], spacing=4, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                    title_row,
                     issn_txt,
                     btn_site_oficial
                 ], spacing=4),
                 bgcolor="#161F33",
-                border=ft.Border.all(1, "#94A3B8"),
+                border=ft.Border.all(1, "transparent"),
                 border_radius=10,
                 padding=8,
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p),
@@ -1553,9 +1569,9 @@ def main(page: ft.Page, force_mobile: bool = False):
             else:
                 area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em AMARELO (#F59E0B)
+            # 🎨 Métricas de Impacto em AMARELO (#F59E0B) reduzidas em 0,5px (10.5px / 11.5px) com tratamento para nao ultrapassar margem
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
-            metrics_txt = ft.Text(metrics_str, color="#F59E0B", size=11 if is_screen_small else 12, weight=ft.FontWeight.BOLD, font_family="Roboto")
+            metrics_txt = ft.Text(metrics_str, color="#F59E0B", size=10.5 if is_screen_small else 11.5, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS)
 
             # 🎨 Botão "H5-Index" Dourado (#F59E0B) com altura reduzida
             btn_h5 = ft.Button(
@@ -1572,9 +1588,9 @@ def main(page: ft.Page, force_mobile: bool = False):
                 on_click=lambda e, u=h5_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # Todas as métricas + botão H5 organizados em uma ÚNICA LINHA
+            # Todas as métricas + botão H5 organizados em uma ÚNICA LINHA sem ultrapassar o container
             metrics_row = ft.Row([
-                metrics_txt,
+                ft.Container(content=metrics_txt, expand=True),
                 btn_h5
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
