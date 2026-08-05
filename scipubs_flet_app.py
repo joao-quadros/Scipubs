@@ -277,6 +277,7 @@ DIC_TRANSLATE = {
         "fale_conosco": "Contact Us",
         "doacoes": "Donate",
         "inscrever": "Subscribe",
+        "displaying_journals": "Displaying journals",
         "baixar_win": "💻 Download Windows Version",
         "sobre_tit": "💡 About SciPubs & How to Use",
         "sobre_head": "Welcome to SciPubs: The Researcher's Portal!",
@@ -366,6 +367,16 @@ DIC_TRANSLATE = {
             "Copy the key and paste it above"
         ],
         "areas": ["All", "Exact and Earth Sciences", "Biological Sciences", "Engineering", "Health Sciences", "Agricultural Sciences", "Applied Social Sciences", "Human Sciences", "Linguistics, Letters and Arts"],
+        "broad_area_map": {
+            "Ciências Exatas e da Terra": "Exact and Earth Sciences",
+            "Ciências Biológicas": "Biological Sciences",
+            "Engenharias": "Engineering",
+            "Ciências da Saúde": "Health Sciences",
+            "Ciências Agrárias": "Agricultural Sciences",
+            "Ciências Sociais Aplicadas": "Applied Social Sciences",
+            "Ciências Humanas": "Human Sciences",
+            "Linguística, Letras e Artes": "Linguistics, Letters and Arts"
+        },
         "ordem_opts": [
             "% Acceptance Probability (highest to lowest)",
             "% Match (highest to lowest)",
@@ -1525,7 +1536,6 @@ def main(page: ft.Page, force_mobile: bool = False):
 
             # 🎨 Título do periódico com fonte reduzida para 14px
             title_txt = ft.Text(titulo_p, color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto", expand=True)
-            issn_txt = ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto")
 
             # Linha superior do título com o Checkbox na extrema direita
             title_row = ft.Row([
@@ -1533,27 +1543,32 @@ def main(page: ft.Page, force_mobile: bool = False):
                 chk_item
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-            # 🎨 Botão "Visit Official Journal Website" com fonte do mesmo tamanho do ISSN (12px)
+            # 🎨 Botão "Visit Official Journal Website" ao lado do ISSN
             btn_site_oficial = ft.Button(
                 t("acesse_site"),
                 url=target_site_url,
                 style=ft.ButtonStyle(
                     color="#38BDF8",
                     bgcolor="#111827",
-                    shape=ft.RoundedRectangleBorder(radius=10),
+                    shape=ft.RoundedRectangleBorder(radius=8),
                     side=ft.BorderSide(1, "#1E293B"),
-                    padding=ft.Padding(8, 4, 8, 4),
-                    text_style=ft.TextStyle(size=12, font_family="Roboto")
+                    padding=ft.Padding(6, 3, 6, 3),
+                    text_style=ft.TextStyle(size=11, font_family="Roboto")
                 ),
                 on_click=lambda e, u=target_site_url, t_p=titulo_p: abrir_link(page, u, t_p)
             )
 
-            # 🎨 Container azul-escuro (#161F33) com borda TRANSPARENTE englobando Título, ISSN e Botão Website
+            # ISSN + botão do Website na mesma linha
+            issn_site_row = ft.Row([
+                ft.Text(f"ISSN: {issn}", color="#94A3B8", size=12, font_family="Roboto"),
+                btn_site_oficial
+            ], spacing=6, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+
+            # 🎨 Container azul-escuro (#161F33) com borda TRANSPARENTE englobando Título, ISSN+Website
             journal_title_box = ft.Container(
                 content=ft.Column([
                     title_row,
-                    issn_txt,
-                    btn_site_oficial
+                    issn_site_row
                 ], spacing=4),
                 bgcolor="#161F33",
                 border=ft.Border.all(1, "transparent"),
@@ -1563,13 +1578,17 @@ def main(page: ft.Page, force_mobile: bool = False):
                 ink=True
             )
 
+            # 🌍 Tradução da Grande Área conforme idioma
+            broad_area_map = t("broad_area_map") if isinstance(t("broad_area_map"), dict) else {}
+            g_area_display = broad_area_map.get(g_area, g_area) if idioma_atual == "English" else g_area
+
             # 🎨 Grande Área e Área de Conhecimento (Labels #94A3B8, 12px)
             if is_screen_small:
-                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}\n{t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
+                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area_display}\n{t('area_lbl')}: {area_item}", color="#94A3B8", size=11, font_family="Roboto")
             else:
-                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=12, font_family="Roboto")
+                area_info_txt = ft.Text(f"{t('grande_area_lbl')}: {g_area_display}   |   {t('area_lbl')}: {area_item}", color="#94A3B8", size=11, font_family="Roboto")
 
-            # 🎨 Métricas de Impacto em AMARELO (#F59E0B) reduzidas em 0,5px (10.5px / 11.5px) com tratamento para nao ultrapassar margem
+            # 🎨 Métricas de Impacto em AMARELO (#F59E0B) reduzidas em 0,5px com overflow protegido
             metrics_str = f"JIF: {fator} ({q_jcr})   |   SJR: {val_sjr} ({q_sjr})   |   H-Index: {h_idx}"
             metrics_txt = ft.Text(metrics_str, color="#F59E0B", size=10.5 if is_screen_small else 11.5, weight=ft.FontWeight.BOLD, font_family="Roboto", overflow=ft.TextOverflow.ELLIPSIS)
 
@@ -1737,16 +1756,22 @@ def main(page: ft.Page, force_mobile: bool = False):
     )
 
     btn_doar = ft.Button(
-        t("doacoes"),
+        content=ft.Row([
+            ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=16),
+            ft.Text(t("doacoes"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6, tight=True),
         url="https://buymeacoffee.com/scipubs",
-        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
+        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(12, 10, 12, 10), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_doacao
     )
 
     btn_inscrever = ft.Button(
-        t("inscrever"),
-        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(14, 12, 14, 12), shape=ft.RoundedRectangleBorder(radius=12)),
+        content=ft.Row([
+            ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=16),
+            ft.Text(t("inscrever"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=6, tight=True),
+        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(12, 10, 12, 10), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
         on_click=abrir_modal_inscricao
     )
@@ -2154,8 +2179,9 @@ def main(page: ft.Page, force_mobile: bool = False):
 
         tab_busca_item = ft.Container(
             content=ft.Row([
+                ft.Icon(ft.Icons.SEARCH, color=tab_busca_color, size=14),
                 ft.Text(t("busca_cat"), color=tab_busca_color, size=11, weight=ft.FontWeight.BOLD, font_family="Roboto")
-            ], alignment=ft.MainAxisAlignment.CENTER, spacing=6),
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=4, tight=True),
             padding=ft.Padding(0, 8, 0, 8),
             border=ft.Border(bottom=ft.BorderSide(3, "#E11D48")) if is_busca_active else None,
             expand=True,
@@ -2299,25 +2325,31 @@ def main(page: ft.Page, force_mobile: bool = False):
             if is_mobile:
                 filters_card = ft.Container(
                     bgcolor="#111827",
-                    border_radius=16,
-                    padding=14,
+                    border_radius=12,
+                    padding=10,
                     border=ft.Border.all(1, "#1E293B"),
                     content=ft.Column([
                         ft.Row([
-                            ft.Icon(ft.Icons.GRID_VIEW, size=16, color="#F59E0B"),
-                            ft.Text("Filters & Sorting", size=12, weight=ft.FontWeight.BOLD, color="#F59E0B", font_family="Roboto")
-                        ], spacing=8),
-                        ft.Row([g_area_select, db_select], spacing=8),
-                        ft.Row([jcr_select, sjr_select], spacing=8),
+                            ft.Icon(ft.Icons.GRID_VIEW, size=14, color="#F59E0B"),
+                            ft.Text("Filters & Sorting", size=11, weight=ft.FontWeight.BOLD, color="#F59E0B", font_family="Roboto")
+                        ], spacing=6),
+                        ft.Row([g_area_select, db_select], spacing=6),
+                        ft.Row([jcr_select, sjr_select], spacing=6),
                         ordem_select
-                    ], spacing=8)
+                    ], spacing=6)
+                )
+
+                lbl_displaying = ft.Text(
+                    f"{t('displaying_journals')}: {len(resultados_totais_atuais)}",
+                    color=TEXT_MUTED, size=11, font_family="Roboto"
                 )
 
                 form_container.content = ft.Column([
                     tab_nav_bar,
                     search_field,
-                    filters_card
-                ], spacing=12)
+                    filters_card,
+                    lbl_displaying
+                ], spacing=8)
             else:
                 form_container.content = ft.Column([
                     ft.Text(t("cat_tit"), size=22, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto"),
@@ -2757,7 +2789,7 @@ def main(page: ft.Page, force_mobile: bool = False):
     main_content_area = ft.Container(
         expand=True,
         bgcolor=MAIN_BG,
-        padding=16,
+        padding=ft.Padding(12, 8, 12, 8),
         content=ft.Column([
             hero_card,
             sobre_expander,
@@ -2765,9 +2797,9 @@ def main(page: ft.Page, force_mobile: bool = False):
             form_container,
             ft.Container(content=lista_resultados, expand=True),
             bottom_results_bar,
-            ft.Divider(color=BORDER_DARK, height=20),
+            ft.Divider(color=BORDER_DARK, height=10),
             bottom_export_row
-        ], spacing=14, scroll=ft.ScrollMode.AUTO)
+        ], spacing=8, scroll=ft.ScrollMode.AUTO)
     )
 
     body_stack = ft.Stack([
@@ -2787,6 +2819,28 @@ def main(page: ft.Page, force_mobile: bool = False):
     render_responsive_layout()
     renderizar_pagina()
     is_initial_load = False
+
+    # ♿ Injetar VLibras (suite de acessibilidade LIBRAS + ARIA + widgets) após carregamento
+    try:
+        page.run_js("""
+(function() {
+    if (document.getElementById('vlibras-widget')) return;
+    var div = document.createElement('div');
+    div.setAttribute('vw', '');
+    div.setAttribute('class', 'enabled');
+    div.innerHTML = '<div vw-access-button class="active"></div><div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
+    document.body.appendChild(div);
+    var script = document.createElement('script');
+    script.id = 'vlibras-widget';
+    script.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
+    script.onload = function() {
+        try { new window.VLibras.Widget('https://vlibras.gov.br/app'); } catch(e) {}
+    };
+    document.head.appendChild(script);
+})();
+""")
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
