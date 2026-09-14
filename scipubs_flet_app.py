@@ -274,7 +274,7 @@ DIC_TRANSLATE = {
         "copyright_tit": "Copyright & Ownership:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nFederal University of Ouro Preto\nMinas Gerais, Brazil.\nAll rights reserved.",
         "busca_cat": "Journal Finder",
-        "busca_ia": "Smart Recommender (AI)",
+        "busca_ia": "Smart Recommender",
         "fale_conosco": "Contact Us",
         "doacoes": "Donate",
         "inscrever": "Subscribe",
@@ -403,10 +403,10 @@ DIC_TRANSLATE = {
         "copyright_tit": "Direitos Autorais:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidade Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos os direitos reservados.",
         "busca_cat": "🔎 Buscador de Periódicos",
-        "busca_ia": "Recomendador Inteligente Híbrido (IA + TF-IDF)",
+        "busca_ia": "Recomendador Inteligente",
         "fale_conosco": "Fale conosco",
-        "doacoes": "☕ Doações",
-        "inscrever": "✉️ Inscrever-se",
+        "doacoes": "Doar",
+        "inscrever": "Inscrever-se",
         "baixar_win": "💻 Baixar Versão para Windows",
         "sobre_tit": "💡 Sobre o SciPubs & Como Usar",
         "sobre_head": "Bem-vindo ao SciPubs: O Portal do Pesquisador!",
@@ -521,10 +521,10 @@ DIC_TRANSLATE = {
         "copyright_tit": "Derechos de Autor:",
         "copyright_desc": "© 2026 João F. Soares-Quadros Jr.\nUniversidad Federal de Ouro Preto\nMinas Gerais, Brasil.\nTodos los derechos reservados.",
         "busca_cat": "🔎 Buscador de Revistas",
-        "busca_ia": "Recomendador Inteligente Híbrido (IA + TF-IDF)",
+        "busca_ia": "Recomendador Inteligente",
         "fale_conosco": "Contáctenos",
-        "doacoes": "☕ Donaciones",
-        "inscrever": "✉️ Suscribirse",
+        "doacoes": "Donar",
+        "inscrever": "Suscribirse",
         "baixar_win": "💻 Descargar Versión para Windows",
         "sobre_tit": "💡 Sobre SciPubs y Cómo Usar",
         "sobre_head": "¡Bienvenido a SciPubs: El Portal del Investigador!",
@@ -1708,11 +1708,27 @@ def main(page: ft.Page, force_mobile: bool = False):
         render_responsive_layout()
         executar_pesquisa()
 
-    lbl_indexadores = ft.Text(t("indexadores_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
-    lbl_repositorios = ft.Text(t("repositorios_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
-    lbl_ia = ft.Text(t("ia_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
-    lbl_gov = ft.Text(t("gov_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
-    lbl_inst = ft.Text(t("inst_tit"), size=12, weight=ft.FontWeight.BOLD, color="#000000", font_family="Roboto")
+    lbl_indexadores = ft.Text(t("indexadores_tit"), size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto")
+    lbl_repositorios = ft.Text(t("repositorios_tit"), size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto")
+    lbl_ia = ft.Text(t("ia_tit"), size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto")
+    lbl_gov = ft.Text(t("gov_tit"), size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto")
+    lbl_inst = ft.Text(t("inst_tit"), size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF", font_family="Roboto")
+
+    def make_section_header(txt_ctrl):
+        return ft.Container(
+            content=txt_ctrl,
+            bgcolor="#0F172A",
+            padding=ft.Padding(10, 6, 10, 6),
+            border_radius=6,
+            width=240,
+            alignment=ft.Alignment(-1, 0)
+        )
+
+    hdr_indexadores = make_section_header(lbl_indexadores)
+    hdr_repositorios = make_section_header(lbl_repositorios)
+    hdr_ia = make_section_header(lbl_ia)
+    hdr_gov = make_section_header(lbl_gov)
+    hdr_inst = make_section_header(lbl_inst)
     btn_pessoal_txt = ft.Ref[ft.Text]()
 
     btn_busca_txt = ft.Text(t("busca_cat"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
@@ -2069,7 +2085,7 @@ def main(page: ft.Page, force_mobile: bool = False):
             nav_tit_ctrl,
             ft.Divider(color="#CBD5E1", height=15),
 
-            lbl_indexadores,
+            hdr_indexadores,
             criar_btn_link("Web of Science", "https://access.clarivate.com/login?app=wos&alternative=true&goto=https:%2F%2Fwww.webofknowledge.com", "wos.png", ft.Icons.PUBLIC),
             criar_btn_link("Scopus", "https://www.scopus.com/pages/home?display=basic#basic", "scopus.png", ft.Icons.SEARCH),
             criar_btn_link("PubMed", "https://pubmed.ncbi.nlm.nih.gov/", "pubmed.png", ft.Icons.LOCAL_HOSPITAL),
@@ -2079,14 +2095,14 @@ def main(page: ft.Page, force_mobile: bool = False):
             criar_btn_link("Latindex", "https://www.latindex.org/latindex/", "latindex.png", ft.Icons.LANGUAGE),
 
             ft.Divider(color="#CBD5E1", height=15),
-            lbl_repositorios,
+            hdr_repositorios,
             criar_btn_link("ERIC", "https://eric.ed.gov/", "eric.png", ft.Icons.FOLDER_SPECIAL),
             criar_btn_link("BASE", "https://api.base-search.net/", "base.png", ft.Icons.STORAGE),
             criar_btn_link("DOAJ", "https://doaj.org/", "doaj.png", ft.Icons.OPEN_IN_BROWSER),
             criar_btn_link("cat_capes_lbl", "https://catalogodeteses.capes.gov.br/catalogo-teses/#!/", "capes_cat.png", ft.Icons.ACCOUNT_BALANCE, ref_ctrl=btn_capes_cat),
 
             ft.Divider(color="#CBD5E1", height=15),
-            lbl_ia,
+            hdr_ia,
             criar_btn_link("ScopusAI", "https://www.scopus.com/pages/home#scopus-ai", "scopus_ai.png", ft.Icons.AUTO_AWESOME),
             criar_btn_link("LeapSpace", "https://researcher.elsevier.com/", "leapspace.jpg", ft.Icons.EXPLORE),
             criar_btn_link("ResearchRabbit", "https://www.researchrabbit.ai/", "researchrabbit.jpg", ft.Icons.PSYCHOLOGY),
@@ -2099,14 +2115,14 @@ def main(page: ft.Page, force_mobile: bool = False):
             criar_btn_link("PubMed.AI", "https://www.pubmed.ai/home", "pubmed_ai.png", ft.Icons.MEDICATION),
 
             ft.Divider(color="#CBD5E1", height=15),
-            lbl_gov,
+            hdr_gov,
             criar_btn_link("CNPq", "https://cnpq.br/", "cnpq.png", ft.Icons.ASSURED_WORKLOAD),
             criar_btn_link("CAPES", "https://www.gov.br/capes/pt-br", "capes.png", ft.Icons.ACCOUNT_BALANCE),
             criar_btn_link("lattes_lbl", "https://lattes.cnpq.br/", "lattes.png", ft.Icons.ARTICLE, ref_ctrl=btn_lattes),
             criar_btn_link("periodicos_capes_lbl", "https://www.periodicos.capes.gov.br/", "periodicos_capes.png", ft.Icons.LIBRARY_BOOKS, ref_ctrl=btn_periodicos_capes),
 
             ft.Divider(color="#CBD5E1", height=15),
-            lbl_inst,
+            hdr_inst,
             criar_btn_link("UFOP", "https://www.ufop.br", "ufop.png", ft.Icons.SCHOOL),
             criar_btn_link("PPGE-UFOP", "https://www.posedu.ufop.br", "ppge.png", ft.Icons.CAST_FOR_EDUCATION),
             criar_btn_link("musica_ufop_lbl", "https://www.musica.ufop.br", "musica_ufop.png", ft.Icons.MUSIC_NOTE, ref_ctrl=btn_musica_ufop),
