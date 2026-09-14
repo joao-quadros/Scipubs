@@ -1733,8 +1733,8 @@ def main(page: ft.Page, force_mobile: bool = False):
 
     btn_busca_txt = ft.Text(t("busca_cat"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
     btn_rec_txt = ft.Text(t("busca_ia"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    btn_doar_txt = ft.Text(t("doacoes"), color="#000000", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    btn_inscrever_txt = ft.Text(t("inscrever"), color="#FFFFFF", size=14, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    btn_doar_txt = ft.Text(t("doacoes"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
+    btn_inscrever_txt = ft.Text(t("inscrever"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
 
     btn_busca_tab = ft.Button(
         content=ft.Row([btn_busca_txt], alignment=ft.MainAxisAlignment.CENTER),
@@ -1764,18 +1764,10 @@ def main(page: ft.Page, force_mobile: bool = False):
         on_click=lambda e: alternar_aba("recomendador")
     )
 
-    btn_pwa_txt = ft.Text("📱 App Mobile", color="#FFFFFF", size=13, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    btn_pwa = ft.Button(
-        content=ft.Row([btn_pwa_txt], alignment=ft.MainAxisAlignment.CENTER),
-        style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#0284C7", padding=ft.Padding(14, 14, 14, 14), shape=ft.RoundedRectangleBorder(radius=10)),
-        expand=True,
-        on_click=abrir_modal_pwa
-    )
-
     btn_doar = ft.Button(
         content=ft.Row([
             ft.Icon(ft.Icons.FAVORITE, color="#FFFFFF", size=16),
-            ft.Text(t("doacoes"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
+            btn_doar_txt
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=6, tight=True),
         url="https://buymeacoffee.com/scipubs",
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#10B981", padding=ft.Padding(12, 10, 12, 10), shape=ft.RoundedRectangleBorder(radius=12)),
@@ -1786,7 +1778,7 @@ def main(page: ft.Page, force_mobile: bool = False):
     btn_inscrever = ft.Button(
         content=ft.Row([
             ft.Icon(ft.Icons.ASSIGNMENT_IND, color="#FFFFFF", size=16),
-            ft.Text(t("inscrever"), color="#FFFFFF", size=13, font_family="Roboto", weight=ft.FontWeight.BOLD)
+            btn_inscrever_txt
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=6, tight=True),
         style=ft.ButtonStyle(color="#FFFFFF", bgcolor="#3B82F6", padding=ft.Padding(12, 10, 12, 10), shape=ft.RoundedRectangleBorder(radius=12)),
         expand=True,
@@ -1801,15 +1793,15 @@ def main(page: ft.Page, force_mobile: bool = False):
         sobre_content.visible = sobre_expandido
         page.update()
 
-    sobre_tit_ctrl = ft.Text(t("sobre_tit"), color="#FFFFFF", size=18, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    sobre_tit_ctrl = ft.Text(t("sobre_tit"), color="#FFFFFF", size=21, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
-    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=21, weight=ft.FontWeight.BOLD, font_family="Roboto")
-    txt_sub = ft.Text(t("sobre_sub"), color="#FFFFFF", size=12, weight=ft.FontWeight.NORMAL, font_family="Roboto")
-    txt_what = ft.Text(t("sobre_what"), color="#FFFFFF", size=16, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    txt_head = ft.Text(t("sobre_head"), color="#FFFFFF", size=24, weight=ft.FontWeight.BOLD, font_family="Roboto")
+    txt_sub = ft.Text(t("sobre_sub"), color="#FFFFFF", size=15, weight=ft.FontWeight.NORMAL, font_family="Roboto")
+    txt_what = ft.Text(t("sobre_what"), color="#FFFFFF", size=19, weight=ft.FontWeight.BOLD, font_family="Roboto")
 
     def make_code_badge(text):
         return ft.Container(
-            content=ft.Text(text, color="#4ADE80", size=11, font_family="Consolas, monospace", weight=ft.FontWeight.BOLD),
+            content=ft.Text(text, color="#4ADE80", size=14, font_family="Consolas, monospace", weight=ft.FontWeight.BOLD),
             bgcolor="#152C22",
             padding=ft.Padding(5, 2, 5, 2),
             border_radius=4,
@@ -1818,25 +1810,25 @@ def main(page: ft.Page, force_mobile: bool = False):
 
     def build_item1_row():
         return ft.Row([
-            ft.Text(t("item1_title"), color="#FFFFFF", size=12, weight=ft.FontWeight.BOLD, font_family="Roboto"),
-            ft.Text(t("item1_desc1"), color="#FFFFFF", size=12, font_family="Roboto"),
+            ft.Text(t("item1_title"), color="#FFFFFF", size=15, weight=ft.FontWeight.BOLD, font_family="Roboto"),
+            ft.Text(t("item1_desc1"), color="#FFFFFF", size=15, font_family="Roboto"),
             make_code_badge('"music education"'),
-            ft.Text(t("item1_desc2"), color="#FFFFFF", size=12, font_family="Roboto"),
+            ft.Text(t("item1_desc2"), color="#FFFFFF", size=15, font_family="Roboto"),
             make_code_badge("AND"),
-            ft.Text(" , ", color="#FFFFFF", size=12, font_family="Roboto"),
+            ft.Text(" , ", color="#FFFFFF", size=15, font_family="Roboto"),
             make_code_badge("OR"),
-            ft.Text(" , ", color="#FFFFFF", size=12, font_family="Roboto"),
+            ft.Text(" , ", color="#FFFFFF", size=15, font_family="Roboto"),
             make_code_badge("NOT"),
-            ft.Text(t("item1_desc3"), color="#FFFFFF", size=12, font_family="Roboto"),
+            ft.Text(t("item1_desc3"), color="#FFFFFF", size=15, font_family="Roboto"),
             make_code_badge("music AND education NOT medicine"),
-            ft.Text(t("item1_desc4"), color="#FFFFFF", size=12, font_family="Roboto")
+            ft.Text(t("item1_desc4"), color="#FFFFFF", size=15, font_family="Roboto")
         ], wrap=True, spacing=2)
 
     def format_simple_item(title_key, desc_key):
         return ft.Text(spans=[
             ft.TextSpan(t(title_key), style=ft.TextStyle(font_family="Roboto", weight=ft.FontWeight.BOLD, color="#FFFFFF")),
             ft.TextSpan(t(desc_key), style=ft.TextStyle(font_family="Roboto", weight=ft.FontWeight.NORMAL, color="#FFFFFF"))
-        ], size=12)
+        ], size=15)
 
     item1_container = ft.Container(content=build_item1_row())
     item2_ctrl = format_simple_item("item2_title", "item2_desc")
